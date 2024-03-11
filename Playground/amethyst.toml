@@ -1,0 +1,4 @@
+namespace = "amethyst"
+description = "Test project for the amethyst compiler"
+pack_format = 18
+output = "out"

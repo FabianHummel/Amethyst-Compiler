@@ -1,0 +1,4 @@
+ticking function main() {
+    #comment
+    println("Hello, world!" + 8)
+}

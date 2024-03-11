@@ -1,0 +1,24 @@
+namespace Amethyst;
+
+public enum TokenType
+{
+    KWD_FUNCTION,
+    KWD_TICKING,
+    KWD_INITIALIZING,
+    PAREN_OPEN,
+    PAREN_CLOSE,
+    BRACE_OPEN,
+    BRACE_CLOSE,
+    BRACKET_OPEN,
+    BRACKET_CLOSE,
+    LITERAL_STRING,
+    LITERAL_NUMBER,
+    IDENTIFIER,
+    SEMICOLON,
+    OP_ADD,
+    OP_SUB,
+    OP_MUL,
+    OP_DIV,
+    OP_MOD,
+    COMMA
+}
