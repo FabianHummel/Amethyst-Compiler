@@ -20,8 +20,9 @@ internal static class Program
             {
                 Console.Out.WriteLine("Compiling " + target);
                 var input = File.ReadAllText(target);
-                var tokens = Lexer.Tokenize(input).ToList(); 
-                /* var ast = */ Parser.Parse(tokens);
+                var tokens = Lexer.Tokenize(input);
+                var nodes = Parser.Parse(tokens);
+                var code = Generator.Generate(nodes);
             }
         }
     }

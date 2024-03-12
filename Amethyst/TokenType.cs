@@ -5,6 +5,8 @@ public enum TokenType
     KWD_FUNCTION,
     KWD_TICKING,
     KWD_INITIALIZING,
+    KWD_NAMESPACE,
+    KWD_VARIABLE,
     PAREN_OPEN,
     PAREN_CLOSE,
     BRACE_OPEN,
@@ -15,10 +17,11 @@ public enum TokenType
     LITERAL_NUMBER,
     IDENTIFIER,
     SEMICOLON,
+    COMMA,
     OP_ADD,
     OP_SUB,
     OP_MUL,
     OP_DIV,
     OP_MOD,
-    COMMA
+    OP_ASSIGN
 }

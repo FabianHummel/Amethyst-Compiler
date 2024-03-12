@@ -2,20 +2,29 @@ namespace Amethyst;
 
 public static class Parser
 {
-    public static void Parse(List<(TokenType type, string info)> input)
+    public static IEnumerable<AstNode> Parse(IList<(TokenType type, string info)> input)
     {
-        int i = 0;
-        while (i < input.Count && input.Count > 0)
+        var nodes = new List<AstNode>();
+        while (input.Count > 0)
         {
-            var token = input[i];
-            
-            if (token.type is TokenType.KWD_FUNCTION or TokenType.KWD_TICKING or TokenType.KWD_INITIALIZING)
+            if (input[0].type is TokenType.KWD_VARIABLE)
             {
-                var function = Function.Consume(input);
-                Console.Out.WriteLine("Parsed function " + function.Name);
+                nodes.Add(Variable.Consume(input));
             }
-            
-            i++;
+            else if (input[0].type is TokenType.KWD_FUNCTION or TokenType.KWD_TICKING or TokenType.KWD_INITIALIZING)
+            {
+                nodes.Add(Function.Consume(input));
+            }
+            else if (input[0].type is TokenType.KWD_NAMESPACE)
+            {
+                nodes.Add(Namespace.Consume(input));
+            }
+            else
+            {
+                // something could not be parsed (just skip it)
+                input.RemoveAt(0);
+            }
         }
+        return nodes;
     }
 }

@@ -1,4 +1,14 @@
+var x = 5
+
 ticking function main() {
     #comment
-    println("Hello, world!" + 8)
+    println("Hello, world!" + (8 + x))
+    
+    var y = "Nice!"
+}
+
+namespace my_namespace {
+    function my_function() {
+        println("Hello, world!")
+    }
 }

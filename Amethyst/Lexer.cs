@@ -7,6 +7,8 @@ public static partial class Lexer
         { "function", TokenType.KWD_FUNCTION },
         { "ticking", TokenType.KWD_TICKING },
         { "initializing", TokenType.KWD_INITIALIZING },
+        { "namespace", TokenType.KWD_NAMESPACE },
+        { "var", TokenType.KWD_VARIABLE },
         { "(", TokenType.PAREN_OPEN },
         { ")", TokenType.PAREN_CLOSE },
         { "{", TokenType.BRACE_OPEN },
@@ -19,13 +21,15 @@ public static partial class Lexer
         { "-", TokenType.OP_SUB },
         { "*", TokenType.OP_MUL },
         { "/", TokenType.OP_DIV },
-        { "%", TokenType.OP_MOD }
+        { "%", TokenType.OP_MOD },
+        { "=", TokenType.OP_ASSIGN },
     };
     
-    private const string DELIMITER = @" (){}[];+-*/%\.:,#";
+    private const string DELIMITER = " (){}[];+-*=/%\\.:,#\n";
     
-    public static IEnumerable<(TokenType, string)> Tokenize(string input)
+    public static IList<(TokenType, string)> Tokenize(string input)
     {
+        var tokens = new List<(TokenType, string)>();
         int i = 0;
         string token = string.Empty;
         while (i < input.Length)
@@ -36,17 +40,17 @@ public static partial class Lexer
             {
                 if (TOKENS.TryGetValue(token, out var type))
                 {
-                    yield return (type, token);
+                    tokens.Add((type, token));
                     token = string.Empty;
                 }
                 else if (int.TryParse(token, out _))
                 { 
-                    yield return (TokenType.LITERAL_NUMBER, token);
+                    tokens.Add((TokenType.LITERAL_NUMBER, token));
                     token = string.Empty;
                 }
                 else if (!string.IsNullOrWhiteSpace(token))
                 {
-                    yield return (TokenType.IDENTIFIER, token);
+                    tokens.Add((TokenType.IDENTIFIER, token));
                     token = string.Empty;
                 }
             }
@@ -67,7 +71,7 @@ public static partial class Lexer
                     token += input[i];
                     i++;
                 }
-                yield return (TokenType.LITERAL_STRING, token);
+                tokens.Add((TokenType.LITERAL_STRING, token));
                 token = string.Empty;
             }
             else if (input[i] == '#')
@@ -80,11 +84,13 @@ public static partial class Lexer
             }
             else if (TOKENS.TryGetValue(token, out var type))
             {
-                yield return (type, token);
+                tokens.Add((type, token));
                 token = string.Empty;
             }
             
             i++;
         }
+        
+        return tokens;
     }
 }

@@ -1,29 +1,83 @@
 namespace Amethyst;
 
-public interface AstNode<out T>
+public interface AstNode
 {
-    static abstract T Consume(List<(TokenType type, string info)> input);
+    string ToCode(AstContext context);
+}
+
+internal interface AstNode<out T> : AstNode
+{
+    static abstract T Consume(IList<(TokenType type, string info)> input);
+}
+
+public class Variable : AstNode<Variable>
+{
+    public enum VariableType
+    {
+        Number,
+        String,
+        Boolean,
+        Object,
+        Array
+    }
+    
+    public string Name { get; private set; }
+    public VariableType Type { get; private set; }
+    public string Value { get; private set; }
+    
+    public static Variable Consume(IList<(TokenType type, string info)> input)
+    {
+        if (input[0].type != TokenType.KWD_VARIABLE)
+        {
+            throw new Exception("Expected 'var'");
+        }
+        input.RemoveAt(0);
+        
+        var name = Identifier.Consume(input);
+        
+        if (input[0].type != TokenType.OP_ASSIGN)
+        {
+            throw new Exception("Expected '='");
+        }
+        input.RemoveAt(0);
+        
+        var value = input[0].info;
+        input.RemoveAt(0);
+        
+        return new Variable
+        {
+            Name = name,
+            Type = VariableType.String, // TODO: infer type (if function call -> use return type)
+            Value = value
+        };
+    }
+
+    public string ToCode(AstContext context)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public class Function : AstNode<Function>
 {
     public string Name { get; private set; }
     public FunctionDecorators Decorators { get; private set; }
-    public FunctionArguments Arguments { get; private set; }
-    public FunctionBody Body { get; private set; }
+    public IEnumerable<string> Arguments { get; private set; }
+    public IEnumerable<AstNode> Body { get; private set; }
+    // TODO: return type
     
-    public static Function Consume(List<(TokenType type, string info)> input)
+    public static Function Consume(IList<(TokenType type, string info)> input)
     {
-        
         var decorators = FunctionDecorators.Consume(input);
         if (input[0].type != TokenType.KWD_FUNCTION)
         {
             throw new Exception("Expected 'function'");
         }
         input.RemoveAt(0);
-        var name = FunctionIdentifier.Consume(input);
-        var arguments = FunctionArguments.Consume(input);
-        var body = FunctionBody.Consume(input);
+        
+        var name = Identifier.Consume(input);
+        var arguments = Amethyst.Arguments.Consume(input);
+        var body = Amethyst.Body.Consume(input);
         
         return new Function
         {
@@ -33,6 +87,11 @@ public class Function : AstNode<Function>
             Body = body
         };
     }
+
+    public string ToCode(AstContext context)
+    {
+        throw new NotImplementedException();
+    }
 }
     
 public class FunctionDecorators : AstNode<FunctionDecorators>
@@ -40,7 +99,7 @@ public class FunctionDecorators : AstNode<FunctionDecorators>
     public bool IsTicking { get; private set; }
     public bool IsInitializing { get; private set; }
     
-    public static FunctionDecorators Consume(List<(TokenType type, string info)> input)
+    public static FunctionDecorators Consume(IList<(TokenType type, string info)> input)
     {
         var decorators = new FunctionDecorators();
         while (input[0].type != TokenType.KWD_FUNCTION)
@@ -62,11 +121,16 @@ public class FunctionDecorators : AstNode<FunctionDecorators>
         }
         return decorators;
     }
+
+    public string ToCode(AstContext context)
+    {
+        throw new NotImplementedException();
+    }
 }
 
-public abstract class FunctionIdentifier : AstNode<string>
+public abstract class Identifier : AstNode<string>
 {
-    public static string Consume(List<(TokenType type, string info)> input)
+    public static string Consume(IList<(TokenType type, string info)> input)
     { 
         if (input[0].type != TokenType.IDENTIFIER)
         {
@@ -76,21 +140,24 @@ public abstract class FunctionIdentifier : AstNode<string>
         input.RemoveAt(0);
         return identifier;
     }
+
+    public string ToCode(AstContext context)
+    {
+        throw new NotImplementedException();
+    }
 }
 
-public class FunctionArguments : AstNode<FunctionArguments>
+public abstract class Arguments : AstNode<IEnumerable<string>>
 {
-    public List<string> Arguments { get; private set; }
-    
-    public static FunctionArguments Consume(List<(TokenType type, string info)> input)
+    public static IEnumerable<string> Consume(IList<(TokenType type, string info)> input)
     {
+        var arguments = new List<string>();
         if (input[0].type != TokenType.PAREN_OPEN)
         {
             throw new Exception("Expected (");
         }
         input.RemoveAt(0);
         
-        var arguments = new List<string>();
         while (input[0].type != TokenType.PAREN_CLOSE)
         {
             if (input[0].type != TokenType.IDENTIFIER)
@@ -111,19 +178,19 @@ public class FunctionArguments : AstNode<FunctionArguments>
             throw new Exception("Expected )");
         }
         input.RemoveAt(0);
+        
+        return arguments;
+    }
 
-        return new FunctionArguments
-        {
-            Arguments = arguments
-        };
+    public string ToCode(AstContext context)
+    {
+        throw new NotImplementedException();
     }
 }
     
-public class FunctionBody : AstNode<FunctionBody>
+public abstract class Body : AstNode<IEnumerable<AstNode>>
 {
-    public List<(TokenType type, string info)> Body { get; private set; }
-    
-    public static FunctionBody Consume(List<(TokenType type, string info)> input)
+    public static IEnumerable<AstNode> Consume(IList<(TokenType type, string info)> input)
     {
         if (input[0].type != TokenType.BRACE_OPEN)
         {
@@ -160,9 +227,40 @@ public class FunctionBody : AstNode<FunctionBody>
         }
         input.RemoveAt(0);
 
-        return new FunctionBody
+        return Parser.Parse(body);
+    }
+
+    public string ToCode(AstContext context)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class Namespace : AstNode<Namespace>
+{
+    public string Name { get; private set; }
+    public IEnumerable<AstNode> Body { get; private set; }
+    
+    public static Namespace Consume(IList<(TokenType type, string info)> input)
+    {
+        if (input[0].type != TokenType.KWD_NAMESPACE)
         {
+            throw new Exception("Expected 'namespace'");
+        }
+        input.RemoveAt(0);
+        
+        var name = Identifier.Consume(input);
+        var body = Amethyst.Body.Consume(input);
+        
+        return new Namespace
+        {
+            Name = name,
             Body = body
         };
+    }
+
+    public string ToCode(AstContext context)
+    {
+        throw new NotImplementedException();
     }
 }
