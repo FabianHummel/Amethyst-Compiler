@@ -13,6 +13,9 @@ internal static class Program
             var outDir = table["output"].AsString;
             Project.RegenerateOutputFolder(outDir);
             Project.CreateMcMeta(outDir, table);
+            Project.CreateDataFolders(outDir, table);
+            
+            var rootNamespace = table["namespace"].AsString;
             
             var compileTargets = Project.FindCompileTargets(Environment.CurrentDirectory);
         
@@ -21,8 +24,8 @@ internal static class Program
                 Console.Out.WriteLine("Compiling " + target);
                 var input = File.ReadAllText(target);
                 var tokens = Lexer.Tokenize(input);
-                var nodes = Parser.Parse(tokens);
-                var code = Generator.Generate(nodes);
+                var nodes = Parser.ParseBody(tokens);
+                Generator.Generate(nodes, rootNamespace, outDir);
             }
         }
     }

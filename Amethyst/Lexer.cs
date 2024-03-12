@@ -1,6 +1,6 @@
 namespace Amethyst;
 
-public static partial class Lexer
+public static class Lexer
 {
     private static readonly IReadOnlyDictionary<string, TokenType> TOKENS = new Dictionary<string, TokenType>
     {
@@ -27,10 +27,11 @@ public static partial class Lexer
     
     private const string DELIMITER = " (){}[];+-*=/%\\.:,#\n";
     
-    public static IList<(TokenType, string)> Tokenize(string input)
+    public static IList<Token> Tokenize(string input)
     {
-        var tokens = new List<(TokenType, string)>();
+        var tokens = new List<Token>();
         int i = 0;
+        int line = 1;
         string token = string.Empty;
         while (i < input.Length)
         {
@@ -38,19 +39,38 @@ public static partial class Lexer
             var c = input[i];
             if (DELIMITER.Contains(c))
             {
+                if (c == '\n')
+                {
+                    line++;
+                }
                 if (TOKENS.TryGetValue(token, out var type))
                 {
-                    tokens.Add((type, token));
+                    tokens.Add(new Token
+                    {
+                        Type = type,
+                        Lexeme = token,
+                        Line = line
+                    });
                     token = string.Empty;
                 }
                 else if (int.TryParse(token, out _))
                 { 
-                    tokens.Add((TokenType.LITERAL_NUMBER, token));
+                    tokens.Add(new Token
+                    {
+                        Type = TokenType.LITERAL_NUMBER,
+                        Lexeme = token,
+                        Line = line
+                    });
                     token = string.Empty;
                 }
                 else if (!string.IsNullOrWhiteSpace(token))
                 {
-                    tokens.Add((TokenType.IDENTIFIER, token));
+                    tokens.Add(new Token
+                    {
+                        Type = TokenType.IDENTIFIER,
+                        Lexeme = token,
+                        Line = line
+                    });
                     token = string.Empty;
                 }
             }
@@ -71,7 +91,12 @@ public static partial class Lexer
                     token += input[i];
                     i++;
                 }
-                tokens.Add((TokenType.LITERAL_STRING, token));
+                tokens.Add(new Token
+                {
+                    Type = TokenType.LITERAL_STRING,
+                    Lexeme = token,
+                    Line = line
+                });
                 token = string.Empty;
             }
             else if (input[i] == '#')
@@ -80,12 +105,21 @@ public static partial class Lexer
                 {
                     i++;
                 }
+                line++;
                 token = string.Empty;
             }
-            else if (TOKENS.TryGetValue(token, out var type))
+            else if (DELIMITER.Contains(input[i]))
             {
-                tokens.Add((type, token));
-                token = string.Empty;
+                if (TOKENS.TryGetValue(token, out var type))
+                {
+                    tokens.Add(new Token
+                    {
+                        Type = type,
+                        Lexeme = token,
+                        Line = line
+                    });
+                    token = string.Empty;
+                }
             }
             
             i++;

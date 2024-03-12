@@ -47,4 +47,35 @@ public static class Project
             }
         }
     }
+
+    public static void CreateDataFolders(string outDir, TomlTable table)
+    {
+        var dataDir = outDir + "/data";
+        Directory.CreateDirectory(dataDir);
+        var namespaceDir = dataDir + "/" + table["namespace"] + "/functions";
+        Directory.CreateDirectory(namespaceDir);
+        var minecraftDir = dataDir + "/minecraft/tags/functions";
+        Directory.CreateDirectory(minecraftDir);
+        
+        var assembly = Assembly.GetExecutingAssembly();
+        using (var stream = assembly.GetManifestResourceStream("Amethyst.res.tick.json"))
+        {
+            using (var reader = new StreamReader(stream!))
+            {
+                var tickingFunctions = reader.ReadToEnd();
+                tickingFunctions = tickingFunctions.Replace("{{ticking_functions}}", "");
+                File.WriteAllText(minecraftDir + "/tick.json", tickingFunctions);
+            }
+        }
+        
+        using (var stream = assembly.GetManifestResourceStream("Amethyst.res.load.json"))
+        {
+            using (var reader = new StreamReader(stream!))
+            {
+                var loadingFunctions = reader.ReadToEnd();
+                loadingFunctions = loadingFunctions.Replace("{{loading_functions}}", "");
+                File.WriteAllText(minecraftDir + "/load.json", loadingFunctions);
+            }
+        }
+    }
 }
