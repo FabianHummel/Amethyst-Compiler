@@ -6,29 +6,34 @@ public static class Generator
 {
     public static void Generate(IEnumerable<AstNode> nodes, string rootNamespace, string outDir)
     {
-        var context = new AstContext
+        var context = new GenerationContext
         {
-            Namespace = rootNamespace,
+            RootNamespace = rootNamespace,
+            CurrentNamespace = "",
             OutDir = outDir + "/data/" + rootNamespace + "/functions",
             CurrentFunction = null,
             Functions = new List<FunctionDefinition>(),
-            Variables = new List<VariableDefinition>()
+            Variables = new List<VariableDefinition>(),
+            TickFunctions = new List<string>(),
+            LoadFunctions = new List<string>()
         };
         foreach (var node in nodes)
         {
             node.GenerateCode(context);
         }
+
+        Project.CreateFunctionTags(outDir, context.TickFunctions, context.LoadFunctions);
     }
 }
 
 public partial interface AstNode
 {
-    void GenerateCode(AstContext context);
+    void GenerateCode(GenerationContext context);
 }
 
 public partial class Variable
 {
-    public void GenerateCode(AstContext context)
+    public void GenerateCode(GenerationContext context)
     {
         context.Variables.Add(new VariableDefinition
         {
@@ -40,7 +45,7 @@ public partial class Variable
 
 public partial class Assignment
 {
-    public void GenerateCode(AstContext context)
+    public void GenerateCode(GenerationContext context)
     {
         
     }
@@ -48,45 +53,54 @@ public partial class Assignment
 
 public partial class Function
 {
-    public void GenerateCode(AstContext context)
+    public void GenerateCode(GenerationContext context)
     {
         context.Functions.Add(new FunctionDefinition
         {
-            Name = Name,
+            Name = context.RootNamespace + ":" + Path.Combine(context.CurrentNamespace, Name),
             ReturnType = "void", // TODO: infer return type
             Parameters = Arguments
         });
         
-        File.Create(Path.Combine(context.OutDir, Name + ".mcfunction"));
+        var path = Path.Combine(context.OutDir, context.CurrentNamespace, Name + ".mcfunction");
+        File.Create(path);
         
-        var scope = new AstContext
-        {
-            Namespace = context.Namespace,
-            OutDir = context.OutDir,
-            CurrentFunction = Name,
-            Variables = new List<VariableDefinition>(context.Variables),
-            Functions = new List<FunctionDefinition>(context.Functions)
-        };
+        var currentFunction = context.CurrentFunction;
+        context.CurrentFunction = Name;
+        
+        Decorators.GenerateCode(context);
         
         foreach (var node in Body)
         {
-            node.GenerateCode(scope);
+            node.GenerateCode(context);
         }
+        
+        context.CurrentFunction = currentFunction;
     }
 }
 
 public partial class FunctionDecorators
 {
-    public void GenerateCode(AstContext context)
+   
+    public void GenerateCode(GenerationContext context)
     {
-        // if ticking, add to tick.json
-        // if initializing, add to load.json
+        var path = context.RootNamespace + ":" + Path.Combine(context.CurrentNamespace, context.CurrentFunction!);
+        
+        if (IsTicking)
+        {
+            context.TickFunctions.Add(path);
+        }
+
+        if (IsInitializing)
+        {
+            context.LoadFunctions.Add(path);
+        }
     }
 }
 
 public abstract partial class Identifier
 {
-    public void GenerateCode(AstContext context)
+    public void GenerateCode(GenerationContext context)
     {
         
     }
@@ -94,7 +108,7 @@ public abstract partial class Identifier
 
 public abstract partial class Arguments
 {
-    public void GenerateCode(AstContext context)
+    public void GenerateCode(GenerationContext context)
     {
         
     }
@@ -102,7 +116,7 @@ public abstract partial class Arguments
 
 public abstract partial class Parameters
 {
-    public void GenerateCode(AstContext context)
+    public void GenerateCode(GenerationContext context)
     {
         
     }
@@ -110,7 +124,7 @@ public abstract partial class Parameters
 
 public abstract partial class Body
 {
-    public void GenerateCode(AstContext context)
+    public void GenerateCode(GenerationContext context)
     {
         
     }
@@ -118,30 +132,26 @@ public abstract partial class Body
 
 public partial class Namespace
 {
-    public void GenerateCode(AstContext context)
+    public void GenerateCode(GenerationContext context)
     {
-        var dir = Path.Combine(context.OutDir, Name);
+        var dir = Path.Combine(context.OutDir, context.CurrentNamespace, Name);
         Directory.CreateDirectory(dir);
         
-        var scope = new AstContext
-        {
-            Namespace = context.Namespace + Path.PathSeparator + Name,
-            OutDir = dir,
-            CurrentFunction = context.CurrentFunction,
-            Variables = new List<VariableDefinition>(context.Variables),
-            Functions = new List<FunctionDefinition>(context.Functions)
-        };
+        var @namespace = context.CurrentNamespace;
+        context.CurrentNamespace = Path.Combine(context.CurrentNamespace, Name);
         
         foreach (var node in Body)
         {
-            node.GenerateCode(scope);
+            node.GenerateCode(context);
         }
+        
+        context.CurrentNamespace = @namespace;
     }
 }
 
 public partial class FunctionCall
 {
-    public void GenerateCode(AstContext context)
+    public void GenerateCode(GenerationContext context)
     {
         
     }
@@ -149,7 +159,7 @@ public partial class FunctionCall
 
 public partial class VariableReference
 {
-    public void GenerateCode(AstContext context)
+    public void GenerateCode(GenerationContext context)
     {
         
     }
@@ -158,7 +168,7 @@ public partial class VariableReference
 
 public partial class Constant
 {
-    public void GenerateCode(AstContext context)
+    public void GenerateCode(GenerationContext context)
     {
         
     }
@@ -166,7 +176,7 @@ public partial class Constant
 
 public partial class Operation
 {
-    public void GenerateCode(AstContext context)
+    public void GenerateCode(GenerationContext context)
     {
         
     }

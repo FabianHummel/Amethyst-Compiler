@@ -56,6 +56,11 @@ public static class Project
         Directory.CreateDirectory(namespaceDir);
         var minecraftDir = dataDir + "/minecraft/tags/functions";
         Directory.CreateDirectory(minecraftDir);
+    }
+
+    public static void CreateFunctionTags(string outDir, IEnumerable<string> tickFunctions, IEnumerable<string> loadFunctions)
+    {
+        var minecraftDir = outDir + "/data/minecraft/tags/functions";
         
         var assembly = Assembly.GetExecutingAssembly();
         using (var stream = assembly.GetManifestResourceStream("Amethyst.res.tick.json"))
@@ -63,7 +68,7 @@ public static class Project
             using (var reader = new StreamReader(stream!))
             {
                 var tickingFunctions = reader.ReadToEnd();
-                tickingFunctions = tickingFunctions.Replace("{{ticking_functions}}", "");
+                tickingFunctions = tickingFunctions.Replace("{{ticking_functions}}", string.Join(",\n", tickFunctions.Select(i => $"\"{i}\"")));
                 File.WriteAllText(minecraftDir + "/tick.json", tickingFunctions);
             }
         }
@@ -73,7 +78,7 @@ public static class Project
             using (var reader = new StreamReader(stream!))
             {
                 var loadingFunctions = reader.ReadToEnd();
-                loadingFunctions = loadingFunctions.Replace("{{loading_functions}}", "");
+                loadingFunctions = loadingFunctions.Replace("{{loading_functions}}", string.Join(",\n", loadFunctions.Select(i => $"\"{i}\"")));
                 File.WriteAllText(minecraftDir + "/load.json", loadingFunctions);
             }
         }

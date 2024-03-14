@@ -14,7 +14,7 @@ ticking function main() {
 }
 
 namespace my_namespace {
-   function my_function() {
+   ticking function my_function() {
        println("Hello, world!")
    }
 }
