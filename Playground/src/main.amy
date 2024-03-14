@@ -1,4 +1,4 @@
-x = main() + 8;
+x = 8 + main();
 
 var x = (5 + 10) * 20 + x / nice();
 

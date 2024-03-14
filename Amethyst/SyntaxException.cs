@@ -2,9 +2,9 @@ namespace Amethyst;
 
 public class SyntaxException : Exception
 {
-    public Token Expected { get; private set; }
+    public Token? Expected { get; private set; }
     
-    public SyntaxException(string message, Token token) : base(message)
+    public SyntaxException(string message, Token? token = null) : base(message)
     {
         Expected = token;
     }
