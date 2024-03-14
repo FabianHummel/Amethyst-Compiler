@@ -58,7 +58,7 @@ public static class Project
         Directory.CreateDirectory(minecraftDir);
     }
 
-    public static void CreateFunctionTags(string outDir, IEnumerable<string> tickFunctions, IEnumerable<string> loadFunctions)
+    public static void CreateFunctionTags(string outDir, GenerationContext context)
     {
         var minecraftDir = outDir + "/data/minecraft/tags/functions";
         
@@ -68,7 +68,8 @@ public static class Project
             using (var reader = new StreamReader(stream!))
             {
                 var tickingFunctions = reader.ReadToEnd();
-                tickingFunctions = tickingFunctions.Replace("{{ticking_functions}}", string.Join(",\n", tickFunctions.Select(i => $"\"{i}\"")));
+                var content = string.Join(",\n    ", context.TickFunctions.Select(i => $"\"{i}\""));
+                tickingFunctions = tickingFunctions.Replace("{{ticking_functions}}", content);
                 File.WriteAllText(minecraftDir + "/tick.json", tickingFunctions);
             }
         }
@@ -78,8 +79,26 @@ public static class Project
             using (var reader = new StreamReader(stream!))
             {
                 var loadingFunctions = reader.ReadToEnd();
-                loadingFunctions = loadingFunctions.Replace("{{loading_functions}}", string.Join(",\n", loadFunctions.Select(i => $"\"{i}\"")));
+                var content = string.Join(",\n    ", context.LoadFunctions.Select(i => $"\"{i}\""));
+                loadingFunctions = loadingFunctions
+                    .Replace("{{loading_functions}}", content)
+                    .Replace("{{amethyst_init}}", $"\"{context.RootNamespace}:_amethyst_init\"");
                 File.WriteAllText(minecraftDir + "/load.json", loadingFunctions);
+            }
+        }
+    }
+    
+    public static void CreateInitializationFunction(string outDir, GenerationContext context)
+    {
+        var initializationFunctionDir = outDir + "/data/" + context.RootNamespace + "/functions/_amethyst_init.mcfunction";
+        
+        var assembly = Assembly.GetExecutingAssembly();
+        using (var stream = assembly.GetManifestResourceStream("Amethyst.res._amethyst_init.mcfunction"))
+        {
+            using (var reader = new StreamReader(stream!))
+            {
+                var initializationFunction = reader.ReadToEnd();
+                File.WriteAllText(initializationFunctionDir, initializationFunction);
             }
         }
     }

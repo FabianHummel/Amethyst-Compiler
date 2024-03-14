@@ -1,6 +1,5 @@
 {
   "values": [
-    "amethyst:main",
-"amethyst:my_namespace/my_function"
+    "amethyst:main"
   ]
 }

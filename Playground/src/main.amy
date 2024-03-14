@@ -2,7 +2,7 @@ x = 8 + main();
 
 var x = (5 + 10) * 20 + x / nice();
 
-# var obj = { "hello": "nice", "age": 19 }
+# var obj = { "hello": "nice", "age": 19 };
 
 # var arr = [1, 2, "hello", x, 5, obj]
 
@@ -10,11 +10,14 @@ ticking function main() {
     # comment
     println("Hello, world!" + (8*x) - function_in_parameter(), "Other argument")
     
-    var y = "Nice!";
+    var y = "Nice!" + 20 * 2 + (82 + 2 + 20) + 10 + 5 + 10;
 }
 
 namespace my_namespace {
-   ticking function my_function() {
+
+    # var y = 5;
+
+    function my_function() {
        println("Hello, world!")
-   }
+    }
 }

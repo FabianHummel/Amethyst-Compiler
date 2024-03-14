@@ -551,7 +551,8 @@ public partial class Constant : AstNode<Constant>
                 Type = DataType.String,
                 Value = input[0].Lexeme
             };
-        } else if (input[0].Type == TokenType.LITERAL_NUMBER)
+        }
+        else if (input[0].Type == TokenType.LITERAL_NUMBER)
         {
             result = new Constant
             {
@@ -565,8 +566,8 @@ public partial class Constant : AstNode<Constant>
 
 public partial class Operation : AstNode<Operation>
 {
-    public required AstNode Left { get; init; }
-    public required AstNode Right { get; init; }
+    public required AstNode Left { get; set; }
+    public required AstNode Right { get; set; }
     public required ArithmeticOperator Op { get; init; }
     
     private static readonly IReadOnlySet<Tuple<ArithmeticOperator, TokenType>> OPERATIONS = new HashSet<Tuple<ArithmeticOperator, TokenType>>
@@ -618,7 +619,7 @@ public partial class Operation : AstNode<Operation>
             bool found = false;
             foreach (var (arithmeticOperator, type) in OPERATIONS)
             {
-                if (input.Any(t => t.Type == type))
+                if (input.Any(t => t.Type == type)) // if there is an operator in the expression, split it there
                 {
                     found = true;
                     if (input[0].Type == type)
