@@ -75,8 +75,6 @@ public enum TokenType
     // Keywords.
     [Description("and")]
     AND,
-    [Description("structure")]
-    STRUCT,
     [Description("else")]
     ELSE,
     [Description("false")]
@@ -103,8 +101,10 @@ public enum TokenType
     VAR, 
     [Description("while")]
     WHILE,
+    [Description("print")]
+    PRINT,
     
     // File.
     [Description("end of file")]
-    EOF
+    EOF,
 }

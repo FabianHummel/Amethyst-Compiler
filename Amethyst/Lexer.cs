@@ -17,7 +17,6 @@ public class Lexer
     private static readonly Dictionary<String, TokenType> KEYWORDS = new()
     {
         { "and",            TokenType.AND },
-        { "struct",         TokenType.STRUCT },
         { "else",           TokenType.ELSE },
         { "false",          TokenType.FALSE },
         { "function",       TokenType.FUNCTION },
@@ -30,7 +29,8 @@ public class Lexer
         { "return",         TokenType.RETURN },
         { "true",           TokenType.TRUE },
         { "var",            TokenType.VAR },
-        { "while",          TokenType.WHILE }
+        { "while",          TokenType.WHILE },
+        { "print",          TokenType.PRINT }
     };
 
     private bool IsAtEnd => current >= Source.Length;
@@ -198,7 +198,7 @@ public class Lexer
         }
     }
 
-    public IEnumerable<Token> ScanTokens()
+    public IList<Token> ScanTokens()
     {
         while (!IsAtEnd)
         {

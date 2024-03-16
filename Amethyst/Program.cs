@@ -19,14 +19,23 @@ internal static class Program
             
             var compileTargets = Project.FindCompileTargets(Environment.CurrentDirectory);
         
-            foreach (var target in compileTargets)
+            try
             {
-                Console.Out.WriteLine("Compiling " + target);
-                var input = File.ReadAllText(target);
-                var lexer = new Lexer(input);
-                var tokens = lexer.ScanTokens();
-                // var nodes = Parser.ParseBody(tokens);
-                // Generator.Generate(nodes, rootNamespace, outDir);
+                foreach (var target in compileTargets)
+                {
+                    Console.Out.WriteLine("Compiling " + target);
+                    var input = File.ReadAllText(target);
+                    var lexer = new Lexer(input);
+                    var tokens = lexer.ScanTokens();
+                    var parser = new Parser(tokens);
+                    var stmts = parser.Parse();
+                    var compiler = new Compiler(stmts, rootNamespace, outDir);
+                    compiler.Compile();
+                }
+            }
+            catch (SyntaxException e)
+            {
+                Console.Error.WriteLine(e.Message + " at line " + e.Line);
             }
         }
     }
