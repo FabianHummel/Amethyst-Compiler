@@ -88,14 +88,19 @@ public class Parser
             return new Expr.Literal { Value = Previous().Literal };
         }
         
+        if (Match(TokenType.IDENTIFIER))
+        {
+            return new Expr.Variable { Name = Previous() };
+        }
+        
         if (Match(TokenType.LEFT_PAREN))
         {
             var expr = Expression();
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after expression");
+            Consume(TokenType.RIGHT_PAREN, "Expected ')' after expression");
             return new Expr.Grouping { Expression = expr };
         }
 
-        throw new SyntaxException("Expect expression", Peek().Line);
+        throw new SyntaxException("Expected expression", Peek().Line);
     }
     
     private Expr Unary()
@@ -188,7 +193,7 @@ public class Parser
     private Stmt PrintStatement()
     {
         var value = Expression();
-        Consume(TokenType.SEMICOLON, "Expect ';' after value");
+        Consume(TokenType.SEMICOLON, "Expected ';' after value");
         return new Stmt.Print
         { 
             Expr = value
@@ -198,7 +203,7 @@ public class Parser
     private Stmt ExpressionStatement()
     {
         var value = Expression();
-        Consume(TokenType.SEMICOLON, "Expect ';' after expression");
+        Consume(TokenType.SEMICOLON, "Expected ';' after expression");
         return new Stmt.Expression
         {
             Expr = value
@@ -212,18 +217,44 @@ public class Parser
             return PrintStatement();
         }
         
-        // var, function, if, while, for, return, break, continue, block
-        
         return ExpressionStatement();
     }
     
+    private Stmt VarDeclaration()
+    {
+        var name = Consume(TokenType.IDENTIFIER, "Expected variable name");
+        
+        Expr? initializer = null;
+        if (Match(TokenType.EQUAL))
+        {
+            initializer = Expression();
+        }
+        
+        Consume(TokenType.SEMICOLON, "Expected ';' after variable declaration");
+        return new Stmt.Var
+        {
+            Name = name,
+            Initializer = initializer
+        };
+    }
+
+    private Stmt Declaration()
+    {
+        if (Match(TokenType.VAR))
+        {
+            return VarDeclaration();
+        }
+        
+        return Statement();
+    }
+
     public IList<Stmt> Parse()
     {
         var statements = new List<Stmt>();
         
         while (!IsAtEnd)
         {
-            statements.Add(Statement());
+            statements.Add(Declaration());
         }
         
         return statements;

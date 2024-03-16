@@ -4,10 +4,12 @@ Binary = Expr Left, Token Operator, Expr Right
 Grouping = Expr Expression
 Literal = object Value
 Unary = Token Operator, Expr Right
+Variable = Token Name
 End
 
 Begin
 Stmt
 Expression = Expr Expr
 Print = Expr Expr
+Var = Token Name, Expr? Initializer
 End

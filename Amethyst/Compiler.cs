@@ -127,6 +127,11 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         return null;
     }
 
+    public object? VisitVariableExpr(Expr.Variable expr)
+    {
+        return null;
+    }
+
     public object? VisitExpressionStmt(Stmt.Expression stmt)
     {
         Evaluate(stmt.Expr);
@@ -138,7 +143,12 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         object? value = Evaluate(stmt.Expr);
         return null;
     }
-    
+
+    public object? VisitVarStmt(Stmt.Var stmt)
+    {
+        return null;
+    }
+
     public void Compile()
     {
         foreach (var statement in Statements)
