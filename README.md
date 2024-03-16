@@ -13,9 +13,36 @@ Datapacks are Minecraft's way of scripting custom logic and content into the gam
 Like many modern programming languages, Amethyst abstracts away the low-level details of MCF, and instead provides readable and expressive syntax. To get a glimpse of what an Amethyst code snipped could look like, here's a simple example:
 
 ```amethyst
-function main() {
-    say("Hello, world!");
+initializing function init() {
+    
+}
+
+ticking function tick() {
+    
 }
 ```
 
+## Batteries Included
+
+Amethyst is not just for writing datapack code, but is also great for managing all resource pack needs.
+
 ## Usage
+
+The project structure is as simple as it gets, no need for complicated setups or configurations. Just write your Amethyst code in the `src` directory and run the compiler. The output will be a fully functional datapack. Examples can be found in the `Examples` directory of this repository.
+
+```text
+amethyst.toml
+src/
+    *.amy
+```
+
+## Configuration
+
+The `amethyst.toml` file is used to configure the compiler. It allows you to specify the output directory, the namespace, and other settings. Here's an example of a `amethyst.toml` file:
+
+```toml
+namespace = "my_datapack"
+description = "My first Amethyst datapack"
+pack_format = 18
+output = "out"
+```
