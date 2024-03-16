@@ -1,130 +1,220 @@
 namespace Amethyst;
 
-public static class Lexer
+public class Lexer
 {
-    private static readonly IReadOnlyDictionary<string, TokenType> TOKENS = new Dictionary<string, TokenType>
+    public Lexer(string input)
     {
-        { "function", TokenType.KWD_FUNCTION },
-        { "ticking", TokenType.KWD_TICKING },
-        { "initializing", TokenType.KWD_INITIALIZING },
-        { "namespace", TokenType.KWD_NAMESPACE },
-        { "var", TokenType.KWD_VARIABLE },
-        { "(", TokenType.PAREN_OPEN },
-        { ")", TokenType.PAREN_CLOSE },
-        { "{", TokenType.BRACE_OPEN },
-        { "}", TokenType.BRACE_CLOSE },
-        { "[", TokenType.BRACKET_OPEN },
-        { "]", TokenType.BRACKET_CLOSE },
-        { ",", TokenType.COMMA },
-        { ";", TokenType.SEMICOLON },
-        { "+", TokenType.OP_ADD },
-        { "-", TokenType.OP_SUB },
-        { "*", TokenType.OP_MUL },
-        { "/", TokenType.OP_DIV },
-        { "%", TokenType.OP_MOD },
-        { "=", TokenType.OP_ASSIGN },
+        Source = input;
+    }
+
+    private string Source { get; }
+    private IList<Token> Tokens { get; } = new List<Token>();
+    
+    private int start = 0;
+    private int current = 0;
+    private int line = 1;
+
+    private static readonly Dictionary<String, TokenType> KEYWORDS = new()
+    {
+        { "and",            TokenType.AND },
+        { "struct",         TokenType.STRUCT },
+        { "else",           TokenType.ELSE },
+        { "false",          TokenType.FALSE },
+        { "function",       TokenType.FUNCTION },
+        { "ticking",        TokenType.TICKING },
+        { "initializing",   TokenType.INITIALIZING },
+        { "for",            TokenType.FOR },
+        { "if",             TokenType.IF },
+        { "null",           TokenType.NULL },
+        { "or",             TokenType.OR },
+        { "return",         TokenType.RETURN },
+        { "true",           TokenType.TRUE },
+        { "var",            TokenType.VAR },
+        { "while",          TokenType.WHILE }
     };
+
+    private bool IsAtEnd => current >= Source.Length;
     
-    private const string DELIMITER = " (){}[];+-*=/%\\.:,#\n";
-    
-    public static IList<Token> Tokenize(string input)
+    private char Advance()
     {
-        var tokens = new List<Token>();
-        int i = 0;
-        int line = 1;
-        string token = string.Empty;
-        while (i < input.Length)
-        {
-            // these are tokens that may need to end early (through a delimiter)
-            var c = input[i];
-            if (DELIMITER.Contains(c))
-            {
-                if (c == '\n')
-                {
-                    line++;
-                }
-                if (TOKENS.TryGetValue(token, out var type))
-                {
-                    tokens.Add(new Token
-                    {
-                        Type = type,
-                        Lexeme = token,
-                        Line = line
-                    });
-                    token = string.Empty;
-                }
-                else if (int.TryParse(token, out _))
-                { 
-                    tokens.Add(new Token
-                    {
-                        Type = TokenType.LITERAL_NUMBER,
-                        Lexeme = token,
-                        Line = line
-                    });
-                    token = string.Empty;
-                }
-                else if (!string.IsNullOrWhiteSpace(token))
-                {
-                    tokens.Add(new Token
-                    {
-                        Type = TokenType.IDENTIFIER,
-                        Lexeme = token,
-                        Line = line
-                    });
-                    token = string.Empty;
-                }
-            }
-            
-            token += c;
-            
-            // these are tokens that are matched immediately (strings, comments, etc.)
-            if (string.IsNullOrWhiteSpace(token))
-            {
-                token = string.Empty;
-            }
-            else if (input[i] == '"')
-            {
-                token = string.Empty;
-                i++;
-                while (i < input.Length && input[i] != '"')
-                {
-                    token += input[i];
-                    i++;
-                }
-                tokens.Add(new Token
-                {
-                    Type = TokenType.LITERAL_STRING,
-                    Lexeme = token,
-                    Line = line
-                });
-                token = string.Empty;
-            }
-            else if (input[i] == '#')
-            {
-                while (i < input.Length && input[i] != '\n')
-                {
-                    i++;
-                }
-                line++;
-                token = string.Empty;
-            }
-            else if (DELIMITER.Contains(input[i]))
-            {
-                if (TOKENS.TryGetValue(token, out var type))
-                {
-                    tokens.Add(new Token
-                    {
-                        Type = type,
-                        Lexeme = token,
-                        Line = line
-                    });
-                    token = string.Empty;
-                }
-            }
-            
-            i++;
+        return Source[current++];
+    }
+    
+    private bool Match(char expected)
+    {
+        if (IsAtEnd) return false;
+        if (Source[current] != expected) return false;
+
+        current++;
+        return true;
+    }
+    
+    private char Peek()
+    {
+        if (IsAtEnd) return '\0';
+        return Source[current];
+    }
+    
+    private char PeekNext()
+    {
+        if (current + 1 >= Source.Length) return '\0';
+        return Source[current + 1];
+    }
+    
+    private bool IsDigit(char c)
+    {
+        return c is >= '0' and <= '9';
+    }
+    
+    private bool IsAlpha(char c)
+    {
+        return c is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or '_';
+    }
+    
+    private bool IsAlphaNumeric(char c)
+    {
+        return IsAlpha(c) || IsDigit(c);
+    }
+    
+    private void String()
+    {
+        while (Peek() != '"' && !IsAtEnd) {
+            if (Peek() == '\n') line++;
+            Advance();
         }
+
+        if (IsAtEnd) {
+            throw new SyntaxException("Unterminated string.", line);
+        }
+
+        // The closing ".
+        Advance();
+
+        // Trim the surrounding quotes.
+        string value = Source[(start + 1)..(current - 1)];
+        AddToken(TokenType.STRING, value);
+    }
+    
+    private void Number()
+    {
+        while (IsDigit(Peek())) Advance();
+
+        // Look for a fractional part.
+        if (Peek() == '.' && IsDigit(PeekNext())) {
+            // Consume the "."
+            Advance();
+
+            while (IsDigit(Peek())) Advance();
+        }
+
+        AddToken(TokenType.NUMBER, double.Parse(Source[start..current]));
+    }
+    
+    private void Identifier()
+    {
+        while (IsAlphaNumeric(Peek())) Advance();
         
-        return tokens;
+        string text = Source[start..current]; 
+        if (KEYWORDS.TryGetValue(text, out var type))
+        {
+            AddToken(type);
+        }
+        else
+        {
+            AddToken(TokenType.IDENTIFIER);
+        }
+    }
+
+    private void AddToken(TokenType type, object? literal = null)
+    {
+        string text = Source[start..current];
+        Tokens.Add(new Token
+        {
+            Type = type,
+            Lexeme = text,
+            Literal = literal,
+            Line = line
+        });
+    }
+    
+    private void ScanToken()
+    {
+        char c = Advance();
+        switch (c)
+        {
+            case '(': AddToken(TokenType.LEFT_PAREN); break;
+            case ')': AddToken(TokenType.RIGHT_PAREN); break;
+            case '{': AddToken(TokenType.LEFT_BRACE); break;
+            case '}': AddToken(TokenType.RIGHT_BRACE); break;
+            case '[': AddToken(TokenType.LEFT_BRACKET); break;
+            case ']': AddToken(TokenType.RIGHT_BRACKET); break;
+            case ',': AddToken(TokenType.COMMA); break;
+            case '.': AddToken(TokenType.DOT); break;
+            case ';': AddToken(TokenType.SEMICOLON); break;
+            case ':': AddToken(TokenType.COLON); break;
+            
+            case '!': AddToken(Match('=') ? TokenType.BANG_EQUAL : TokenType.BANG); break;
+            case '=': AddToken(Match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL); break;
+            case '>': AddToken(Match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER); break;
+            case '<': AddToken(Match('=') ? TokenType.LESS_EQUAL : TokenType.LESS); break;
+            case '+': AddToken(Match('=') ? TokenType.PLUS_EQUAL : TokenType.PLUS); break;
+            case '-': AddToken(Match('=') ? TokenType.MINUS_EQUAL : TokenType.MINUS); break;
+            case '/': AddToken(Match('=') ? TokenType.SLASH_EQUAL : TokenType.SLASH); break;
+            case '*': AddToken(Match('=') ? TokenType.STAR_EQUAL : TokenType.STAR); break;
+            case '%': AddToken(Match('=') ? TokenType.MODULO_EQUAL : TokenType.MODULO); break;
+            
+            case '#':
+                while (Peek() != '\n' && !IsAtEnd) Advance();
+                break;
+            
+            case ' ':
+            case '\r':
+            case '\t':
+                // Ignore whitespace.
+                break;
+            
+            case '\n':
+                line++;
+                break;
+            
+            case '"':
+                String();
+                break;
+            
+            default:
+                if (IsDigit(c))
+                {
+                    Number();
+                }
+                else if (IsAlpha(c))
+                {
+                    Identifier();
+                }
+                else
+                {
+                    throw new SyntaxException($"Unexpected character '{c}'", line);
+                }
+                break;
+        }
+    }
+
+    public IEnumerable<Token> ScanTokens()
+    {
+        while (!IsAtEnd)
+        {
+            // We are at the beginning of the next lexeme.
+            start = current;
+            ScanToken();
+        }
+
+        Tokens.Add(new Token
+        {
+            Type = TokenType.EOF,
+            Lexeme = "",
+            Literal = null,
+            Line = line
+        });
+        
+        return Tokens;
     }
 }

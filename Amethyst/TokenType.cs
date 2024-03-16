@@ -4,69 +4,107 @@ namespace Amethyst;
 
 public enum TokenType
 {
-    [Description("keyword: 'function'")]
-    KWD_FUNCTION, // ()
+    // Single-character tokens.
+    [Description("(")]
+    LEFT_PAREN,
+    [Description(")")]
+    RIGHT_PAREN,
+    [Description("{")]
+    LEFT_BRACE,
+    [Description("}")]
+    RIGHT_BRACE,
+    [Description("[")]
+    LEFT_BRACKET,
+    [Description("]")]
+    RIGHT_BRACKET,
+    [Description(",")]
+    COMMA,
+    [Description(".")]
+    DOT,
+    [Description("-")]
+    MINUS,
+    [Description("+")]
+    PLUS,
+    [Description(";")]
+    SEMICOLON,
+    [Description(":")]
+    COLON,
+    [Description("/")]
+    SLASH,
+    [Description("*")]
+    STAR,
+    [Description("%")]
+    MODULO,
 
-    [Description("keyword: 'ticking'")]
-    KWD_TICKING, // ()
+    // One or two character tokens.
+    [Description("!")]
+    BANG,
+    [Description("!=")]
+    BANG_EQUAL,
+    [Description("=")]
+    EQUAL,
+    [Description("==")]
+    EQUAL_EQUAL,
+    [Description(">")]
+    GREATER,
+    [Description(">=")]
+    GREATER_EQUAL,
+    [Description("<")]
+    LESS,
+    [Description("<=")]
+    LESS_EQUAL,
+    [Description("+=")]
+    PLUS_EQUAL,
+    [Description("-=")]
+    MINUS_EQUAL,
+    [Description("/=")]
+    SLASH_EQUAL,
+    [Description("*=")]
+    STAR_EQUAL,
+    [Description("%=")]
+    MODULO_EQUAL,
 
-    [Description("keyword: 'initializing'")]
-    KWD_INITIALIZING, // ()
+    // Literals.
+    [Description("Identifier")]
+    IDENTIFIER, 
+    [Description("String")]
+    STRING,
+    [Description("Number")]
+    NUMBER,
 
-    [Description("keyword: 'namespace'")]
-    KWD_NAMESPACE, // ()
-
-    [Description("keyword: 'variable'")]
-    KWD_VARIABLE, // ()
-
-    [Description("opening parenthesis '('")]
-    PAREN_OPEN, // (
-
-    [Description("closing parenthesis ')'")]
-    PAREN_CLOSE, // )
-
-    [Description("opening brace '{'")]
-    BRACE_OPEN, // {
-
-    [Description("closing brace '}'")]
-    BRACE_CLOSE, // }
-
-    [Description("opening bracket '['")]
-    BRACKET_OPEN, // [
-
-    [Description("closing bracket ']'")]
-    BRACKET_CLOSE, // ]
-
-    [Description("literal: 'string'")]
-    LITERAL_STRING, // ""
-
-    [Description("literal: 'number'")]
-    LITERAL_NUMBER, // 123
-
-    [Description("identifier")]
-    IDENTIFIER, // name
-
-    [Description("semicolon ';'")]
-    SEMICOLON, // ;
-
-    [Description("comma ','")]
-    COMMA, // ,
-
-    [Description("operator: 'addition' '+'")]
-    OP_ADD, // +
-
-    [Description("operator: 'subtraction' '-'")]
-    OP_SUB, // -
-
-    [Description("operator: 'multiplication' '*'")]
-    OP_MUL, // *
-
-    [Description("operator: 'division' '/'")]
-    OP_DIV, // /
-
-    [Description("operator: 'modulo' '%'")]
-    OP_MOD, // %
+    // Keywords.
+    [Description("and")]
+    AND,
+    [Description("structure")]
+    STRUCT,
+    [Description("else")]
+    ELSE,
+    [Description("false")]
+    FALSE,
+    [Description("function")]
+    FUNCTION,
+    [Description("ticking")]
+    TICKING,
+    [Description("initializing")]
+    INITIALIZING,
+    [Description("for")]
+    FOR,
+    [Description("if")]
+    IF,
+    [Description("null")]
+    NULL,
+    [Description("or")]
+    OR,
+    [Description("return")]
+    RETURN,
+    [Description("true")]
+    TRUE, 
+    [Description("var")]
+    VAR, 
+    [Description("while")]
+    WHILE,
     
-    [Description("operator: 'assignment' '='")]
-    OP_ASSIGN // =
+    // File.
+    [Description("end of file")]
+    EOF
 }

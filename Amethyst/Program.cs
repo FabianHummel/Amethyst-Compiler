@@ -23,9 +23,10 @@ internal static class Program
             {
                 Console.Out.WriteLine("Compiling " + target);
                 var input = File.ReadAllText(target);
-                var tokens = Lexer.Tokenize(input);
-                var nodes = Parser.ParseBody(tokens);
-                Generator.Generate(nodes, rootNamespace, outDir);
+                var lexer = new Lexer(input);
+                var tokens = lexer.ScanTokens();
+                // var nodes = Parser.ParseBody(tokens);
+                // Generator.Generate(nodes, rootNamespace, outDir);
             }
         }
     }
