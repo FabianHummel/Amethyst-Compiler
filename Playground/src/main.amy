@@ -2,22 +2,24 @@
 
 print (5 + 10) * 20 + 8 * 2;
 
-var obj = { "hello": "nice", "age": 19, "my_arr": [10, 20, { "nice": true }] };
+var obj = { "hello": "nice", "age": 19, "my_arr": [10, 20, { "nice": true, string_func(): value_func() }] };
 
 var arr = [1, 2, "hello", x, 5, obj];
 
-# ticking function main() {
-#     # comment
-#     println("Hello, world!" + (8*x) - function_in_parameter(), "Other argument")
-#     
-#     var y = "Nice!" + 20 * 2 + (82 + 2 + 20) + 10 + 5 + 10;
-# }
+ticking function main() {
+    # comment
+    println("Hello, world!" + (8*x) - function_in_parameter(), "Other argument");
+    
+    var y = "Nice!" + 20 * 2 + (82 + 2 + 20) + 10 + 5 + 10;
+    
+    out [1, 2, 3, 4, 5];
+}
 
-# namespace my_namespace {
-# 
-#     # var y = 5;
-# 
-#     function my_function() {
-#        println("Hello, world!")
-#     }
-# }
+namespace my_namespace {
+
+    var y = 5;
+
+    function my_function() {
+       println("Hello, world!");
+    }
+}

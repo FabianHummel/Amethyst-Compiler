@@ -1,29 +1,3 @@
-#Begin
-#Expr
-#Assign = Token Name; Expr Value
-#Binary = Expr Left; Token Operator; Expr Right
-#Call = Expr Callee; Token Paren; IList<Expr> Arguments
-#Grouping = Expr Expression
-#Literal = object Value
-#Object = IDictionary<Expr, Expr> Values
-#Array = IList<Expr> Values
-#Logical = Expr Left; Token Operator; Expr Right
-#Unary = Token Operator; Expr Right
-#Variable = Token Name
-#End
-#
-#Begin
-#Stmt
-#Block = IList<Stmt> Statements
-#Expression = Expr Expr
-#Function = bool Ticking; bool Initializing; Token Name; IList<Token> Params; IList<Stmt> Body
-#If = Expr Condition; Stmt ThenBranch; Stmt? ElseBranch
-#Print = Expr Expr
-#Return = Token Keyword; Expr? Value
-#Var = Token Name; Expr? Initializer
-#While = Expr Condition; Stmt Body
-#End
-
 [Expr.Assign]
 Fields = [ "Token Name" , "Expr Value" ]
 ToString = "{Name} = {Value}"
@@ -39,7 +13,6 @@ ToString = "{Left} {Operator} {Right}"
 [Expr.Call]
 Fields = [
     "Expr Callee",
-    "Token Paren",
     "IList<Expr> Arguments"
 ]
 ToString = "{Callee}({Arguments})"
@@ -49,7 +22,7 @@ Fields = [ "Expr Expression" ]
 ToString = "({Expression})"
 
 [Expr.Literal]
-Fields = [ "object Value" ]
+Fields = [ "object? Value" ]
 ToString = "{Value}"
 
 [Expr.Object]
@@ -87,6 +60,13 @@ ToString = "{Statements}"
 Fields = [ "Expr Expr" ]
 ToString = "{Expr}"
 
+[Stmt.Namespace]
+Fields = [
+    "Token Name",
+    "IList<Stmt> Body"
+]
+ToString = "namespace {Name} {Body}"
+
 [Stmt.Function]
 Fields = [
     "bool Ticking",
@@ -107,14 +87,11 @@ ToString = "if {Condition} then {ThenBranch} else {ElseBranch}"
 
 [Stmt.Print]
 Fields = [ "Expr Expr" ]
-ToString = "print({Expr})"
+ToString = "print {Expr}"
 
-[Stmt.Return]
-Fields = [
-    "Token Keyword",
-    "Expr? Value"
-]
-ToString = "return {Value}"
+[Stmt.Out]
+Fields = [ "Expr? Value" ]
+ToString = "out {Value}"
 
 [Stmt.Var]
 Fields = [

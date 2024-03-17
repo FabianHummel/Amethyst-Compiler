@@ -32,25 +32,30 @@ public class Parser
         return Previous();
     }
     
-    private bool Check(TokenType type)
+    private bool Check(params TokenType[] types)
     {
         if (IsAtEnd)
         {
             return false;
         }
+
+        foreach (var type in types)
+        {
+            if (Peek().Type == type)
+            {
+                return true;
+            }
+        }
         
-        return Peek().Type == type;
+        return false;
     }
     
     private bool Match(params TokenType[] types)
     {
-        foreach (var type in types)
+        if (Check(types))
         {
-            if (Check(type))
-            {
-                Advance();
-                return true;
-            }
+            Advance();
+            return true;
         }
         
         return false;
@@ -176,12 +181,11 @@ public class Parser
             while (Match(TokenType.COMMA));
         }
         
-        var paren = Consume(TokenType.RIGHT_PAREN, "Expected ')' after arguments");
+        Consume(TokenType.RIGHT_PAREN, "Expected ')' after arguments");
         
         return new Expr.Call
         {
             Callee = callee,
-            Paren = paren,
             Arguments = arguments
         };
     }
@@ -454,9 +458,8 @@ public class Parser
         };
     }
 
-    private Stmt ReturnStatement()
+    private Stmt OutStatement()
     {
-        var keyword = Previous();
         Expr? value = null;
         
         if (!Check(TokenType.SEMICOLON))
@@ -465,9 +468,8 @@ public class Parser
         }
         
         Consume(TokenType.SEMICOLON, "Expected ';' after return value");
-        return new Stmt.Return
+        return new Stmt.Out
         {
-            Keyword = keyword,
             Value = value
         };
     }
@@ -527,9 +529,9 @@ public class Parser
             return PrintStatement();
         }
         
-        if (Match(TokenType.RETURN))
+        if (Match(TokenType.OUT))
         {
-            return ReturnStatement();
+            return OutStatement();
         }
 
         if (Match(TokenType.WHILE))
@@ -546,6 +548,20 @@ public class Parser
         }
         
         return ExpressionStatement();
+    }
+
+    private Stmt NsDeclaration()
+    {
+        var name = Consume(TokenType.IDENTIFIER, "Expected namespace name");
+        Consume(TokenType.LEFT_BRACE, "Expected '{' before namespace body");
+        
+        var body = Block();
+        
+        return new Stmt.Namespace
+        {
+            Name = name,
+            Body = body
+        };
     }
 
     private Stmt FuncDeclaration()
@@ -618,7 +634,11 @@ public class Parser
 
     private Stmt Declaration()
     {
-        if (Match(TokenType.TICKING, TokenType.INITIALIZING, TokenType.FUNCTION))
+        if (Match(TokenType.NAMESPACE))
+        {
+            return NsDeclaration();
+        }
+        if (Check(TokenType.TICKING, TokenType.INITIALIZING, TokenType.FUNCTION))
         {
             return FuncDeclaration();
         }

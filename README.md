@@ -66,9 +66,12 @@ program        → declaration* EOF ;
 
 ### Declarations
 ```text
-declaration    → funcDecl
+declaration    → nsDecl 
+               | funcDecl
                | varDecl 
                | statement ;
+
+nsDecl         → "namespace" STRING block ;
 
 funcDecl       → ( "initializing" | "ticking" )* "function" function ;
 
@@ -87,12 +90,9 @@ statement      → exprStmt
 
 exprStmt       → expression ";" ;
 
-forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
-               expression? ";"
-               expression? ")" statement ;
+forStmt        → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;
 
-ifStmt         → "if" "(" expression ")" statement
-               ( "else" statement )? ;
+ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
 
 printStmt      → "print" expression ";" ;
 

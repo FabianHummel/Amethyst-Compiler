@@ -23,9 +23,6 @@ namespace SourceGenerators
             // Go through all files marked as an Additional File in file properties.
             foreach (var additionalFile in context.AdditionalFiles)
             {
-                if (additionalFile == null)
-                    continue;
-                
                 // Check if the file name is the specific file that we expect.
                 if (Path.GetFileName(additionalFile.Path) != "AstModel.toml")
                     continue;
@@ -41,6 +38,7 @@ namespace SourceGenerators
                 foreach (var key in table.Keys)
                 {
                     var writer = new StringWriter();
+                    writer.WriteLine("#nullable enable");
                     writer.WriteLine("namespace Amethyst;"); 
                     writer.WriteLine();
                     writer.WriteLine("public abstract class " + key);
@@ -81,6 +79,7 @@ namespace SourceGenerators
                     
                     writer.WriteLine("    public abstract T Accept<T>(IVisitor<T> visitor);");
                     writer.WriteLine("}");
+                    writer.WriteLine("#nullable restore");
                     context.AddSource(key + ".g.cs", writer.ToString());
                     writer.Close();
                 }

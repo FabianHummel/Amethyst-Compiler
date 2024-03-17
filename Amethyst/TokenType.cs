@@ -85,6 +85,8 @@ public enum TokenType
     TICKING,
     [Description("initializing")]
     INITIALIZING,
+    [Description("namespace")]
+    NAMESPACE,
     [Description("for")]
     FOR,
     [Description("if")]
@@ -93,8 +95,8 @@ public enum TokenType
     NULL,
     [Description("or")]
     OR,
-    [Description("return")]
-    RETURN,
+    [Description("out")]
+    OUT,
     [Description("true")]
     TRUE, 
     [Description("var")]
