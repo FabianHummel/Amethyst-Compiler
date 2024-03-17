@@ -65,12 +65,62 @@ public class Parser
         
         throw new SyntaxException(message, Peek().Line);
     }
+    
+    private KeyValuePair<Expr, Expr> Mapping()
+    {
+        var key = Expression();
+        Consume(TokenType.COLON, "Expected ':' after key");
+        var value = Expression();
+        return new KeyValuePair<Expr, Expr>(key, value);
+    }
+
+    private Expr Object()
+    {
+        IDictionary<Expr, Expr> mappings = new Dictionary<Expr, Expr>();
+        
+        if (!Check(TokenType.RIGHT_BRACE))
+        {
+            do
+            {
+                mappings.Add(Mapping());
+            }
+            while (Match(TokenType.COMMA));
+        }
+        
+        Consume(TokenType.RIGHT_BRACE, "Expected '}' after object");
+        
+        return new Expr.Object
+        {
+            Values = mappings
+        };
+    }
+    
+    private Expr Array()
+    {
+        IList<Expr> values = new List<Expr>();
+        
+        if (!Check(TokenType.RIGHT_BRACKET))
+        {
+            do
+            {
+                values.Add(Expression());
+            }
+            while (Match(TokenType.COMMA));
+        }
+        
+        Consume(TokenType.RIGHT_BRACKET, "Expected ']' after array");
+        
+        return new Expr.Array
+        {
+            Values = values
+        };
+    }
 
     private Expr Primary()
     {
-        if (Match(TokenType.FALSE))
+        if (Match(TokenType.NUMBER, TokenType.STRING))
         {
-            return new Expr.Literal { Value = false };
+            return new Expr.Literal { Value = Previous().Literal };
         }
         
         if (Match(TokenType.TRUE))
@@ -78,19 +128,14 @@ public class Parser
             return new Expr.Literal { Value = true };
         }
         
+        if (Match(TokenType.FALSE))
+        {
+            return new Expr.Literal { Value = false };
+        }
+        
         if (Match(TokenType.NULL))
         {
             return new Expr.Literal { Value = null };
-        }
-        
-        if (Match(TokenType.NUMBER, TokenType.STRING))
-        {
-            return new Expr.Literal { Value = Previous().Literal };
-        }
-        
-        if (Match(TokenType.IDENTIFIER))
-        {
-            return new Expr.Variable { Name = Previous() };
         }
         
         if (Match(TokenType.LEFT_PAREN))
@@ -98,6 +143,21 @@ public class Parser
             var expr = Expression();
             Consume(TokenType.RIGHT_PAREN, "Expected ')' after expression");
             return new Expr.Grouping { Expression = expr };
+        }
+        
+        if (Match(TokenType.IDENTIFIER))
+        {
+            return new Expr.Variable { Name = Previous() };
+        }
+
+        if (Match(TokenType.LEFT_BRACE))
+        {
+            return Object();
+        }
+        
+        if (Match(TokenType.LEFT_BRACKET))
+        {
+            return Array();
         }
 
         throw new SyntaxException("Expected expression", Peek().Line);

@@ -7,10 +7,10 @@
         <Nullable>enable</Nullable>
         <LangVersion>preview</LangVersion>
     </PropertyGroup>
-    
+
     <ItemGroup>
-        <None Remove="AstModel.txt" />
-        <AdditionalFiles Include="AstModel.txt" />
+        <None Remove="AstModel.toml" />
+        <AdditionalFiles Include="AstModel.toml" />
     </ItemGroup>
     
     <ItemGroup>

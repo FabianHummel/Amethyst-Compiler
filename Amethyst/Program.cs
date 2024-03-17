@@ -25,8 +25,8 @@ internal static class Program
                 {
                     Console.Out.WriteLine("Compiling " + target);
                     var input = File.ReadAllText(target);
-                    var lexer = new Tokenizer(input);
-                    var tokens = lexer.ScanTokens();
+                    var tokenizer = new Tokenizer(input);
+                    var tokens = tokenizer.ScanTokens();
                     var parser = new Parser(tokens);
                     var stmts = parser.Parse();
                     var compiler = new Compiler(stmts, rootNamespace, outDir);

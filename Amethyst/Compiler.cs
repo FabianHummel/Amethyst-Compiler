@@ -122,6 +122,16 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         return expr.Value;
     }
 
+    public object? VisitObjectExpr(Expr.Object expr)
+    {
+        return null;
+    }
+
+    public object? VisitArrayExpr(Expr.Array expr)
+    {
+        return null;
+    }
+
     public object? VisitLogicalExpr(Expr.Logical expr)
     {
         return null;

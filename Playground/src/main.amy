@@ -2,9 +2,9 @@
 
 print (5 + 10) * 20 + 8 * 2;
 
-var obj = { "hello": "nice", "age": 19, "my_arr": [10, 20, { nice: true }], 90 };
+var obj = { "hello": "nice", "age": 19, "my_arr": [10, 20, { "nice": true }] };
 
-var arr = [1, 2, "hello", x, 5, obj]
+var arr = [1, 2, "hello", x, 5, obj];
 
 # ticking function main() {
 #     # comment

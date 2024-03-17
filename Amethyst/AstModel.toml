@@ -1,0 +1,131 @@
+#Begin
+#Expr
+#Assign = Token Name; Expr Value
+#Binary = Expr Left; Token Operator; Expr Right
+#Call = Expr Callee; Token Paren; IList<Expr> Arguments
+#Grouping = Expr Expression
+#Literal = object Value
+#Object = IDictionary<Expr, Expr> Values
+#Array = IList<Expr> Values
+#Logical = Expr Left; Token Operator; Expr Right
+#Unary = Token Operator; Expr Right
+#Variable = Token Name
+#End
+#
+#Begin
+#Stmt
+#Block = IList<Stmt> Statements
+#Expression = Expr Expr
+#Function = bool Ticking; bool Initializing; Token Name; IList<Token> Params; IList<Stmt> Body
+#If = Expr Condition; Stmt ThenBranch; Stmt? ElseBranch
+#Print = Expr Expr
+#Return = Token Keyword; Expr? Value
+#Var = Token Name; Expr? Initializer
+#While = Expr Condition; Stmt Body
+#End
+
+[Expr.Assign]
+Fields = [ "Token Name" , "Expr Value" ]
+ToString = "{Name} = {Value}"
+
+[Expr.Binary]
+Fields = [
+    "Expr Left",
+    "Token Operator",
+    "Expr Right"
+]
+ToString = "{Left} {Operator} {Right}"
+
+[Expr.Call]
+Fields = [
+    "Expr Callee",
+    "Token Paren",
+    "IList<Expr> Arguments"
+]
+ToString = "{Callee}({Arguments})"
+
+[Expr.Grouping]
+Fields = [ "Expr Expression" ]
+ToString = "({Expression})"
+
+[Expr.Literal]
+Fields = [ "object Value" ]
+ToString = "{Value}"
+
+[Expr.Object]
+Fields = [ "IDictionary<Expr, Expr> Values" ]
+ToString = "{Values}"
+
+[Expr.Array]
+Fields = [ "IList<Expr> Values" ]
+ToString = "{Values}"
+
+[Expr.Logical]
+Fields = [
+    "Expr Left",
+    "Token Operator",
+    "Expr Right"
+]
+ToString = "{Left} {Operator} {Right}"
+
+[Expr.Unary]
+Fields = [
+    "Token Operator",
+    "Expr Right"
+]
+ToString = "{Operator}{Right}"
+
+[Expr.Variable]
+Fields = [ "Token Name" ]
+ToString = "{Name}"
+
+[Stmt.Block]
+Fields = [ "IList<Stmt> Statements" ]
+ToString = "{Statements}"
+
+[Stmt.Expression]
+Fields = [ "Expr Expr" ]
+ToString = "{Expr}"
+
+[Stmt.Function]
+Fields = [
+    "bool Ticking",
+    "bool Initializing",
+    "Token Name",
+    "IList<Token> Params",
+    "IList<Stmt> Body"
+]
+ToString = "function {Name}({Params}) {Body}"
+
+[Stmt.If]
+Fields = [
+    "Expr Condition",
+    "Stmt ThenBranch",
+    "Stmt? ElseBranch"
+]
+ToString = "if {Condition} then {ThenBranch} else {ElseBranch}"
+
+[Stmt.Print]
+Fields = [ "Expr Expr" ]
+ToString = "print({Expr})"
+
+[Stmt.Return]
+Fields = [
+    "Token Keyword",
+    "Expr? Value"
+]
+ToString = "return {Value}"
+
+[Stmt.Var]
+Fields = [
+    "Token Name",
+    "Expr? Initializer"
+]
+ToString = "var {Name} = {Initializer}"
+
+[Stmt.While]
+Fields = [
+    "Expr Condition",
+    "Stmt Body"
+]
+ToString = "while {Condition} do {Body}"
