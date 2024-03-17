@@ -1,4 +1,4 @@
-namespace = "amethyst"
+namespace = "playground"
 description = "Test project for the amethyst compiler"
 pack_format = 18
 output = "out"

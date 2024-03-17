@@ -1,6 +1,6 @@
 {
   "values": [
-    {{amethyst_init}},
+    {{amethyst_init}}
     {{loading_functions}}
   ]
 }

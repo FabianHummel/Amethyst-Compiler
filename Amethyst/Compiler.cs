@@ -1,19 +1,29 @@
-using Tommy;
-
 namespace Amethyst;
 
 public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 {
     private IList<Stmt> Statements { get; }
-    private string RootNamespace { get; }
-    private string OutDir { get; }
-    private Environment Environment { get; set; } = new();
+    private string OutDir { get; set; }
+    private Environment Environment { get; set; }
+    private string RootNamespace { get; init; }
     
     public Compiler(IList<Stmt> statements, string rootNamespace, string outDir)
     {
         Statements = statements;
-        RootNamespace = rootNamespace;
         OutDir = outDir;
+        Environment = new Environment();
+        RootNamespace = rootNamespace;
+    }
+
+    private void CompileBlock(IEnumerable<Stmt> statements, string scope = "")
+    {
+        var previous = Environment;
+        Environment = new Environment(Environment, scope);
+        foreach (var statement in statements)
+        {
+            Compile(statement);
+        }
+        Environment = previous;
     }
 
     private void Compile(Stmt stmt)
@@ -75,21 +85,10 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     {
         return null;
     }
-    
-    private void CompileBlock(Stmt.Block block, Environment environment)
-    {
-        var previous = Environment;
-        Environment = environment;
-        foreach (var statement in block.Statements)
-        {
-            Compile(statement);
-        }
-        Environment = previous;
-    }
 
     public object? VisitBlockStmt(Stmt.Block stmt)
     {
-        CompileBlock(stmt, new Environment(Environment));
+        CompileBlock(stmt.Statements);
         return null;
     }
 
@@ -101,11 +100,32 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitNamespaceStmt(Stmt.Namespace stmt)
     {
+        var nsPath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, stmt.Name.Lexeme);
+        Directory.CreateDirectory(nsPath);
+        
+        CompileBlock(stmt.Body, stmt.Name.Lexeme);
         return null;
     }
 
     public object? VisitFunctionStmt(Stmt.Function stmt)
     {
+        var functionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, stmt.Name.Lexeme);
+        
+        if (stmt.Initializing)
+        {
+            Environment.InitializingFunctions.Add(functionPath);
+        }
+
+        if (stmt.Ticking)
+        {
+            Environment.TickingFunctions.Add(functionPath);
+        }
+        
+        var fnPath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, stmt.Name.Lexeme + ".mcfunction");
+        File.Create(fnPath).Close();
+        
+        CompileBlock(stmt.Body, stmt.Name.Lexeme);
+        
         return null;
     }
 
@@ -136,9 +156,13 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public void Compile()
     {
+        Project.CopyAmethystInternalModule(OutDir);
+        
         foreach (var statement in Statements)
         {
             Compile(statement);
         }
+        
+        Project.CreateFunctionTags(OutDir, Environment);
     }
 }

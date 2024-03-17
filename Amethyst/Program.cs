@@ -10,9 +10,11 @@ internal static class Program
         {
             var table = TOML.Parse(reader);
 
-            var outDir = table["output"].AsString;
+            var outDir = (string)table["output"].AsString;
             Project.RegenerateOutputFolder(outDir);
             Project.CreateMcMeta(outDir, table);
+            
+            outDir = Path.Combine(outDir, "data");
             Project.CreateDataFolders(outDir, table);
             
             var rootNamespace = table["namespace"].AsString;

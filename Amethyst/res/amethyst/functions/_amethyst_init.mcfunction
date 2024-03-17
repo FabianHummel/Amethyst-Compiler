@@ -1,4 +1,3 @@
-
 #     
 #     ______     __    __     ______    ______    __  __     __  __     ______     ______  
 #    /\  __ \   /\ "-./  \   /\  ___\  /\__  _\  /\ \_\ \   /\ \_\ \   /\  ___\   /\__  _\ 
@@ -6,7 +5,7 @@
 #     \ \_\ \_\  \ \_\ \ \_\  \ \_____\   \ \_\   \ \_\ \_\  \/\_____\  \/\_____\    \ \_\ 
 #      \/_/\/_/   \/_/  \/_/   \/_____/    \/_/    \/_/\/_/   \/_____/   \/_____/     \/_/ 
 #                                                                                          
-#     -=-=-= COMPILER FRAMEWORK =-=-=-=-=-=-=-=-=-                                                   
+#     -=-=-= COMPILER PLATFORM =-=-=-=-=-=-=-=-=-                                                   
 #
 
 # Amethyst
@@ -18,5 +17,3 @@ scoreboard players reset * amethyst_const
 
 data merge storage amethyst:internal {_out:{}}
 data merge storage amethyst:constants {}
-
-# User definitions

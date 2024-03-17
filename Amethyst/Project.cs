@@ -33,12 +33,12 @@ public static class Project
     
     public static void CreateMcMeta(string outputDir, TomlTable table)
     {
-        var mcMeta = outputDir + "/pack.mcmeta";
+        var mcMeta = Path.Combine(outputDir, "pack.mcmeta");
 
         var assembly = Assembly.GetExecutingAssembly();
-        using (var stream = assembly.GetManifestResourceStream("Amethyst.res.pack.mcmeta"))
+        using (var stream = assembly.GetManifestResourceStream("Amethyst.res.pack.mcmeta")!)
         {
-            using (var reader = new StreamReader(stream!))
+            using (var reader = new StreamReader(stream))
             {
                 var mcMetaContents = reader.ReadToEnd();
                 mcMetaContents = mcMetaContents.Replace("{{description}}", table["description"]);
@@ -50,56 +50,63 @@ public static class Project
 
     public static void CreateDataFolders(string outDir, TomlTable table)
     {
-        var dataDir = outDir + "/data";
-        Directory.CreateDirectory(dataDir);
-        var namespaceDir = dataDir + "/" + table["namespace"] + "/functions";
+        Directory.CreateDirectory(outDir);
+        var namespaceDir = Path.Combine(outDir, table["namespace"].AsString, "functions");
         Directory.CreateDirectory(namespaceDir);
-        var minecraftDir = dataDir + "/minecraft/tags/functions";
+        var minecraftDir = Path.Combine(outDir, "minecraft/tags/functions/");
         Directory.CreateDirectory(minecraftDir);
     }
 
-    // public static void CreateFunctionTags(string outDir, GenerationContext context)
-    // {
-    //     var minecraftDir = outDir + "/data/minecraft/tags/functions";
-    //     
-    //     var assembly = Assembly.GetExecutingAssembly();
-    //     using (var stream = assembly.GetManifestResourceStream("Amethyst.res.tick.json"))
-    //     {
-    //         using (var reader = new StreamReader(stream!))
-    //         {
-    //             var tickingFunctions = reader.ReadToEnd();
-    //             var content = string.Join(",\n    ", context.TickFunctions.Select(i => $"\"{i}\""));
-    //             tickingFunctions = tickingFunctions.Replace("{{ticking_functions}}", content);
-    //             File.WriteAllText(minecraftDir + "/tick.json", tickingFunctions);
-    //         }
-    //     }
-    //     
-    //     using (var stream = assembly.GetManifestResourceStream("Amethyst.res.load.json"))
-    //     {
-    //         using (var reader = new StreamReader(stream!))
-    //         {
-    //             var loadingFunctions = reader.ReadToEnd();
-    //             var content = string.Join(",\n    ", context.LoadFunctions.Select(i => $"\"{i}\""));
-    //             loadingFunctions = loadingFunctions
-    //                 .Replace("{{loading_functions}}", content)
-    //                 .Replace("{{amethyst_init}}", $"\"{context.RootNamespace}:_amethyst_init\"");
-    //             File.WriteAllText(minecraftDir + "/load.json", loadingFunctions);
-    //         }
-    //     }
-    // }
+    public static void CreateFunctionTags(string outDir, Environment context)
+    {
+        var minecraftDir = Path.Combine(outDir, "minecraft/tags/functions/");
+        
+        var assembly = Assembly.GetExecutingAssembly();
+        using (var stream = assembly.GetManifestResourceStream("Amethyst.res.tick.json")!)
+        {
+            using (var reader = new StreamReader(stream))
+            {
+                var tickingFunctions = reader.ReadToEnd();
+                var content = string.Join(",\n    ", context.TickingFunctions.Select(i => $"\"{i}\""));
+                tickingFunctions = tickingFunctions.Replace("{{ticking_functions}}", content);
+                File.WriteAllText(Path.Combine(minecraftDir + "tick.json"), tickingFunctions);
+            }
+        }
+        
+        using (var stream = assembly.GetManifestResourceStream("Amethyst.res.load.json")!)
+        {
+            using (var reader = new StreamReader(stream))
+            {
+                var loadingFunctions = reader.ReadToEnd();
+                var functions = context.InitializingFunctions.Select(i => $"\"{i}\"").ToList();
+                var content = string.Join(",\n    ", functions);
+                loadingFunctions = loadingFunctions
+                    .Replace("{{amethyst_init}}", $"\"amethyst:_amethyst_init\"{(functions.Count > 0 ? "," : "")}")
+                    .Replace("{{loading_functions}}", content);
+                File.WriteAllText(Path.Combine(minecraftDir + "load.json"), loadingFunctions);
+            }
+        }
+    }
     
-    // public static void CreateInitializationFunction(string outDir, GenerationContext context)
-    // {
-    //     var initializationFunctionDir = outDir + "/data/" + context.RootNamespace + "/functions/_amethyst_init.mcfunction";
-    //     
-    //     var assembly = Assembly.GetExecutingAssembly();
-    //     using (var stream = assembly.GetManifestResourceStream("Amethyst.res._amethyst_init.mcfunction"))
-    //     {
-    //         using (var reader = new StreamReader(stream!))
-    //         {
-    //             var initializationFunction = reader.ReadToEnd();
-    //             File.WriteAllText(initializationFunctionDir, initializationFunction);
-    //         }
-    //     }
-    // }
+    public static void CopyAmethystInternalModule(string outDir)
+    {
+        var moduleDir = Path.Combine(outDir, "amethyst");
+        
+        var assembly = Assembly.GetExecutingAssembly();
+        var templateFiles = assembly.GetManifestResourceNames().Where(s => s.StartsWith("Amethyst.res.amethyst"));
+        foreach (var templateFile in templateFiles)
+        {
+            var path = moduleDir + templateFile["Amethyst.res.amethyst".Length..];
+            path = path[..path.LastIndexOf('.')].Replace(".", "/") + path[path.LastIndexOf('.')..];
+            using (var stream = assembly.GetManifestResourceStream(templateFile)!)
+            {
+                using (var reader = new StreamReader(stream))
+                {
+                    var content = reader.ReadToEnd();
+                    Directory.CreateDirectory(path[..path.LastIndexOf('/')]);
+                    File.WriteAllText(path, content);
+                }
+            }
+        }
+    }
 }

@@ -6,7 +6,7 @@ var obj = { "hello": "nice", "age": 19, "my_arr": [10, 20, { "nice": true, strin
 
 var arr = [1, 2, "hello", x, 5, obj];
 
-ticking function main() {
+ticking initializing function main() {
     # comment
     println("Hello, world!" + (8*x) - function_in_parameter(), "Other argument");
     
