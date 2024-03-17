@@ -89,6 +89,10 @@ ToString = "if {Condition} then {ThenBranch} else {ElseBranch}"
 Fields = [ "Expr Expr" ]
 ToString = "print {Expr}"
 
+[Stmt.Comment]
+Fields = [ "Expr Expr" ]
+ToString = "# {Expr}"
+
 [Stmt.Out]
 Fields = [ "Expr? Value" ]
 ToString = "out {Value}"

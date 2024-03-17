@@ -159,6 +159,12 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         return null;
     }
 
+    public object? VisitCommentStmt(Stmt.Comment stmt)
+    {
+        AddCommand($"# {Evaluate(stmt.Expr)}");
+        return null;
+    }
+
     public object? VisitOutStmt(Stmt.Out stmt)
     {
         return null;

@@ -458,6 +458,16 @@ public class Parser
         };
     }
 
+    private Stmt CommentStatement()
+    {
+        var value = Expression();
+        Consume(TokenType.SEMICOLON, "Expected ';' after comment");
+        return new Stmt.Comment
+        { 
+            Expr = value
+        };
+    }
+
     private Stmt OutStatement()
     {
         Expr? value = null;
@@ -527,6 +537,11 @@ public class Parser
         if (Match(TokenType.PRINT))
         {
             return PrintStatement();
+        }
+
+        if (Match(TokenType.COMMENT))
+        {
+            return CommentStatement();
         }
         
         if (Match(TokenType.OUT))

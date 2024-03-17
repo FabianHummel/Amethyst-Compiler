@@ -56,6 +56,7 @@ public enum TokenType
     VAR, 
     WHILE,
     PRINT,
+    COMMENT,
     
     // File.
     EOF,

@@ -213,7 +213,8 @@ statement      → exprStmt
                | forStmt
                | ifStmt
                | printStmt
-               | returnStmt
+               | commentStmt
+               | outStmt
                | whileStmt
                | block ;
 
@@ -225,7 +226,9 @@ ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
 
 printStmt      → "print" expression ";" ;
 
-returnStmt     → "return" expression? ";" ;
+commentStmt    → "comment" expression ";" ;
+
+outStmt        → "out" expression? ";" ;
 
 whileStmt      → "while" "(" expression ")" statement ;
 
