@@ -11,14 +11,28 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     {
         Statements = statements;
         OutDir = outDir;
-        Environment = new Environment();
+        Environment = new Environment("_amethyst_init");
         RootNamespace = rootNamespace;
     }
+    
+     private void AddCommand(string command)
+     {
+         var filePath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, Environment.CurrentFunction + ".mcfunction");
+         File.Create(filePath).Close();
+         File.AppendAllText(filePath, command + "\n");
+     }
+     
+     private void AddInitCommand(string command)
+     {
+         var filePath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, "_amethyst_init.mcfunction");
+         File.Create(filePath).Close();
+         File.AppendAllText(filePath, command + "\n");
+     }
 
-    private void CompileBlock(IEnumerable<Stmt> statements, string scope = "")
+    private void CompileBlock(IEnumerable<Stmt> statements, string currentFunction = "_amethyst_init", string scope = "")
     {
         var previous = Environment;
-        Environment = new Environment(Environment, scope);
+        Environment = new Environment(Environment, currentFunction, scope);
         foreach (var statement in statements)
         {
             Compile(statement);
@@ -31,6 +45,11 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         stmt.Accept(this); // don't use return value, as it's always null
     }
     
+    /// <summary>
+    /// Jumps to the Expression's associated visit* function
+    /// </summary>
+    /// <param name="expr"></param>
+    /// <returns></returns>
     private object? Evaluate(Expr expr)
     {
         return expr.Accept(this);
@@ -88,7 +107,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitBlockStmt(Stmt.Block stmt)
     {
-        CompileBlock(stmt.Statements);
+        CompileBlock(stmt.Statements, Environment.CurrentFunction);
         return null;
     }
 
@@ -100,10 +119,11 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitNamespaceStmt(Stmt.Namespace stmt)
     {
-        var nsPath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, stmt.Name.Lexeme);
-        Directory.CreateDirectory(nsPath);
+        var filePath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, stmt.Name.Lexeme);
+        Directory.CreateDirectory(filePath);
         
-        CompileBlock(stmt.Body, stmt.Name.Lexeme);
+        CompileBlock(stmt.Body, scope: stmt.Name.Lexeme);
+        
         return null;
     }
 
@@ -121,10 +141,10 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
             Environment.TickingFunctions.Add(functionPath);
         }
         
-        var fnPath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, stmt.Name.Lexeme + ".mcfunction");
-        File.Create(fnPath).Close();
+        var filePath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, stmt.Name.Lexeme + ".mcfunction");
+        File.Create(filePath).Close();
         
-        CompileBlock(stmt.Body, stmt.Name.Lexeme);
+        CompileBlock(stmt.Body, Environment.CurrentFunction);
         
         return null;
     }
