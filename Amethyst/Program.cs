@@ -17,7 +17,7 @@ internal static class Program
             
             var rootNamespace = table["namespace"].AsString;
             
-            var compileTargets = Project.FindCompileTargets(Environment.CurrentDirectory);
+            var compileTargets = Project.FindCompileTargets(System.Environment.CurrentDirectory);
         
             try
             {
@@ -25,7 +25,7 @@ internal static class Program
                 {
                     Console.Out.WriteLine("Compiling " + target);
                     var input = File.ReadAllText(target);
-                    var lexer = new Lexer(input);
+                    var lexer = new Tokenizer(input);
                     var tokens = lexer.ScanTokens();
                     var parser = new Parser(tokens);
                     var stmts = parser.Parse();

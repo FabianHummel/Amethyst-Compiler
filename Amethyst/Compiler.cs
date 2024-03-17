@@ -7,6 +7,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     private IList<Stmt> Statements { get; }
     private string RootNamespace { get; }
     private string OutDir { get; }
+    private Environment Environment { get; set; } = new();
     
     public Compiler(IList<Stmt> statements, string rootNamespace, string outDir)
     {
@@ -50,7 +51,12 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         if (left is double && right is double) return;
         throw new SyntaxException("Operands must be numbers", op.Line);
     }
-    
+
+    public object? VisitAssignExpr(Expr.Assign expr)
+    {
+        return null;
+    }
+
     public object? VisitBinaryExpr(Expr.Binary expr)
     {
         object? left = Evaluate(expr.Left);
@@ -101,6 +107,11 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         return null;
     }
 
+    public object? VisitCallExpr(Expr.Call expr)
+    {
+        return null;
+    }
+
     public object? VisitGroupingExpr(Expr.Grouping expr)
     {
         return Evaluate(expr.Expression);
@@ -109,6 +120,11 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     public object? VisitLiteralExpr(Expr.Literal expr)
     {
         return expr.Value;
+    }
+
+    public object? VisitLogicalExpr(Expr.Logical expr)
+    {
+        return null;
     }
 
     public object? VisitUnaryExpr(Expr.Unary expr)
@@ -131,6 +147,29 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     {
         return null;
     }
+    
+    private void ExecuteBlock(Stmt.Block block, Environment environment)
+    {
+        var previous = Environment;
+        try
+        {
+            Environment = environment;
+            foreach (var statement in block.Statements)
+            {
+                Execute(statement);
+            }
+        }
+        finally
+        {
+            Environment = previous;
+        }
+    }
+
+    public object? VisitBlockStmt(Stmt.Block stmt)
+    {
+        ExecuteBlock(stmt, new Environment(Environment));
+        return null;
+    }
 
     public object? VisitExpressionStmt(Stmt.Expression stmt)
     {
@@ -138,13 +177,32 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         return null;
     }
 
+    public object? VisitFunctionStmt(Stmt.Function stmt)
+    {
+        return null;
+    }
+
+    public object? VisitIfStmt(Stmt.If stmt)
+    {
+        return null;
+    }
+
     public object? VisitPrintStmt(Stmt.Print stmt)
     {
-        object? value = Evaluate(stmt.Expr);
+        return null;
+    }
+
+    public object? VisitReturnStmt(Stmt.Return stmt)
+    {
         return null;
     }
 
     public object? VisitVarStmt(Stmt.Var stmt)
+    {
+        return null;
+    }
+
+    public object? VisitWhileStmt(Stmt.While stmt)
     {
         return null;
     }

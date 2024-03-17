@@ -1,8 +1,8 @@
 namespace Amethyst;
 
-public class Lexer
+public class Tokenizer
 {
-    public Lexer(string input)
+    public Tokenizer(string input)
     {
         Source = input;
     }
