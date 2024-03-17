@@ -20,11 +20,123 @@ initializing function init() {
 ticking function tick() {
     
 }
+
+namespace "math" {
+    
+}
 ```
+
+Note the keywords `initializing` and `ticking` which are used to define special attributes of the function. `ticking` automatically adds the function to the `tick.json` function tag and `initializing` to the `load.json`. This syntax perfectly integrates with the game and allows for a more natural way of writing datapacks.
+
+## Preprocessing
+
+A key feature of any modern language is preprocessing of source files. For example, if you simply want to repeat a command with a compile-time constant output, you can opt out of the runtime environment through a `preprocess` group. All variables and expressions are then evaluated at compile time. Runtime variables from an outer scope simply get replaced with their intermediary location (either a scoreboard player's name or an nbt path to a storage value)
+
+```amethyst
+tellraw @a "It's raining diamonds!";
+    
+preprocess {
+    for (var x = 0; x < 5; x++) {
+        schedule x seconds {
+            give @a diamond;
+        }
+    }
+}
+```
+
+<details>
+  <summary>Resulting MCFunction code</summary>
+
+```mcfunction
+# my_datapack:_amethyst_init
+
+tellraw @a "It's raining diamonds!"
+schedule function "my_datapack:_amethyst_init/anon_schedule_1" 0s
+schedule function "my_datapack:_amethyst_init/anon_schedule_1" 1s
+schedule function "my_datapack:_amethyst_init/anon_schedule_1" 2s
+schedule function "my_datapack:_amethyst_init/anon_schedule_1" 3s
+schedule function "my_datapack:_amethyst_init/anon_schedule_1" 4s
+schedule function "my_datapack:_amethyst_init/anon_schedule_1" 5s
+```
+```mcfunction
+# my_datapack:init/anon_schedule_1
+
+give @a diamond
+```
+    
+</details>
+
+
+## Inlining
+
+What really gives Amethyst superpowers is that you can inline any MCF code in any location you like. This is useful for several reasons:
+- Some features of the compiler have not yet been implemented -> simply write the MCF code in the place you like and it will be included in the output; but be aware that you have to adhere to some standard definitions of the compiler.
+- Quickly outline code that is cumbersome to write via Amethyst otherwise.
+
+Inline code is enabled either via a standard minecraft console command with a `/` prefix or an `inline` group. Everything after a `/` or inside an inline group is considered **plaintext**, with no dynamic variables.
+
+```amethyst
+var name = "Amethyst";                  # Silly example that would generate way too bloated code.
+tellraw @a "Hello from " + name;        # Better use constants, inlining or preprocessing in this case.
+
+/tellraw @a "Hello from MCFunction"
+
+inline {
+    tellraw @a "My feet are magic"
+    execute as @a at @s run setblock @s ~ ~-1 ~ minecraft:gold
+}
+```
+
+<details>
+<summary>Resulting MCFunction code</summary>
+
+```mcfunction
+# my_datapack:_amethyst_init
+
+data modify storage amethyst:constants c1 set value "Hello from "
+data modify storage amethyst:interal vname set value "Amethyst"
+data modify storage amethyst:interal _out set from storage amethyst:constants c1
+data modify storage amethyst:interal _tmp set from storage amethyst:interal vname
+function amethyst:internal/string_concat with storage amethyst:interal
+tellraw @a {"storage":"amethyst:internal","nbt":"_out"}
+tellraw @a "Hello from MCFunction"
+tellraw @a "My feet are magic"
+execute as @a at @s run setblock @s ~ ~-1 ~ minecraft:gold
+```
+
+</details>
 
 ## Batteries Included
 
-Amethyst is not just for writing datapack code, but is also great for managing all resource pack needs.
+Amethyst is not just for writing datapack code, but is also great for managing all resource pack needs. A resource pack can be defined in the same project as the datapack and gets rid of the tedious process of managing two separate folders at once. Names and values can also include preprocessed variables to supercharge resource pack development, although they need to be wrapped inside a `resource` group _(acts like an ordinary `preprocess` group)_ to be able to create preprocess variables. 
+
+```amethyst
+resource {
+    for (var i = 0; i < 5; i++) {
+        resource item model "item_" + x {
+            "layer0": "item/my_item_" + x
+        }
+    }
+    
+    block model "my_block" {
+        "parent": "block/cube_all",
+        "textures": {
+            "all": "block/my_block"
+        }
+    }
+}
+
+resource sound "my_sound" {
+    "sounds": [
+        {
+            "name": "my_sound",
+            "stream": "true",
+        }
+    ]
+}
+```
+
+Other from defining resources directly inside Amethyst code, you can also place your resource pack inside the `res` directory of your project. The compiler will automatically merge this template with the processed amethyst code and place the output in the configured location.
 
 ## Usage
 
@@ -32,6 +144,10 @@ The project structure is as simple as it gets, no need for complicated setups or
 
 ```text
 amethyst.toml
+res/
+    pack.mcmeta
+    assets/
+        <any normal resource pack content>
 src/
     *.amy
 ```
@@ -41,10 +157,23 @@ src/
 The `amethyst.toml` file is used to configure the compiler. It allows you to specify the output directory, the namespace, and other settings. Here's an example configuration file:
 
 ```toml
-namespace = "my_datapack"
-description = "My first Amethyst datapack"
-pack_format = 18
-output = "out"
+minecraft_root = "<path to .minecraft>"             # Root directory of the minecraft instance
+                                                    # Amethyst tries to find this folder automatically by searching the default location
+                                                    # (adjust if using a launcher, otherwise remove this property)
+
+[Datapack]
+namespace = "my_datapack"                           # Root namespace of the datapack
+description = "My first Amethyst datapack"          # Datapack description
+pack_format = 18                                    # Any number, 'release' or 'snapshot'
+output = "out"                                      # Datapack output directory (preferably a world's datapacks folder). 
+                                                    #   Default: '.minecraft > datapacks' if minecraft_root is specified
+
+[Resourcepack]
+namespace = "my_resourcepack"                       # Root namespace of the resourcepack
+description = "My first Amethyst resourcepack"      # Resourcepack description
+pack_format = 18                                    # Any number, 'release' or 'snapshot'
+output = "out"                                      # Datapack output directory (preferably a world's datapacks folder).
+                                                    #   Default: '.minecraft > resourcepacks' if minecraft_root is specified
 ```
 
 ## Contributing
