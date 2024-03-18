@@ -1,1 +1,1 @@
-# mcfunction comment. nice!
+function playground:main

@@ -138,11 +138,6 @@ public class Parser
             return new Expr.Literal { Value = false };
         }
         
-        if (Match(TokenType.NULL))
-        {
-            return new Expr.Literal { Value = null };
-        }
-        
         if (Match(TokenType.LEFT_PAREN))
         {
             var expr = Expression();
@@ -460,25 +455,19 @@ public class Parser
 
     private Stmt CommentStatement()
     {
-        var value = Expression();
+        var value = Consume(TokenType.STRING, "Expected string after comment");
         Consume(TokenType.SEMICOLON, "Expected ';' after comment");
         return new Stmt.Comment
         { 
-            Expr = value
+            Value = value
         };
     }
 
-    private Stmt OutStatement()
+    private Stmt ReturnStatement()
     {
-        Expr? value = null;
-        
-        if (!Check(TokenType.SEMICOLON))
-        {
-            value = Expression();
-        }
-        
+        var value = Expression();
         Consume(TokenType.SEMICOLON, "Expected ';' after return value");
-        return new Stmt.Out
+        return new Stmt.Return
         {
             Value = value
         };
@@ -544,9 +533,9 @@ public class Parser
             return CommentStatement();
         }
         
-        if (Match(TokenType.OUT))
+        if (Match(TokenType.RETURN))
         {
-            return OutStatement();
+            return ReturnStatement();
         }
 
         if (Match(TokenType.WHILE))
@@ -633,11 +622,9 @@ public class Parser
     {
         var name = Consume(TokenType.IDENTIFIER, "Expected variable name");
         
-        Expr? initializer = null;
-        if (Match(TokenType.EQUAL))
-        {
-            initializer = Expression();
-        }
+        Consume(TokenType.EQUAL, "Expected '=' after variable name");
+
+        var initializer = Expression();
         
         Consume(TokenType.SEMICOLON, "Expected ';' after variable declaration");
         return new Stmt.Var

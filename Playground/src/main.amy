@@ -9,15 +9,16 @@ var arr = [1, 2, "hello", x, 5, obj];
 ticking initializing function main() {
     # amethyst comment
     comment "mcfunction comment. nice!";
-    println("Hello, world!" + (8*x) - function_in_parameter(), "Other argument");
+    print "Hello, world!" + (8*x) - function_in_parameter();
     
     var y = "Nice!" + 20 * 2 + (82 + 2 + 20) + 10 + 5 + 10;
     
-    out [1, 2, 3, 4, 5];
+    return [1, 2, 3, 4, y];
+    
+    print "I should never print";
 }
 
 namespace my_namespace {
-
     var y = 5;
 
     function my_function() {

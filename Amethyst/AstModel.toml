@@ -22,7 +22,7 @@ Fields = [ "Expr Expression" ]
 ToString = "({Expression})"
 
 [Expr.Literal]
-Fields = [ "object? Value" ]
+Fields = [ "object Value" ]
 ToString = "{Value}"
 
 [Expr.Object]
@@ -90,17 +90,17 @@ Fields = [ "Expr Expr" ]
 ToString = "print {Expr}"
 
 [Stmt.Comment]
-Fields = [ "Expr Expr" ]
-ToString = "# {Expr}"
+Fields = [ "Token Value" ]
+ToString = "# {Value}"
 
-[Stmt.Out]
-Fields = [ "Expr? Value" ]
-ToString = "out {Value}"
+[Stmt.Return]
+Fields = [ "Expr Value" ]
+ToString = "return {Value}"
 
 [Stmt.Var]
 Fields = [
     "Token Name",
-    "Expr? Initializer"
+    "Expr Initializer"
 ]
 ToString = "var {Name} = {Initializer}"
 

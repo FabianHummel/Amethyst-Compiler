@@ -21,7 +21,7 @@ ticking function tick() {
     
 }
 
-namespace "math" {
+namespace math {
     
 }
 ```
@@ -226,9 +226,9 @@ ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
 
 printStmt      → "print" expression ";" ;
 
-commentStmt    → "comment" expression ";" ;
+commentStmt    → "comment" STRING ";" ;
 
-outStmt        → "out" expression? ";" ;
+outStmt        → "out" expression ";" ;
 
 whileStmt      → "while" "(" expression ")" statement ;
 

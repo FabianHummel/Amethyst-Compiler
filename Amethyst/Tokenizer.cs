@@ -27,7 +27,7 @@ public class Tokenizer
         { "if",             TokenType.IF },
         { "null",           TokenType.NULL },
         { "or",             TokenType.OR },
-        { "out",            TokenType.OUT },
+        { "return",         TokenType.RETURN },
         { "true",           TokenType.TRUE },
         { "var",            TokenType.VAR },
         { "while",          TokenType.WHILE },

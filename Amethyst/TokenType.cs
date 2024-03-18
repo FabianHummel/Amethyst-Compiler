@@ -51,7 +51,7 @@ public enum TokenType
     IF,
     NULL,
     OR,
-    OUT,
+    RETURN,
     TRUE, 
     VAR, 
     WHILE,

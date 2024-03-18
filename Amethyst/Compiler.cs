@@ -18,14 +18,20 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
      private void AddCommand(string command)
      {
          var filePath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, Environment.CurrentFunction + ".mcfunction");
-         File.Create(filePath).Close();
+         if (!File.Exists(filePath))
+         {
+             File.Create(filePath).Close();
+         }
          File.AppendAllText(filePath, command + "\n");
      }
      
      private void AddInitCommand(string command)
      {
          var filePath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, "_amethyst_init.mcfunction");
-         File.Create(filePath).Close();
+         if (!File.Exists(filePath))
+         {
+             File.Create(filePath).Close();
+         }
          File.AppendAllText(filePath, command + "\n");
      }
 
@@ -77,7 +83,20 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitLiteralExpr(Expr.Literal expr)
     {
-        return expr.Value;
+        switch (expr.Value)
+        {
+            case string:
+                AddCommand($"data modify storage amethyst:internal _out set value '{expr.Value}'");
+                return Subject.Storage;
+            case bool:
+                AddCommand($"data modify storage amethyst:internal _out set value {expr.Value}");
+                return Subject.Storage;
+            case double:
+                AddCommand($"scoreboard players set _out amethyst {expr.Value}");
+                return Subject.Scoreboard;
+        }
+
+        return null;
     }
 
     public object? VisitObjectExpr(Expr.Object expr)
@@ -85,9 +104,29 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         return null;
     }
 
-    public object? VisitArrayExpr(Expr.Array expr)
+    public object VisitArrayExpr(Expr.Array expr)
     {
-        return null;
+        var arrName = "_tmp"; // Todo: Get name from environment (ensure no collisions) 
+        AddCommand($"data modify storage amethyst:internal {arrName} set value []");
+        foreach (var exprValue in expr.Values)
+        {
+            if (Evaluate(exprValue) is Subject subject)
+            {
+                switch (subject)
+                {
+                    case Subject.Scoreboard:
+                        AddCommand($"data modify storage amethyst:internal {arrName} append value 0");
+                        AddCommand($"execute store result storage amethyst:internal {arrName}[-1] int 1.0 run scoreboard players get _out amethyst");
+                        break;
+                    case Subject.Storage:
+                        AddCommand($"data modify storage amethyst:internal {arrName} append from storage amethyst:internal _out");
+                        break;
+                }
+            }
+        }
+        AddCommand($"data modify storage amethyst:internal _out set from storage amethyst:internal {arrName}");
+
+        return Subject.Storage;
     }
 
     public object? VisitLogicalExpr(Expr.Logical expr)
@@ -102,6 +141,17 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitVariableExpr(Expr.Variable expr)
     {
+        //var variable = Environment.GetVariable(expr.Name.Lexeme);
+        // Todo: get variable name from environment
+        switch (/*variable.Subject*/ Subject.Storage)
+        {
+            case Subject.Storage:
+                AddCommand($"data modify storage amethyst:internal _out set from storage amethyst:internal {/*variable.Name*/ expr.Name.Lexeme}");
+                return Subject.Storage;
+            case Subject.Scoreboard:
+                AddCommand($"scoreboard players operation _out amethyst = {/*variable.Name*/ expr.Name.Lexeme} amethyst");
+                return Subject.Scoreboard;
+        }
         return null;
     }
 
@@ -134,6 +184,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         if (stmt.Initializing)
         {
             Environment.InitializingFunctions.Add(functionPath);
+            AddInitCommand($"function {functionPath}");
         }
 
         if (stmt.Ticking)
@@ -141,10 +192,23 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
             Environment.TickingFunctions.Add(functionPath);
         }
         
-        var filePath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, stmt.Name.Lexeme + ".mcfunction");
-        File.Create(filePath).Close();
+        var previous = Environment;
+        Environment = new Environment(Environment, stmt.Name.Lexeme);
         
-        CompileBlock(stmt.Body, Environment.CurrentFunction);
+        AddCommand("scoreboard players reset _ret amethyst");
+        AddCommand("data storage remove amethyst:internal _ret");
+
+        try
+        {
+            foreach (var statement in stmt.Body)
+            {
+                Compile(statement);
+            }
+        }
+        finally
+        {
+            Environment = previous;
+        }
         
         return null;
     }
@@ -156,17 +220,51 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitPrintStmt(Stmt.Print stmt)
     {
+        if (Evaluate(stmt.Expr) is Subject subject)
+        {
+            switch (subject)
+            {
+                case Subject.Scoreboard:
+                    AddCommand("tellraw @s {'score':{'name':'_out','objective':'amethyst'}}");
+                    break;
+                case Subject.Storage:
+                    AddCommand("tellraw @s {'storage':'amethyst:internal','nbt':'_out'}");
+                    break;
+            }
+        }
         return null;
     }
 
     public object? VisitCommentStmt(Stmt.Comment stmt)
     {
-        AddCommand($"# {Evaluate(stmt.Expr)}");
+        AddCommand($"# {stmt.Value.Lexeme}");
         return null;
     }
 
-    public object? VisitOutStmt(Stmt.Out stmt)
+    public object? VisitReturnStmt(Stmt.Return stmt)
     {
+        if (Evaluate(stmt.Value) is Subject subject)
+        {
+            const string afterReturnFunctionName = "_amethyst_arf"; // after-return-function
+            var afterReturnFunctionDirectory = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, Environment.CurrentFunction);
+            Directory.CreateDirectory(afterReturnFunctionDirectory);
+            
+            var afterReturnFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction, afterReturnFunctionName);
+            switch (subject)
+            {
+                case Subject.Scoreboard:
+                    AddCommand("scoreboard players operation _ret amethyst = _out amethyst");
+                    AddCommand($"execute unless score _ret amethyst matches -2147483648..2147483647 run function {afterReturnFunctionPath}");
+                    break;
+                case Subject.Storage:
+                    AddCommand("data modify storage amethyst:internal _ret set from storage amethyst:internal _out");
+                    AddCommand($"execute unless data storage amethyst:internal _ret run function {afterReturnFunctionPath}");
+                    break;
+            }
+            
+            Environment = new Environment(Environment, afterReturnFunctionName, Environment.CurrentFunction);
+        }
+
         return null;
     }
 

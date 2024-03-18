@@ -3,7 +3,7 @@ namespace Amethyst;
 public class Environment
 {
     private string Scope { get; init; }
-    public string CurrentFunction { get; init; }
+    public string CurrentFunction { get; set; }
     private Environment? Enclosing { get; }
     public List<string> TickingFunctions { get; init; } = new();
     public List<string> InitializingFunctions { get; init; } = new();
