@@ -1,5 +1,5 @@
 <br>
-<img src="Assets/text.png" height="140" alt="Amethyst Compiler Logo" align="right" />
+<img src="Assets/logo.png" alt="Amethyst Compiler Logo" align="right" />
 
 # The Amethyst Compiler Platform <br>
 > A modern, refreshing way of writing Minecraft datapacks
