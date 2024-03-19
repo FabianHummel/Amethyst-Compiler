@@ -1,27 +1,31 @@
-10+(30*20+-5)/2;
-
-print (5 + 10) * 20 + 8 * 2;
-
-var obj = { "hello": "nice", "age": 19, "my_arr": [10, 20, { "nice": true, string_func(): value_func() }] };
-
-var arr = [1, 2, "hello", x, 5, obj];
-
-ticking initializing function main() {
-    # amethyst comment
-    comment "mcfunction comment. nice!";
-    print "Hello, world!" + (8*x) - function_in_parameter();
-    
-    var y = "Nice!" + 20 * 2 + (82 + 2 + 20) + 10 + 5 + 10;
-    
-    return [1, 2, 3, 4, y];
-    
-    print "I should never print";
-}
+# 10+(30*20+-5)/2;
+# 
+# print (5 + 10) * 20 + 8 * 2;
+# 
+# var obj = { "hello": "nice", "age": 19, "my_arr": [10, 20, { "nice": true, string_func(): value_func() }] };
+# 
+# var arr = [1, 2, "hello", x, 5, obj];
+# 
+# ticking initializing function main() {
+#     # amethyst comment
+#     comment "mcfunction comment. nice!";
+#     print "Hello, world!" + (8*x) - function_in_parameter();
+#     
+#     var y = "Nice!" + 20 * 2 + (82 + 2 + 20) + 10 + 5 + 10;
+#     
+#     return [1, 2, 3, 4, y];
+#     
+#     print "I should never print";
+# }
 
 namespace my_namespace {
     var y = 5;
+    
+    function str_function() {
+        return "Hello, world!";
+    }
 
     function my_function() {
-       println("Hello, world!");
+       print str_function();
     }
 }

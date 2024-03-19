@@ -73,6 +73,17 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitCallExpr(Expr.Call expr)
     {
+        if (expr.Callee is Expr.Variable variable)
+        {
+            // var variableDefinition = Environment.GetVariable(variable.Name.Lexeme);
+            // Todo: get function from environment. Depending on subject, set _out = _ret
+            var functionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, variable.Name.Lexeme);
+            AddCommand($"function {functionPath}");
+            // AddCommand("scoreboard players operation _out amethyst = _ret amethyst");
+            AddCommand("data modify storage amethyst:internal _out set from storage amethyst:internal _ret");
+            // return variableDefinition.Subject;
+            return Subject.Storage;
+        }
         return null;
     }
 
@@ -106,8 +117,8 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object VisitArrayExpr(Expr.Array expr)
     {
-        var arrName = "_tmp"; // Todo: Get name from environment (ensure no collisions) 
-        AddCommand($"data modify storage amethyst:internal {arrName} set value []");
+        var variable = Environment.AddVariable("_tmp", Subject.Storage);
+        AddCommand($"data modify storage amethyst:internal {variable.Name} set value []");
         foreach (var exprValue in expr.Values)
         {
             if (Evaluate(exprValue) is Subject subject)
@@ -115,17 +126,17 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
                 switch (subject)
                 {
                     case Subject.Scoreboard:
-                        AddCommand($"data modify storage amethyst:internal {arrName} append value 0");
-                        AddCommand($"execute store result storage amethyst:internal {arrName}[-1] int 1.0 run scoreboard players get _out amethyst");
+                        AddCommand($"data modify storage amethyst:internal {variable.Name} append value 0");
+                        AddCommand($"execute store result storage amethyst:internal {variable.Name}[-1] int 1.0 run scoreboard players get _out amethyst");
                         break;
                     case Subject.Storage:
-                        AddCommand($"data modify storage amethyst:internal {arrName} append from storage amethyst:internal _out");
+                        AddCommand($"data modify storage amethyst:internal {variable.Name} append from storage amethyst:internal _out");
                         break;
                 }
             }
         }
-        AddCommand($"data modify storage amethyst:internal _out set from storage amethyst:internal {arrName}");
-
+        AddCommand($"data modify storage amethyst:internal _out set from storage amethyst:internal {variable.Name}");
+        
         return Subject.Storage;
     }
 
@@ -141,15 +152,14 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitVariableExpr(Expr.Variable expr)
     {
-        //var variable = Environment.GetVariable(expr.Name.Lexeme);
-        // Todo: get variable name from environment
-        switch (/*variable.Subject*/ Subject.Storage)
+        var variable = Environment.GetVariable(expr.Name.Lexeme);
+        switch (variable.Subject)
         {
             case Subject.Storage:
-                AddCommand($"data modify storage amethyst:internal _out set from storage amethyst:internal {/*variable.Name*/ expr.Name.Lexeme}");
+                AddCommand($"data modify storage amethyst:internal _out set from storage amethyst:internal {variable.Name}");
                 return Subject.Storage;
             case Subject.Scoreboard:
-                AddCommand($"scoreboard players operation _out amethyst = {/*variable.Name*/ expr.Name.Lexeme} amethyst");
+                AddCommand($"scoreboard players operation _out amethyst = {variable.Name} amethyst");
                 return Subject.Scoreboard;
         }
         return null;
@@ -179,6 +189,8 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitFunctionStmt(Stmt.Function stmt)
     {
+        // var variable = Environment.AddVariable(stmt.Name.Lexeme, Subject.Storage);
+        // Todo: add function to environment
         var functionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, stmt.Name.Lexeme);
         
         if (stmt.Initializing)
