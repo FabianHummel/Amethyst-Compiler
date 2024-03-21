@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Amethyst;
 
 public class Environment
@@ -21,7 +23,6 @@ public class Environment
     public IList<string> InitializingFunctions { get; } = new List<string>();
     
     private IDictionary<string, Variable> Values { get; } = new Dictionary<string, Variable>();
-    private ISet<string> VariableNames { get; } = new HashSet<string>();
     
     public string Namespace => Path.Combine(Enclosing?.Namespace ?? "", Scope);
     
@@ -39,25 +40,52 @@ public class Environment
         CurrentFunction = currentFunction;
     }
 
-    public Variable AddVariable(string name, Subject subject)
+    private bool IsDefined(string targetName)
     {
-        var variable = new Variable($"v{name}", subject);
-        Values[name] = variable;
-        return variable;
+        return Values.ContainsKey(targetName) || Enclosing?.IsDefined(targetName) == true;
+    }
+    
+    public string GetUniqueName()
+    {
+        var index = 0;
+        string name;
+        do
+        {
+            name = "v" + Convert.ToString(index++);
+        } while (IsDefined(name));
+        return name;
     }
 
-    public Variable GetVariable(string name)
+    public bool AddVariable(string targetName, Subject subject, out Variable variable)
     {
-        if (Values[name] is { } value)
+        var name = GetUniqueName(); 
+        variable = new Variable(name, subject);
+        return Values.TryAdd(targetName, variable);
+    }
+    
+    public bool TryGetVariable(string targetName, [NotNullWhen(true)] out Variable? variable)
+    {
+        if (Values.TryGetValue(targetName, out variable))
         {
-            return value;
+            return true;
         }
         
-        if (Enclosing?.GetVariable(name) is { } variable)
+        if (Enclosing?.TryGetVariable(targetName, out variable) == true)
         {
-            return variable;
+            return true;
         }
 
-        throw new Exception($"Undefined variable '{name}'");
+        return false;
+    }
+    
+    public bool RemoveVariable(string targetName)
+    {
+        if (Values.Remove(targetName))
+        {
+            return true;
+        }
+        
+        Enclosing?.RemoveVariable(targetName);
+        return false;
     }
 }

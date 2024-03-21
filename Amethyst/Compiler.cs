@@ -48,7 +48,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     private void Compile(Stmt stmt)
     {
-        stmt.Accept(this); // don't use return value, as it's always null
+        stmt.Accept(this);
     }
     
     /// <summary>
@@ -117,7 +117,8 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object VisitArrayExpr(Expr.Array expr)
     {
-        var variable = Environment.AddVariable("_tmp", Subject.Storage);
+        var name = Environment.GetUniqueName();
+        Environment.AddVariable(name, Subject.Storage, out var variable);
         AddCommand($"data modify storage amethyst:internal {variable.Name} set value []");
         foreach (var exprValue in expr.Values)
         {
@@ -136,7 +137,8 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
             }
         }
         AddCommand($"data modify storage amethyst:internal _out set from storage amethyst:internal {variable.Name}");
-        
+        AddCommand($"data remove storage amethyst:internal {variable.Name}");
+        Environment.RemoveVariable(name);
         return Subject.Storage;
     }
 
@@ -152,7 +154,10 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitVariableExpr(Expr.Variable expr)
     {
-        var variable = Environment.GetVariable(expr.Name.Lexeme);
+        if (!Environment.TryGetVariable(expr.Name.Lexeme, out var variable))
+        {
+            throw new SyntaxException($"Undefined variable {expr.Name.Lexeme}", expr.Name.Line);
+        }
         switch (variable.Subject)
         {
             case Subject.Storage:
@@ -282,6 +287,23 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitVarStmt(Stmt.Var stmt)
     {
+        if (!Environment.AddVariable(stmt.Name.Lexeme, Subject.Storage, out var variable))
+        {
+            throw new SyntaxException($"Variable {stmt.Name.Lexeme} already defined", stmt.Name.Line);
+        }
+
+        if (Evaluate(stmt.Initializer) is Subject subject)
+        {
+            switch (subject)
+            {
+                case Subject.Scoreboard:
+                    AddCommand($"scoreboard players operation {variable.Name} amethyst = _out amethyst");
+                    break;
+                case Subject.Storage:
+                    AddCommand($"data modify storage amethyst:internal {variable.Name} set from storage amethyst:internal _out");
+                    break;
+            }
+        }
         return null;
     }
 
