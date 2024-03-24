@@ -463,6 +463,12 @@ public class Parser
         };
     }
 
+    private Stmt BreakStatement()
+    {
+        Consume(TokenType.SEMICOLON, "Expected ';' after break");
+        return new Stmt.Break();
+    }
+
     private Stmt ReturnStatement()
     {
         var value = Expression();
@@ -531,6 +537,11 @@ public class Parser
         if (Match(TokenType.COMMENT))
         {
             return CommentStatement();
+        }
+        
+        if (Match(TokenType.BREAK))
+        {
+            return BreakStatement();
         }
         
         if (Match(TokenType.RETURN))

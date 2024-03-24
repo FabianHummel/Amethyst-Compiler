@@ -18,9 +18,10 @@ public class Environment
     
     private string Scope { get; }
     public string CurrentFunction { get; }
-    private Environment? Enclosing { get; }
-    public IList<string> TickingFunctions { get; } = new List<string>();
-    public IList<string> InitializingFunctions { get; } = new List<string>();
+    public Environment? Enclosing { get; }
+    public ISet<string> TickingFunctions { get; } = new HashSet<string>();
+    public ISet<string> InitializingFunctions { get; } = new HashSet<string>();
+    public int IfCounter { get; set; }
     
     private IDictionary<string, Variable> Values { get; } = new Dictionary<string, Variable>();
     

@@ -97,6 +97,10 @@ ToString = "# {Value}"
 Fields = [ "Expr Value" ]
 ToString = "return {Value}"
 
+[Stmt.Break]
+Fields = []
+ToString = "break"
+
 [Stmt.Var]
 Fields = [
     "Token Name",

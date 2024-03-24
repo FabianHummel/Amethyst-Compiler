@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Amethyst;
 
 public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
@@ -11,12 +13,17 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     {
         Statements = statements;
         OutDir = outDir;
-        Environment = new Environment("_amethyst_init");
+        Environment = new Environment("_init");
         RootNamespace = rootNamespace;
     }
     
      private void AddCommand(string command)
      {
+         if (Environment.Enclosing == null)
+         {
+             Environment.InitializingFunctions.Add(RootNamespace + ":" + Path.Combine(Environment.Namespace, "_init"));
+         }
+         
          var filePath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, Environment.CurrentFunction + ".mcfunction");
          if (!File.Exists(filePath))
          {
@@ -27,7 +34,9 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
      
      private void AddInitCommand(string command)
      {
-         var filePath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, "_amethyst_init.mcfunction");
+         Environment.InitializingFunctions.Add(RootNamespace + ":" + Path.Combine(Environment.Namespace, "_init"));
+         
+         var filePath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, "_init.mcfunction");
          if (!File.Exists(filePath))
          {
              File.Create(filePath).Close();
@@ -35,7 +44,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
          File.AppendAllText(filePath, command + "\n");
      }
 
-    private void CompileBlock(IEnumerable<Stmt> statements, string currentFunction = "_amethyst_init", string scope = "")
+    private void CompileBlock(IEnumerable<Stmt> statements, string currentFunction = "_init", string scope = "")
     {
         var previous = Environment;
         Environment = new Environment(Environment, currentFunction, scope);
@@ -51,11 +60,6 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         stmt.Accept(this);
     }
     
-    /// <summary>
-    /// Jumps to the Expression's associated visit* function
-    /// </summary>
-    /// <param name="expr"></param>
-    /// <returns></returns>
     private object? Evaluate(Expr expr)
     {
         return expr.Accept(this);
@@ -68,6 +72,8 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitBinaryExpr(Expr.Binary expr)
     {
+        // Todo: implement binary expressions
+        AddCommand("return 1");
         return null;
     }
 
@@ -79,8 +85,6 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
             // Todo: get function from environment. Depending on subject, set _out = _ret
             var functionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, variable.Name.Lexeme);
             AddCommand($"function {functionPath}");
-            // AddCommand("scoreboard players operation _out amethyst = _ret amethyst");
-            AddCommand("data modify storage amethyst:internal _out set from storage amethyst:internal _ret");
             // return variableDefinition.Subject;
             return Subject.Storage;
         }
@@ -201,7 +205,6 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         if (stmt.Initializing)
         {
             Environment.InitializingFunctions.Add(functionPath);
-            AddInitCommand($"function {functionPath}");
         }
 
         if (stmt.Ticking)
@@ -211,27 +214,65 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         
         var previous = Environment;
         Environment = new Environment(Environment, stmt.Name.Lexeme);
-        
-        AddCommand("scoreboard players reset _ret amethyst");
-        AddCommand("data storage remove amethyst:internal _ret");
-
-        try
-        {
-            foreach (var statement in stmt.Body)
-            {
-                Compile(statement);
-            }
-        }
-        finally
-        {
-            Environment = previous;
-        }
-        
+        AddCommand("scoreboard players reset _out amethyst");
+        AddCommand("data storage remove amethyst:internal _out");
+        CompileBlock(stmt.Body, stmt.Name.Lexeme);
+        Environment = previous;
         return null;
     }
 
     public object? VisitIfStmt(Stmt.If stmt)
     {
+        var functionDirectory = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, Environment.CurrentFunction);
+        Directory.CreateDirectory(functionDirectory);
+
+        var depth = Environment.IfCounter++;
+        string ifBranchName = "_if" + depth;
+        const string condFunctionName = "_cond";
+        const string thenBranchName = "_then";
+        const string elseBranchName = "_else";
+        
+        var ifFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction, ifBranchName);
+        AddCommand($"execute if function {ifFunctionPath} run return");
+        var controlFlowEnvironment = Environment;
+        Environment = new Environment(Environment, ifBranchName, Environment.CurrentFunction);
+        {
+            var controlFlowDirectory = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, Environment.CurrentFunction);
+            Directory.CreateDirectory(controlFlowDirectory);
+            var ifStmtEnvironment = Environment;
+            {
+                var conditionEnvironment = Environment;
+                Environment = new Environment(Environment, condFunctionName, Environment.CurrentFunction);
+                var condFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction);
+                Evaluate(stmt.Condition);
+                Environment = conditionEnvironment;
+                
+                var thenEnvironment = Environment;
+                Environment = new Environment(Environment, thenBranchName, Environment.CurrentFunction);
+                var thenFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction);
+                Compile(stmt.ThenBranch);
+                Environment = thenEnvironment;
+                
+                var elseEnvironment = Environment;
+                Environment = new Environment(Environment, elseBranchName, Environment.CurrentFunction);
+                var elseFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction);
+                if (stmt.ElseBranch != null)
+                {
+                    Compile(stmt.ElseBranch);
+                }
+                Environment = elseEnvironment;
+
+                // AddCommand($"execute if function {condFunctionPath} if function {thenFunctionPath} run return");
+                AddCommand($"execute store success score _cond{depth} amethyst run function " + condFunctionPath);
+                AddCommand($"execute if score _cond{depth} amethyst matches 1 if function {thenFunctionPath} run return");
+                if (stmt.ElseBranch != null)
+                {
+                    AddCommand($"execute if score _cond{depth} amethyst matches 0 if function {elseFunctionPath} run return");
+                }
+            }
+            Environment = ifStmtEnvironment;
+        }
+        Environment = controlFlowEnvironment;
         return null;
     }
 
@@ -262,26 +303,23 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     {
         if (Evaluate(stmt.Value) is Subject subject)
         {
-            const string afterReturnFunctionName = "_amethyst_arf"; // after-return-function
-            var afterReturnFunctionDirectory = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, Environment.CurrentFunction);
-            Directory.CreateDirectory(afterReturnFunctionDirectory);
-            
-            var afterReturnFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction, afterReturnFunctionName);
             switch (subject)
             {
                 case Subject.Scoreboard:
-                    AddCommand("scoreboard players operation _ret amethyst = _out amethyst");
-                    AddCommand($"execute unless score _ret amethyst matches -2147483648..2147483647 run function {afterReturnFunctionPath}");
+                    AddCommand("return run scoreboard players get _out amethyst");
                     break;
                 case Subject.Storage:
-                    AddCommand("data modify storage amethyst:internal _ret set from storage amethyst:internal _out");
-                    AddCommand($"execute unless data storage amethyst:internal _ret run function {afterReturnFunctionPath}");
+                    AddCommand("return run data get storage amethyst:internal _out");
                     break;
             }
-            
-            Environment = new Environment(Environment, afterReturnFunctionName, Environment.CurrentFunction);
         }
 
+        return null;
+    }
+
+    public object? VisitBreakStmt(Stmt.Break stmt)
+    {
+        AddCommand("return");
         return null;
     }
 

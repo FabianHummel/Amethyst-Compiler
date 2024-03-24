@@ -81,7 +81,7 @@ public static class Project
                 var functions = context.InitializingFunctions.Select(i => $"\"{i}\"").ToList();
                 var content = string.Join(",\n    ", functions);
                 loadingFunctions = loadingFunctions
-                    .Replace("{{amethyst_init}}", $"\"amethyst:_amethyst_init\"{(functions.Count > 0 ? "," : "")}")
+                    .Replace("{{amethyst_init}}", $"\"amethyst:_init\"{(functions.Count > 0 ? "," : "")}")
                     .Replace("{{loading_functions}}", content);
                 File.WriteAllText(Path.Combine(minecraftDir + "load.json"), loadingFunctions);
             }
