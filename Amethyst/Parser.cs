@@ -471,7 +471,11 @@ public class Parser
 
     private Stmt ReturnStatement()
     {
-        var value = Expression();
+        Expr? value = null;
+        if (!Check(TokenType.SEMICOLON))
+        {
+            value = Expression();
+        }
         Consume(TokenType.SEMICOLON, "Expected ';' after return value");
         return new Stmt.Return
         {

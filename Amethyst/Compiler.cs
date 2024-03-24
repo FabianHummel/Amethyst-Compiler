@@ -233,7 +233,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         const string elseBranchName = "_else";
         
         var ifFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction, ifBranchName);
-        AddCommand($"execute if function {ifFunctionPath} run return");
+        AddCommand($"execute if function {ifFunctionPath} run return 1");
         var controlFlowEnvironment = Environment;
         Environment = new Environment(Environment, ifBranchName, Environment.CurrentFunction);
         {
@@ -264,10 +264,10 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
                 // AddCommand($"execute if function {condFunctionPath} if function {thenFunctionPath} run return");
                 AddCommand($"execute store success score _cond{depth} amethyst run function " + condFunctionPath);
-                AddCommand($"execute if score _cond{depth} amethyst matches 1 if function {thenFunctionPath} run return");
+                AddCommand($"execute if score _cond{depth} amethyst matches 1 if function {thenFunctionPath} run return 1");
                 if (stmt.ElseBranch != null)
                 {
-                    AddCommand($"execute if score _cond{depth} amethyst matches 0 if function {elseFunctionPath} run return");
+                    AddCommand($"execute if score _cond{depth} amethyst matches 0 if function {elseFunctionPath} run return 1");
                 }
             }
             Environment = ifStmtEnvironment;
@@ -301,7 +301,12 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitReturnStmt(Stmt.Return stmt)
     {
-        if (Evaluate(stmt.Value) is Subject subject)
+        if (stmt.Value == null)
+        {
+            AddCommand("return 1");
+        }
+        
+        else if (Evaluate(stmt.Value) is Subject subject)
         {
             switch (subject)
             {
@@ -319,7 +324,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitBreakStmt(Stmt.Break stmt)
     {
-        AddCommand("return");
+        AddCommand("return fail");
         return null;
     }
 

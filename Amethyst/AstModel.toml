@@ -94,7 +94,7 @@ Fields = [ "Token Value" ]
 ToString = "# {Value}"
 
 [Stmt.Return]
-Fields = [ "Expr Value" ]
+Fields = [ "Expr? Value" ]
 ToString = "return {Value}"
 
 [Stmt.Break]
