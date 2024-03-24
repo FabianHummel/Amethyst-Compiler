@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Collections;
+using System.Runtime.InteropServices;
 
 namespace Amethyst;
 
@@ -82,6 +83,8 @@ internal static class Program
                     var tokens = tokenizer.ScanTokens();
                     var parser = new Parser(tokens);
                     var stmts = parser.Parse();
+                    var optimizer = new Optimizer(stmts);
+                    stmts = optimizer.Optimize();
                     var compiler = new Compiler(stmts, rootNamespace, outDir);
                     compiler.Compile();
                 }

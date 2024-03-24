@@ -107,6 +107,9 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
             case double:
                 AddCommand($"scoreboard players set _out amethyst {expr.Value}");
                 return Subject.Scoreboard;
+            case object[] value:
+                AddCommand($"data modify storage amethyst:internal _out set value [{string.Join(',', value)}]");
+                return Subject.Storage;
         }
 
         return null;
@@ -121,6 +124,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     {
         var name = Environment.GetUniqueName();
         Environment.AddVariable(name, Subject.Storage, out var variable);
+        
         AddCommand($"data modify storage amethyst:internal {variable.Name} set value []");
         foreach (var exprValue in expr.Values)
         {
@@ -223,15 +227,12 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         Directory.CreateDirectory(functionDirectory);
 
         var depth = Environment.IfCounter++;
-        string ifBranchName = "_if" + depth;
-        const string thenBranchName = "_then";
-        const string elseBranchName = "_else";
         
-        var ifFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction, ifBranchName);
+        var ifFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction, $"_if{depth}");
         AddCommand($"execute store result storage amethyst:internal _out store success score _out amethyst run function {ifFunctionPath}");
         AddCommand("execute if score _out amethyst matches 1 run return data get storage amethyst:internal _out");
         var controlFlowEnvironment = Environment;
-        Environment = new Environment(Environment, ifBranchName, Environment.CurrentFunction);
+        Environment = new Environment(Environment, $"_if{depth}", Environment.CurrentFunction);
         {
             var controlFlowDirectory = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, Environment.CurrentFunction);
             Directory.CreateDirectory(controlFlowDirectory);
@@ -244,7 +245,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
                 AddCommand("scoreboard players reset _out amethyst");
                 
                 var thenEnvironment = Environment;
-                Environment = new Environment(Environment, thenBranchName, Environment.CurrentFunction);
+                Environment = new Environment(Environment, "_then", Environment.CurrentFunction);
                 var thenFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction);
                 Compile(stmt.ThenBranch);
                 Environment = thenEnvironment;
@@ -254,7 +255,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
                 AddCommand("execute if score _out amethyst matches 0 if score _brk amethyst matches 1 run return fail");
                 
                 var elseEnvironment = Environment;
-                Environment = new Environment(Environment, elseBranchName, Environment.CurrentFunction);
+                Environment = new Environment(Environment, "_else", Environment.CurrentFunction);
                 var elseFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction);
                 if (stmt.ElseBranch != null)
                 {
