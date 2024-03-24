@@ -1,4 +1,6 @@
-﻿namespace Amethyst;
+﻿using System.Runtime.InteropServices;
+
+namespace Amethyst;
 
 using Tommy;
 
@@ -10,14 +12,63 @@ internal static class Program
         {
             var table = TOML.Parse(reader);
 
-            var outDir = (string)table["output"].AsString;
+            var minecraftRoot = new Func<string>(() =>
+            {
+                if (table["minecraft"].AsString is {} dir)
+                {
+                    return dir;
+                }
+                
+                if (System.Environment.OSVersion.Platform == PlatformID.Win32NT ||
+                    System.Environment.OSVersion.Platform == PlatformID.Win32S ||
+                    System.Environment.OSVersion.Platform == PlatformID.Win32Windows ||
+                    System.Environment.OSVersion.Platform == PlatformID.WinCE)
+                {
+                    return System.Environment.ExpandEnvironmentVariables("%APPDATA%\\.minecraft");
+                }
+
+                if (System.Environment.OSVersion.Platform == PlatformID.MacOSX ||
+                    System.Environment.OSVersion.Platform == PlatformID.Unix)
+                {
+                    return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile), "Library/Application Support/minecraft");
+                }
+
+                return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile), ".minecraft");
+            })();
+
+            var minecraftRootExists = Directory.Exists(minecraftRoot);
+            
+            if (!minecraftRootExists)
+            {
+                Console.Error.WriteLine($"Minecraft root not found at {minecraftRoot}, using current directory as root");
+            }
+
+            var name = table["name"].AsString ?? throw new Exception("Name not configured");
+            
+            var outDir = new Func<string>(() =>
+            {
+                var outDir = (string?)table["output"].AsString;
+                if (minecraftRootExists && outDir == null)
+                {
+                    return Path.Combine(minecraftRoot, "datapacks");
+                }
+                if (!minecraftRootExists || outDir!.StartsWith("."))
+                {
+                    return Path.Combine(System.Environment.CurrentDirectory, outDir!);
+                }
+                if (outDir.StartsWith("/"))
+                {
+                    return outDir;
+                }
+                
+                return Path.Combine(minecraftRoot, "saves", outDir, "datapacks", name);
+            })();
+            
             Project.RegenerateOutputFolder(outDir);
             Project.CreateMcMeta(outDir, table);
-            
-            outDir = Path.Combine(outDir, "data");
             Project.CreateDataFolders(outDir, table);
-            
-            var rootNamespace = table["namespace"].AsString;
+
+            var rootNamespace = table["namespace"].AsString ?? throw new Exception("Namespace not configured in amethyst.toml");
             
             var compileTargets = Project.FindCompileTargets(System.Environment.CurrentDirectory);
         

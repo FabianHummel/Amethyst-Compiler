@@ -41,7 +41,7 @@ public static class Project
             using (var reader = new StreamReader(stream))
             {
                 var mcMetaContents = reader.ReadToEnd();
-                mcMetaContents = mcMetaContents.Replace("{{description}}", table["description"]);
+                mcMetaContents = mcMetaContents.Replace("{{description}}", $"\"{table["description"].AsString}\"");
                 mcMetaContents = mcMetaContents.Replace("{{pack_format}}", table["pack_format"]);
                 File.WriteAllText(mcMeta, mcMetaContents);
             }
@@ -50,10 +50,11 @@ public static class Project
 
     public static void CreateDataFolders(string outDir, TomlTable table)
     {
-        Directory.CreateDirectory(outDir);
-        var namespaceDir = Path.Combine(outDir, table["namespace"].AsString, "functions");
+        var dataDir = Path.Combine(outDir, "data");
+        Directory.CreateDirectory(dataDir);
+        var namespaceDir = Path.Combine(dataDir, table["namespace"].AsString, "functions");
         Directory.CreateDirectory(namespaceDir);
-        var minecraftDir = Path.Combine(outDir, "minecraft/tags/functions/");
+        var minecraftDir = Path.Combine(dataDir, "minecraft/tags/functions/");
         Directory.CreateDirectory(minecraftDir);
     }
 

@@ -157,7 +157,7 @@ src/
 The `amethyst.toml` file is used to configure the compiler. It allows you to specify the output directory, the namespace, and other settings. Here's an example configuration file:
 
 ```toml
-minecraft_root = "<path to .minecraft>"             # Root directory of the minecraft instance
+minecraft = "<path to .minecraft>"                  # Root directory of the minecraft instance
                                                     # Amethyst tries to find this folder automatically by searching the default location
                                                     # (adjust if using a launcher, otherwise remove this property)
 
