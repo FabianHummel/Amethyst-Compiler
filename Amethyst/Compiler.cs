@@ -126,9 +126,11 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
                     return Subject.Scoreboard;
                 case (TokenType.SLASH, Subject.Scoreboard):
                     AddCommand($"scoreboard players operation _out amethyst /= _tmp{depth} amethyst");
+                    AddCommand($"scoreboard players operation _out amethyst *= 100 amethyst_const");
                     return Subject.Scoreboard;
                 case (TokenType.STAR, Subject.Scoreboard):
                     AddCommand($"scoreboard players operation _out amethyst *= _tmp{depth} amethyst");
+                    AddCommand($"scoreboard players operation _out amethyst /= 100 amethyst_const");
                     return Subject.Scoreboard;
                 case (TokenType.MODULO, Subject.Scoreboard):
                     AddCommand($"scoreboard players operation _out amethyst %= _tmp{depth} amethyst");
@@ -333,18 +335,14 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         var depth = Environment.IfCounter++;
         
         var ifFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction, $"_if{depth}");
-        AddCommand($"execute store result storage amethyst:internal _out int 1.0 store success score _out amethyst run function {ifFunctionPath}");
-        AddCommand("execute if score _out amethyst matches 1 run return run data get storage amethyst:internal _out");
+        AddCommand($"execute if function {ifFunctionPath} run return 1");
+        AddCommand("execute if score _brk amethyst matches 1 run return fail");
         var controlFlowEnvironment = Environment;
         Environment = new Environment(Environment, $"_if{depth}", Environment.CurrentFunction);
         {
             var controlFlowDirectory = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, Environment.CurrentFunction);
             Directory.CreateDirectory(controlFlowDirectory);
-            if (Evaluate(stmt.Condition) is Subject.Scoreboard)
-            {
-                AddCommand($"scoreboard players operation _cond{depth} amethyst = _out amethyst");
-            }
-            AddCommand("scoreboard players reset _out amethyst");
+            Evaluate(stmt.Condition);
             
             var thenEnvironment = Environment;
             Environment = new Environment(Environment, "_then", Environment.CurrentFunction);
@@ -352,9 +350,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
             Compile(stmt.ThenBranch);
             Environment = thenEnvironment;
             
-            AddCommand($"execute if score _cond{depth} amethyst matches 1 store result storage amethyst:internal _out int 1.0 store success score _out amethyst run function {thenFunctionPath}");
-            AddCommand("execute if score _out amethyst matches 1 run return run data get storage amethyst:internal _out");
-            AddCommand("execute if score _out amethyst matches 0 if score _brk amethyst matches 1 run return fail");
+            AddCommand($"execute if score _out amethyst matches 1 run return run function {thenFunctionPath}");
             
             var elseEnvironment = Environment;
             Environment = new Environment(Environment, "_else", Environment.CurrentFunction);
@@ -364,12 +360,10 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
                 Compile(stmt.ElseBranch);
             }
             Environment = elseEnvironment;
-
+            
             if (stmt.ElseBranch != null)
             {
-                AddCommand($"execute if score _cond{depth} amethyst matches 1 store result storage amethyst:internal _out int 1.0 store success score _out amethyst run function {elseFunctionPath}");
-                AddCommand("execute if score _out amethyst matches 1 run return run data get storage amethyst:internal _out");
-                AddCommand("execute if score _out amethyst matches 0 if score _brk amethyst matches 1 run return fail");
+                AddCommand($"return run function {elseFunctionPath}");
             }
         }
         Environment = controlFlowEnvironment;
@@ -383,12 +377,12 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
             switch (subject)
             {
                 case Subject.Scoreboard:
-                    AddCommand("tellraw @a {\"score\":{\"name\":\"_out\",\"objective\":\"amethyst\"}}");
+                    AddCommand("execute store result storage amethyst:internal _out float 0.01 run scoreboard players get _out amethyst");
                     break;
                 case Subject.Storage:
-                    AddCommand("tellraw @a {\"storage\":\"amethyst:internal\",\"nbt\":\"_out\"}");
                     break;
             }
+            AddCommand("tellraw @a {\"storage\":\"amethyst:internal\",\"nbt\":\"_out\"}");
         }
         return null;
     }
@@ -401,30 +395,24 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitReturnStmt(Stmt.Return stmt)
     {
-        if (stmt.Value == null)
+        if (stmt.Value != null)
         {
-            AddCommand("return 1");
+            Evaluate(stmt.Value);
         }
-        
-        else if (Evaluate(stmt.Value) is Subject subject)
-        {
-            switch (subject)
-            {
-                case Subject.Scoreboard:
-                    AddCommand("return run scoreboard players get _out amethyst");
-                    break;
-                case Subject.Storage:
-                    AddCommand("return run data get storage amethyst:internal _out");
-                    break;
-            }
-        }
-
+        AddCommand("return 1");
         return null;
     }
 
     public object? VisitBreakStmt(Stmt.Break stmt)
     {
         AddCommand("scoreboard players set _brk amethyst 1");
+        AddCommand("return fail");
+        return null;
+    }
+
+    public object? VisitContinueStmt(Stmt.Continue stmt)
+    {
+        AddCommand("scoreboard players set _brk amethyst 0");
         AddCommand("return fail");
         return null;
     }
@@ -460,8 +448,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         var depth = Environment.LoopCounter++;
         
         var loopFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction, $"_loop{depth}");
-        AddCommand($"execute store result storage amethyst:internal _out int 1.0 store success score _out amethyst run function {loopFunctionPath}");
-        AddCommand("execute if score _out amethyst matches 1 run return run data get storage amethyst:internal _out");
+        AddCommand($"execute if function {loopFunctionPath} run return 1");
         var loopEnvironment = Environment;
         Environment = new Environment(Environment, $"_loop{depth}", Environment.CurrentFunction);
         {
@@ -470,7 +457,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
                 AddCommand("execute if score _out amethyst matches 0 run return fail");
             }
             Compile(stmt.Body);
-            AddCommand($"function {loopFunctionPath}");
+            AddCommand($"return run function {loopFunctionPath}");
         }
         Environment = loopEnvironment;
         return null;

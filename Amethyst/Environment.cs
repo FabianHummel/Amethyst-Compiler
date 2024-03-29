@@ -26,6 +26,7 @@ public class Environment
     public int BinaryCounter { get; set; }
     
     private IDictionary<string, Variable> Values { get; } = new Dictionary<string, Variable>();
+    private ISet<string> VariableNames { get; } = new HashSet<string>();
 
     public string Namespace => Path.Combine(Enclosing?.Namespace ?? "", Scope);
 
@@ -43,25 +44,25 @@ public class Environment
         CurrentFunction = currentFunction;
     }
 
-    private bool IsDefined(string targetName)
+    private bool IsVariableDefined(string name)
     {
-        return Values.ContainsKey(targetName) || Enclosing?.IsDefined(targetName) == true;
+        return VariableNames.Contains(name) || Enclosing?.IsVariableDefined(name) == true;
     }
     
     public string GetUniqueName()
     {
-        var index = 0;
         string name;
         do
         {
-            name = "v" + Convert.ToString(index++);
-        } while (IsDefined(name));
+            name = $"_v{BinaryCounter++}";
+        } while (IsVariableDefined(name));
         return name;
     }
 
     public bool AddVariable(string targetName, Subject subject, out Variable variable)
     {
-        var name = GetUniqueName(); 
+        var name = GetUniqueName();
+        VariableNames.Add(name);
         variable = new Variable(name, subject);
         return Values.TryAdd(targetName, variable);
     }

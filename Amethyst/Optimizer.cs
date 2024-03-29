@@ -382,6 +382,11 @@ public class Optimizer : Expr.IVisitor<Expr>, Stmt.IVisitor<Stmt>
         return stmt;
     }
 
+    public Stmt VisitContinueStmt(Stmt.Continue stmt)
+    {
+        return stmt;
+    }
+
     public Stmt VisitVarStmt(Stmt.Var stmt)
     {
         return new Stmt.Var

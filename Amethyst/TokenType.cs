@@ -53,6 +53,7 @@ public enum TokenType
     OR,
     BREAK,
     RETURN,
+    CONTINUE,
     TRUE, 
     VAR, 
     WHILE,

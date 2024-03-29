@@ -34,6 +34,7 @@ public class Tokenizer
         { "while",          TokenType.WHILE },
         { "print",          TokenType.PRINT },
         { "comment",        TokenType.COMMENT },
+        { "continue",       TokenType.CONTINUE },
     };
 
     private bool IsAtEnd => current >= Source.Length;

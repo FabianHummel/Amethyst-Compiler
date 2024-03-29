@@ -101,6 +101,10 @@ ToString = "return {Value}"
 Fields = []
 ToString = "break"
 
+[Stmt.Continue]
+Fields = []
+ToString = "continue"
+
 [Stmt.Var]
 Fields = [
     "Token Name",

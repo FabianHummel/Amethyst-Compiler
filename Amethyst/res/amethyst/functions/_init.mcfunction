@@ -19,3 +19,4 @@ data merge storage amethyst:internal {_out:{}}
 data merge storage amethyst:constants {}
 
 scoreboard players set -1 amethyst_const -1
+scoreboard players set 100 amethyst_const 100

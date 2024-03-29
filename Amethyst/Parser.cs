@@ -468,6 +468,12 @@ public class Parser
         Consume(TokenType.SEMICOLON, "Expected ';' after break");
         return new Stmt.Break();
     }
+    
+    private Stmt ContinueStatement()
+    {
+        Consume(TokenType.SEMICOLON, "Expected ';' after continue");
+        return new Stmt.Continue();
+    }
 
     private Stmt ReturnStatement()
     {
@@ -546,6 +552,11 @@ public class Parser
         if (Match(TokenType.BREAK))
         {
             return BreakStatement();
+        }
+        
+        if (Match(TokenType.CONTINUE))
+        {
+            return ContinueStatement();
         }
         
         if (Match(TokenType.RETURN))
