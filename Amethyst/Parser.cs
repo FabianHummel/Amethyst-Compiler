@@ -10,6 +10,12 @@ public class Parser
         Tokens = tokens;
     }
     
+    private bool IsPreprocessed(Token token)
+    {
+        // return token.Lexeme.StartsWith("$");
+        return token.Lexeme.All(char.IsUpper);
+    }
+    
     private Token Previous()
     {
         return Tokens[current - 1];
@@ -351,6 +357,8 @@ public class Parser
 
     private Stmt ForStatement()
     {
+        var isPreprocessed = IsPreprocessed(Previous());
+        
         Consume(TokenType.LEFT_PAREN, "Expected '(' after 'for'");
         
         Stmt? initializer;
@@ -403,7 +411,8 @@ public class Parser
         body = new Stmt.While
         {
             Condition = condition,
-            Body = body
+            Body = body,
+            IsPreprocessed = isPreprocessed
         };
         
         if (initializer != null)
@@ -423,6 +432,8 @@ public class Parser
     
     private Stmt IfStatement()
     {
+        var isPreprocessed = IsPreprocessed(Previous());
+        
         Consume(TokenType.LEFT_PAREN, "Expected '(' after 'if'");
         var condition = Expression();
         Consume(TokenType.RIGHT_PAREN, "Expected ')' after condition");
@@ -439,17 +450,21 @@ public class Parser
         {
             Condition = condition,
             ThenBranch = thenBranch,
-            ElseBranch = elseBranch
+            ElseBranch = elseBranch,
+            IsPreprocessed = isPreprocessed
         };
     }
     
     private Stmt PrintStatement()
     {
+        var isPreprocessed = IsPreprocessed(Previous());
+        
         var value = Expression();
         Consume(TokenType.SEMICOLON, "Expected ';' after value");
         return new Stmt.Print
         { 
-            Expr = value
+            Expr = value,
+            IsPreprocessed = isPreprocessed
         };
     }
 
@@ -465,18 +480,30 @@ public class Parser
 
     private Stmt BreakStatement()
     {
+        var isPreprocessed = IsPreprocessed(Previous());
+        
         Consume(TokenType.SEMICOLON, "Expected ';' after break");
-        return new Stmt.Break();
+        return new Stmt.Break
+        {
+            IsPreprocessed = isPreprocessed
+        };
     }
     
     private Stmt ContinueStatement()
     {
+        var isPreprocessed = IsPreprocessed(Previous());
+        
         Consume(TokenType.SEMICOLON, "Expected ';' after continue");
-        return new Stmt.Continue();
+        return new Stmt.Continue
+        {
+            IsPreprocessed = isPreprocessed
+        };
     }
 
     private Stmt ReturnStatement()
     {
+        var isPreprocessed = IsPreprocessed(Previous());
+        
         Expr? value = null;
         if (!Check(TokenType.SEMICOLON))
         {
@@ -485,12 +512,15 @@ public class Parser
         Consume(TokenType.SEMICOLON, "Expected ';' after return value");
         return new Stmt.Return
         {
-            Value = value
+            Value = value,
+            IsPreprocessed = isPreprocessed
         };
     }
     
     private Stmt WhileStatement()
     {
+        var isPreprocessed = IsPreprocessed(Previous());
+        
         Consume(TokenType.LEFT_PAREN, "Expected '(' after 'while'");
         var condition = Expression();
         Consume(TokenType.RIGHT_PAREN, "Expected ')' after condition");
@@ -500,7 +530,8 @@ public class Parser
         return new Stmt.While
         {
             Condition = condition,
-            Body = body
+            Body = body,
+            IsPreprocessed = isPreprocessed
         };
     }
     
@@ -582,6 +613,8 @@ public class Parser
 
     private Stmt NsDeclaration()
     {
+        var isPreprocessed = IsPreprocessed(Previous());
+        
         var name = Consume(TokenType.IDENTIFIER, "Expected namespace name");
         Consume(TokenType.LEFT_BRACE, "Expected '{' before namespace body");
         
@@ -590,7 +623,8 @@ public class Parser
         return new Stmt.Namespace
         {
             Name = name,
-            Body = body
+            Body = body,
+            IsPreprocessed = isPreprocessed
         };
     }
 
@@ -612,6 +646,8 @@ public class Parser
         }
         
         Consume(TokenType.FUNCTION, "Expected 'function' after 'ticking' or 'initializing'");
+        
+        var isPreprocessed = IsPreprocessed(Previous());
         
         var name = Consume(TokenType.IDENTIFIER, "Expected function name");
         
@@ -640,12 +676,15 @@ public class Parser
             Params = parameters,
             Body = body,
             Ticking = ticking,
-            Initializing = initializing
+            Initializing = initializing,
+            IsPreprocessed = isPreprocessed
         };
     }
     
     private Stmt VarDeclaration()
     {
+        var isPreprocessed = IsPreprocessed(Previous());
+        
         var name = Consume(TokenType.IDENTIFIER, "Expected variable name");
         
         Consume(TokenType.EQUAL, "Expected '=' after variable name");
@@ -656,7 +695,8 @@ public class Parser
         return new Stmt.Var
         {
             Name = name,
-            Initializer = initializer
+            Initializer = initializer,
+            IsPreprocessed = isPreprocessed
         };
     }
 

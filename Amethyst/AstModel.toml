@@ -63,7 +63,8 @@ ToString = "{Expr}"
 [Stmt.Namespace]
 Fields = [
     "Token Name",
-    "IList<Stmt> Body"
+    "IList<Stmt> Body",
+    "bool IsPreprocessed"
 ]
 ToString = "namespace {Name} {Body}"
 
@@ -73,7 +74,8 @@ Fields = [
     "bool Initializing",
     "Token Name",
     "IList<Token> Params",
-    "IList<Stmt> Body"
+    "IList<Stmt> Body",
+    "bool IsPreprocessed"
 ]
 ToString = "function {Name}({Params}) {Body}"
 
@@ -81,12 +83,16 @@ ToString = "function {Name}({Params}) {Body}"
 Fields = [
     "Expr Condition",
     "Stmt ThenBranch",
-    "Stmt? ElseBranch"
+    "Stmt? ElseBranch",
+    "bool IsPreprocessed"
 ]
 ToString = "if {Condition} then {ThenBranch} else {ElseBranch}"
 
 [Stmt.Print]
-Fields = [ "Expr Expr" ]
+Fields = [ 
+    "Expr Expr",
+    "bool IsPreprocessed"
+]
 ToString = "print {Expr}"
 
 [Stmt.Comment]
@@ -94,27 +100,36 @@ Fields = [ "Token Value" ]
 ToString = "# {Value}"
 
 [Stmt.Return]
-Fields = [ "Expr? Value" ]
+Fields = [ 
+    "Expr? Value",
+    "bool IsPreprocessed"
+]
 ToString = "return {Value}"
 
 [Stmt.Break]
-Fields = []
+Fields = [
+    "bool IsPreprocessed"
+]
 ToString = "break"
 
 [Stmt.Continue]
-Fields = []
+Fields = [
+    "bool IsPreprocessed"
+]
 ToString = "continue"
 
 [Stmt.Var]
 Fields = [
     "Token Name",
-    "Expr Initializer"
+    "Expr Initializer",
+    "bool IsPreprocessed"
 ]
 ToString = "var {Name} = {Initializer}"
 
 [Stmt.While]
 Fields = [
     "Expr Condition",
-    "Stmt Body"
+    "Stmt Body",
+    "bool IsPreprocessed"
 ]
 ToString = "while {Condition} do {Body}"

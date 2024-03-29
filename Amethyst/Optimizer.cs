@@ -330,7 +330,8 @@ public class Optimizer : Expr.IVisitor<Expr>, Stmt.IVisitor<Stmt>
         return new Stmt.Namespace
         {
             Name = stmt.Name,
-            Body = OptimizeBlock(stmt.Body)
+            Body = OptimizeBlock(stmt.Body),
+            IsPreprocessed = stmt.IsPreprocessed
         };
     }
 
@@ -342,7 +343,8 @@ public class Optimizer : Expr.IVisitor<Expr>, Stmt.IVisitor<Stmt>
             Initializing = stmt.Initializing,
             Name = stmt.Name,
             Params = stmt.Params,
-            Body = OptimizeBlock(stmt.Body)
+            Body = OptimizeBlock(stmt.Body),
+            IsPreprocessed = stmt.IsPreprocessed
         };
     }
 
@@ -352,7 +354,8 @@ public class Optimizer : Expr.IVisitor<Expr>, Stmt.IVisitor<Stmt>
         {
             Condition = stmt.Condition.Accept(this),
             ThenBranch = stmt.ThenBranch.Accept(this),
-            ElseBranch = stmt.ElseBranch?.Accept(this)
+            ElseBranch = stmt.ElseBranch?.Accept(this),
+            IsPreprocessed = stmt.IsPreprocessed
         };
     }
 
@@ -360,7 +363,8 @@ public class Optimizer : Expr.IVisitor<Expr>, Stmt.IVisitor<Stmt>
     {
         return new Stmt.Print
         {
-            Expr = stmt.Expr.Accept(this)
+            Expr = stmt.Expr.Accept(this),
+            IsPreprocessed = stmt.IsPreprocessed
         };
     }
 
@@ -373,7 +377,8 @@ public class Optimizer : Expr.IVisitor<Expr>, Stmt.IVisitor<Stmt>
     {
         return new Stmt.Return
         {
-            Value = stmt.Value?.Accept(this)
+            Value = stmt.Value?.Accept(this),
+            IsPreprocessed = stmt.IsPreprocessed
         };
     }
 
@@ -392,7 +397,8 @@ public class Optimizer : Expr.IVisitor<Expr>, Stmt.IVisitor<Stmt>
         return new Stmt.Var
         {
             Name = stmt.Name,
-            Initializer = stmt.Initializer.Accept(this)
+            Initializer = stmt.Initializer.Accept(this),
+            IsPreprocessed = stmt.IsPreprocessed
         };
     }
 
@@ -401,7 +407,8 @@ public class Optimizer : Expr.IVisitor<Expr>, Stmt.IVisitor<Stmt>
         return new Stmt.While
         {
             Condition = stmt.Condition.Accept(this),
-            Body = stmt.Body.Accept(this)
+            Body = stmt.Body.Accept(this),
+            IsPreprocessed = stmt.IsPreprocessed
         };
     }
 }

@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Runtime.InteropServices;
-
-namespace Amethyst;
+﻿namespace Amethyst;
 
 using Tommy;
 
@@ -78,15 +75,12 @@ internal static class Program
                 foreach (var target in compileTargets)
                 {
                     Console.Out.WriteLine("Compiling " + target);
-                    var input = File.ReadAllText(target);
-                    var tokenizer = new Tokenizer(input);
-                    var tokens = tokenizer.ScanTokens();
-                    var parser = new Parser(tokens);
-                    var stmts = parser.Parse();
-                    var optimizer = new Optimizer(stmts);
-                    stmts = optimizer.Optimize();
-                    var compiler = new Compiler(stmts, rootNamespace, outDir);
-                    compiler.Compile();
+                    File.ReadAllText(target)
+                        .Tokenize()
+                        .Parse()
+                        .Optimize()
+                        .Preprocess()
+                        .Compile(rootNamespace, outDir);
                 }
             }
             catch (SyntaxException e)

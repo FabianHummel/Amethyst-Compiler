@@ -14,7 +14,7 @@ public class Tokenizer
     private int current = 0;
     private int line = 1;
 
-    private static readonly Dictionary<String, TokenType> KEYWORDS = new()
+    private static readonly Dictionary<string, TokenType> KEYWORDS = new()
     {
         { "and",            TokenType.AND },
         { "else",           TokenType.ELSE },
@@ -35,6 +35,17 @@ public class Tokenizer
         { "print",          TokenType.PRINT },
         { "comment",        TokenType.COMMENT },
         { "continue",       TokenType.CONTINUE },
+        
+        { "FUNCTION",       TokenType.FUNCTION },
+        { "NAMESPACE",      TokenType.NAMESPACE },
+        { "FOR",            TokenType.FOR },
+        { "IF",             TokenType.IF },
+        { "BREAK",          TokenType.BREAK },
+        { "RETURN",         TokenType.RETURN },
+        { "VAR",            TokenType.VAR },
+        { "WHILE",          TokenType.WHILE },
+        { "PRINT",          TokenType.PRINT },
+        { "CONTINUE",       TokenType.CONTINUE }
     };
 
     private bool IsAtEnd => current >= Source.Length;
@@ -117,7 +128,7 @@ public class Tokenizer
     private void Identifier()
     {
         while (IsAlphaNumeric(Peek())) Advance();
-        
+
         string text = Source[start..current]; 
         if (KEYWORDS.TryGetValue(text, out var type))
         {
@@ -202,7 +213,7 @@ public class Tokenizer
         }
     }
 
-    public IList<Token> ScanTokens()
+    public IList<Token> Tokenize()
     {
         while (!IsAtEnd)
         {
