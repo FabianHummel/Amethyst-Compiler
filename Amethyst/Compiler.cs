@@ -15,6 +15,18 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         RootNamespace = rootNamespace;
     }
     
+    public void Compile()
+    {
+        Project.CopyAmethystInternalModule(OutDir);
+        
+        foreach (var statement in Statements)
+        {
+            Compile(statement);
+        }
+        
+        Project.CreateFunctionTags(OutDir, Environment);
+    }
+    
      private void AddCommand(string command)
      {
          if (Environment.Enclosing == null)
@@ -65,14 +77,86 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitAssignExpr(Expr.Assign expr)
     {
+        if (!Environment.TryGetVariable(expr.Name.Lexeme, out var variable))
+        {
+            throw new SyntaxException($"Undefined variable {expr.Name.Lexeme}", expr.Name.Line);
+        }
+
+        if (Evaluate(expr.Value) is not Subject subject)
+        {
+            throw new SyntaxException("Invalid assignment", expr.Name.Line);
+        }
+        
+        variable.Subject = subject;
+        switch (subject)
+        {
+            case Subject.Scoreboard:
+                AddCommand($"scoreboard players operation {variable.Name} amethyst = _out amethyst");
+                break;
+            case Subject.Storage:
+                AddCommand($"data modify storage amethyst:internal {variable.Name} set from storage amethyst:internal _out");
+                break;
+        }
+        
         return null;
     }
 
     public object? VisitBinaryExpr(Expr.Binary expr)
     {
-        // Todo: implement binary expressions
-        AddCommand("scoreboard players set _out amethyst 0");
-        return Subject.Scoreboard;
+        var depth = Environment.BinaryCounter++;
+        
+        var right = Evaluate(expr.Right);
+
+        if (right is Subject.Scoreboard)
+        {
+            AddCommand($"scoreboard players operation _tmp{depth} amethyst = _out amethyst");
+            
+            if (Evaluate(expr.Left) is not Subject subject)
+            {
+                throw new SyntaxException("Invalid binary operation", expr.Operator.Line);
+            }
+            
+            switch (expr.Operator.Type, subject)
+            {
+                case (TokenType.MINUS, Subject.Scoreboard):
+                    AddCommand($"scoreboard players operation _out amethyst -= _tmp{depth} amethyst");
+                    return Subject.Scoreboard;
+                case (TokenType.PLUS, Subject.Scoreboard):
+                    AddCommand($"scoreboard players operation _out amethyst += _tmp{depth} amethyst");
+                    return Subject.Scoreboard;
+                case (TokenType.SLASH, Subject.Scoreboard):
+                    AddCommand($"scoreboard players operation _out amethyst /= _tmp{depth} amethyst");
+                    return Subject.Scoreboard;
+                case (TokenType.STAR, Subject.Scoreboard):
+                    AddCommand($"scoreboard players operation _out amethyst *= _tmp{depth} amethyst");
+                    return Subject.Scoreboard;
+                case (TokenType.MODULO, Subject.Scoreboard):
+                    AddCommand($"scoreboard players operation _out amethyst %= _tmp{depth} amethyst");
+                    return Subject.Scoreboard;
+                case (TokenType.BANG_EQUAL, Subject.Scoreboard):
+                    AddCommand($"execute store success score _out amethyst unless score _out amethyst = _tmp{depth} amethyst");
+                    return Subject.Scoreboard;
+                case (TokenType.EQUAL_EQUAL, Subject.Scoreboard):
+                    AddCommand($"execute store success score _out amethyst if score _out amethyst = _tmp{depth} amethyst");
+                    return Subject.Scoreboard;
+                case (TokenType.GREATER, Subject.Scoreboard):
+                    AddCommand($"execute store success score _out amethyst if score _out amethyst > _tmp{depth} amethyst");
+                    return Subject.Scoreboard;
+                case (TokenType.GREATER_EQUAL, Subject.Scoreboard):
+                    AddCommand($"execute store success score _out amethyst if score _out amethyst >= _tmp{depth} amethyst");
+                    return Subject.Scoreboard;
+                case (TokenType.LESS, Subject.Scoreboard):
+                    AddCommand($"execute store success score _out amethyst if score _out amethyst < _tmp{depth} amethyst");
+                    return Subject.Scoreboard;
+                case (TokenType.LESS_EQUAL, Subject.Scoreboard):
+                    AddCommand($"execute store success score _out amethyst if score _out amethyst <= _tmp{depth} amethyst");
+                    return Subject.Scoreboard;
+                default:
+                    throw new SyntaxException("Invalid binary operator", expr.Operator.Line);
+            }
+        }
+        
+        return null;
     }
 
     public object? VisitCallExpr(Expr.Call expr)
@@ -98,14 +182,14 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     {
         switch (expr.Value)
         {
-            case string:
-                AddCommand($"data modify storage amethyst:internal _out set value \"{expr.Value}\"");
+            case string value:
+                AddCommand($"data modify storage amethyst:internal _out set value \"{value}\"");
                 return Subject.Storage;
-            case bool:
-                AddCommand($"data modify storage amethyst:internal _out set value {expr.Value}");
-                return Subject.Storage;
-            case double:
-                AddCommand($"scoreboard players set _out amethyst {expr.Value}");
+            case bool value:
+                AddCommand($"scoreboard players set _out amethyst {(value ? 1 : 0)}");
+                return Subject.Scoreboard;
+            case double value:
+                AddCommand($"scoreboard players set _out amethyst {(int)(value * 100)}");
                 return Subject.Scoreboard;
             case object[] value:
                 AddCommand($"data modify storage amethyst:internal _out set value [{string.Join(',', value)}]");
@@ -153,9 +237,26 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         return null;
     }
 
-    public object? VisitUnaryExpr(Expr.Unary expr)
+    public object VisitUnaryExpr(Expr.Unary expr)
     {
-        return null;
+        if (Evaluate(expr.Right) is Subject subject)
+        {
+            switch (expr.Operator.Type, subject)
+            {
+                case (TokenType.MINUS, Subject.Scoreboard):
+                    AddCommand("scoreboard players operation _out amethyst *= -1 amethyst_const");
+                    return Subject.Scoreboard;
+                case (TokenType.MINUS, Subject.Storage):
+                    throw new SyntaxException("Can't apply unary minus to storage", expr.Operator.Line);
+                case (TokenType.BANG, Subject.Scoreboard):
+                    AddCommand("execute store success score _out amethyst if score _out amethyst matches 0");
+                    return Subject.Scoreboard;
+                case (TokenType.BANG, Subject.Storage):
+                    throw new SyntaxException("Can't apply logical not to storage", expr.Operator.Line);
+            }
+        }
+        
+        throw new SyntaxException("Invalid unary operator", expr.Operator.Line);
     }
 
     public object? VisitVariableExpr(Expr.Variable expr)
@@ -178,6 +279,11 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitBlockStmt(Stmt.Block stmt)
     {
+        if (Environment.Enclosing == null)
+        {
+            Environment.InitializingFunctions.Add(RootNamespace + ":" + Path.Combine(Environment.Namespace, "_init"));
+        }
+        
         CompileBlock(stmt.Statements, Environment.CurrentFunction);
         return null;
     }
@@ -192,9 +298,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     {
         var filePath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, stmt.Name.Lexeme);
         Directory.CreateDirectory(filePath);
-        
         CompileBlock(stmt.Body, scope: stmt.Name.Lexeme);
-        
         return null;
     }
 
@@ -229,48 +333,44 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         var depth = Environment.IfCounter++;
         
         var ifFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction, $"_if{depth}");
-        AddCommand($"execute store result storage amethyst:internal _out store success score _out amethyst run function {ifFunctionPath}");
-        AddCommand("execute if score _out amethyst matches 1 run return data get storage amethyst:internal _out");
+        AddCommand($"execute store result storage amethyst:internal _out int 1.0 store success score _out amethyst run function {ifFunctionPath}");
+        AddCommand("execute if score _out amethyst matches 1 run return run data get storage amethyst:internal _out");
         var controlFlowEnvironment = Environment;
         Environment = new Environment(Environment, $"_if{depth}", Environment.CurrentFunction);
         {
             var controlFlowDirectory = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, Environment.CurrentFunction);
             Directory.CreateDirectory(controlFlowDirectory);
-            var ifStmtEnvironment = Environment;
+            if (Evaluate(stmt.Condition) is Subject.Scoreboard)
             {
-                if (Evaluate(stmt.Condition) is Subject.Scoreboard)
-                {
-                    AddCommand($"scoreboard players operation _cond{depth} amethyst = _out amethyst");
-                }
-                AddCommand("scoreboard players reset _out amethyst");
-                
-                var thenEnvironment = Environment;
-                Environment = new Environment(Environment, "_then", Environment.CurrentFunction);
-                var thenFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction);
-                Compile(stmt.ThenBranch);
-                Environment = thenEnvironment;
-                
-                AddCommand($"execute if score _cond{depth} amethyst matches 1 store result storage amethyst:internal _out store success score _out amethyst run function {thenFunctionPath}");
-                AddCommand("execute if score _out amethyst matches 1 run return data get storage amethyst:internal _out");
-                AddCommand("execute if score _out amethyst matches 0 if score _brk amethyst matches 1 run return fail");
-                
-                var elseEnvironment = Environment;
-                Environment = new Environment(Environment, "_else", Environment.CurrentFunction);
-                var elseFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction);
-                if (stmt.ElseBranch != null)
-                {
-                    Compile(stmt.ElseBranch);
-                }
-                Environment = elseEnvironment;
-
-                if (stmt.ElseBranch != null)
-                {
-                    AddCommand($"execute if score _cond{depth} amethyst matches 1 store result storage amethyst:internal _out store success score _out amethyst run function {elseFunctionPath}");
-                    AddCommand("execute if score _out amethyst matches 1 run return data get storage amethyst:internal _out");
-                    AddCommand("execute if score _out amethyst matches 0 if score _brk amethyst matches 1 run return fail");
-                }
+                AddCommand($"scoreboard players operation _cond{depth} amethyst = _out amethyst");
             }
-            Environment = ifStmtEnvironment;
+            AddCommand("scoreboard players reset _out amethyst");
+            
+            var thenEnvironment = Environment;
+            Environment = new Environment(Environment, "_then", Environment.CurrentFunction);
+            var thenFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction);
+            Compile(stmt.ThenBranch);
+            Environment = thenEnvironment;
+            
+            AddCommand($"execute if score _cond{depth} amethyst matches 1 store result storage amethyst:internal _out int 1.0 store success score _out amethyst run function {thenFunctionPath}");
+            AddCommand("execute if score _out amethyst matches 1 run return run data get storage amethyst:internal _out");
+            AddCommand("execute if score _out amethyst matches 0 if score _brk amethyst matches 1 run return fail");
+            
+            var elseEnvironment = Environment;
+            Environment = new Environment(Environment, "_else", Environment.CurrentFunction);
+            var elseFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction);
+            if (stmt.ElseBranch != null)
+            {
+                Compile(stmt.ElseBranch);
+            }
+            Environment = elseEnvironment;
+
+            if (stmt.ElseBranch != null)
+            {
+                AddCommand($"execute if score _cond{depth} amethyst matches 1 store result storage amethyst:internal _out int 1.0 store success score _out amethyst run function {elseFunctionPath}");
+                AddCommand("execute if score _out amethyst matches 1 run return run data get storage amethyst:internal _out");
+                AddCommand("execute if score _out amethyst matches 0 if score _brk amethyst matches 1 run return fail");
+            }
         }
         Environment = controlFlowEnvironment;
         return null;
@@ -283,10 +383,10 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
             switch (subject)
             {
                 case Subject.Scoreboard:
-                    AddCommand("tellraw @s {\"score\":{\"name\":\"_out\",\"objective\":\"amethyst\"}}");
+                    AddCommand("tellraw @a {\"score\":{\"name\":\"_out\",\"objective\":\"amethyst\"}}");
                     break;
                 case Subject.Storage:
-                    AddCommand("tellraw @s {\"storage\":\"amethyst:internal\",\"nbt\":\"_out\"}");
+                    AddCommand("tellraw @a {\"storage\":\"amethyst:internal\",\"nbt\":\"_out\"}");
                     break;
             }
         }
@@ -331,13 +431,14 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitVarStmt(Stmt.Var stmt)
     {
-        if (!Environment.AddVariable(stmt.Name.Lexeme, Subject.Storage, out var variable))
+        if (!Environment.AddVariable(stmt.Name.Lexeme, Subject.Storage /* temporary; getting overriden later */, out var variable))
         {
             throw new SyntaxException($"Variable {stmt.Name.Lexeme} already defined", stmt.Name.Line);
         }
 
         if (Evaluate(stmt.Initializer) is Subject subject)
         {
+            variable.Subject = subject;
             switch (subject)
             {
                 case Subject.Scoreboard:
@@ -353,18 +454,25 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitWhileStmt(Stmt.While stmt)
     {
-        return null;
-    }
+        var functionDirectory = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, Environment.CurrentFunction);
+        Directory.CreateDirectory(functionDirectory);
 
-    public void Compile()
-    {
-        Project.CopyAmethystInternalModule(OutDir);
+        var depth = Environment.LoopCounter++;
         
-        foreach (var statement in Statements)
+        var loopFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction, $"_loop{depth}");
+        AddCommand($"execute store result storage amethyst:internal _out int 1.0 store success score _out amethyst run function {loopFunctionPath}");
+        AddCommand("execute if score _out amethyst matches 1 run return run data get storage amethyst:internal _out");
+        var loopEnvironment = Environment;
+        Environment = new Environment(Environment, $"_loop{depth}", Environment.CurrentFunction);
         {
-            Compile(statement);
+            if (Evaluate(stmt.Condition) is Subject.Scoreboard)
+            {
+                AddCommand("execute if score _out amethyst matches 0 run return fail");
+            }
+            Compile(stmt.Body);
+            AddCommand($"function {loopFunctionPath}");
         }
-        
-        Project.CreateFunctionTags(OutDir, Environment);
+        Environment = loopEnvironment;
+        return null;
     }
 }

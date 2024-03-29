@@ -22,11 +22,13 @@ public class Environment
     public ISet<string> TickingFunctions { get; } = new HashSet<string>();
     public ISet<string> InitializingFunctions { get; } = new HashSet<string>();
     public int IfCounter { get; set; }
+    public int LoopCounter { get; set; }
+    public int BinaryCounter { get; set; }
     
     private IDictionary<string, Variable> Values { get; } = new Dictionary<string, Variable>();
-    
+
     public string Namespace => Path.Combine(Enclosing?.Namespace ?? "", Scope);
-    
+
     public Environment(string currentFunction)
     {
         Enclosing = null;

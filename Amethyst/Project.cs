@@ -97,8 +97,9 @@ public static class Project
         var templateFiles = assembly.GetManifestResourceNames().Where(s => s.StartsWith("Amethyst.res.amethyst"));
         foreach (var templateFile in templateFiles)
         {
-            var path = moduleDir + templateFile["Amethyst.res.amethyst".Length..];
+            var path = templateFile["Amethyst.res.amethyst".Length..];
             path = path[..path.LastIndexOf('.')].Replace(".", "/") + path[path.LastIndexOf('.')..];
+            path = moduleDir + path;
             using (var stream = assembly.GetManifestResourceStream(templateFile)!)
             {
                 using (var reader = new StreamReader(stream))

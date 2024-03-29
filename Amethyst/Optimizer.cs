@@ -11,22 +11,31 @@ public class Optimizer : Expr.IVisitor<Expr>, Stmt.IVisitor<Stmt>
     
     public IList<Stmt> Optimize()
     {
-        var statements = new List<Stmt>();
+        return OptimizeBlock(Statements);
+    }
+
+    private IList<Stmt> OptimizeBlock(IEnumerable<Stmt> statements)
+    {
+        var stmts = new List<Stmt>();
         
-        foreach (var statement in Statements)
+        foreach (var statement in statements)
         {
             if (statement.Accept(this) is { } stmt)
             {
-                statements.Add(stmt);
+                stmts.Add(stmt);
             }
         }
         
-        return statements;
+        return stmts;
     }
 
     public Expr VisitAssignExpr(Expr.Assign expr)
     {
-        return expr;
+        return new Expr.Assign
+        {
+            Name = expr.Name,
+            Value = expr.Value.Accept(this)
+        };
     }
 
     public Expr VisitBinaryExpr(Expr.Binary expr)
@@ -302,27 +311,49 @@ public class Optimizer : Expr.IVisitor<Expr>, Stmt.IVisitor<Stmt>
 
     public Stmt VisitBlockStmt(Stmt.Block stmt)
     {
-        return stmt;
+        return new Stmt.Block
+        {
+            Statements = OptimizeBlock(stmt.Statements)
+        };
     }
 
     public Stmt VisitExpressionStmt(Stmt.Expression stmt)
     {
-        return stmt;
+        return new Stmt.Expression
+        {
+            Expr = stmt.Expr.Accept(this)
+        };
     }
 
     public Stmt VisitNamespaceStmt(Stmt.Namespace stmt)
     {
-        return stmt;
+        return new Stmt.Namespace
+        {
+            Name = stmt.Name,
+            Body = OptimizeBlock(stmt.Body)
+        };
     }
 
     public Stmt VisitFunctionStmt(Stmt.Function stmt)
     {
-        return stmt;
+        return new Stmt.Function
+        {
+            Ticking = stmt.Ticking,
+            Initializing = stmt.Initializing,
+            Name = stmt.Name,
+            Params = stmt.Params,
+            Body = OptimizeBlock(stmt.Body)
+        };
     }
 
     public Stmt VisitIfStmt(Stmt.If stmt)
     {
-        return stmt;
+        return new Stmt.If
+        {
+            Condition = stmt.Condition.Accept(this),
+            ThenBranch = stmt.ThenBranch.Accept(this),
+            ElseBranch = stmt.ElseBranch?.Accept(this)
+        };
     }
 
     public Stmt VisitPrintStmt(Stmt.Print stmt)
@@ -340,7 +371,10 @@ public class Optimizer : Expr.IVisitor<Expr>, Stmt.IVisitor<Stmt>
 
     public Stmt VisitReturnStmt(Stmt.Return stmt)
     {
-        return stmt;
+        return new Stmt.Return
+        {
+            Value = stmt.Value?.Accept(this)
+        };
     }
 
     public Stmt VisitBreakStmt(Stmt.Break stmt)
@@ -350,11 +384,19 @@ public class Optimizer : Expr.IVisitor<Expr>, Stmt.IVisitor<Stmt>
 
     public Stmt VisitVarStmt(Stmt.Var stmt)
     {
-        return stmt;
+        return new Stmt.Var
+        {
+            Name = stmt.Name,
+            Initializer = stmt.Initializer.Accept(this)
+        };
     }
 
     public Stmt VisitWhileStmt(Stmt.While stmt)
     {
-        return stmt;
+        return new Stmt.While
+        {
+            Condition = stmt.Condition.Accept(this),
+            Body = stmt.Body.Accept(this)
+        };
     }
 }
