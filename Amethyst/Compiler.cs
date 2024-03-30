@@ -1,17 +1,111 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Amethyst;
 
 public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 {
+    private class Environment
+    {
+        public class Variable
+        {
+            public string Name { get; }
+            public Subject Subject { get; set; }
+            
+            public Variable(string name, Subject subject)
+            {
+                Name = name;
+                Subject = subject;
+            }
+        }
+        
+        private string Scope { get; }
+        public string CurrentFunction { get; }
+        public Environment? Enclosing { get; }
+        public ISet<string> TickingFunctions { get; } = new HashSet<string>();
+        public ISet<string> InitializingFunctions { get; } = new HashSet<string>();
+        public int IfCounter { get; set; }
+        public int LoopCounter { get; set; }
+        public int BinaryCounter { get; set; }
+        
+        private IDictionary<string, Variable> Values { get; } = new Dictionary<string, Variable>();
+        private ISet<string> VariableNames { get; } = new HashSet<string>();
+
+        public string Namespace => Path.Combine(Enclosing?.Namespace ?? "", Scope);
+
+        public Environment(string currentFunction)
+        {
+            Enclosing = null;
+            Scope = "";
+            CurrentFunction = currentFunction;
+        }
+
+        public Environment(Environment enclosing, string currentFunction, string scope = "")
+        {
+            Enclosing = enclosing;
+            Scope = scope;
+            CurrentFunction = currentFunction;
+        }
+
+        private bool IsVariableDefined(string name)
+        {
+            return VariableNames.Contains(name) || Enclosing?.IsVariableDefined(name) == true;
+        }
+        
+        public string GetUniqueName()
+        {
+            string name;
+            do
+            {
+                name = $"_v{BinaryCounter++}";
+            } while (IsVariableDefined(name));
+            return name;
+        }
+
+        public bool AddVariable(string targetName, Subject subject, out Variable variable)
+        {
+            var name = GetUniqueName();
+            VariableNames.Add(name);
+            variable = new Variable(name, subject);
+            return Values.TryAdd(targetName, variable);
+        }
+        
+        public bool TryGetVariable(string targetName, [NotNullWhen(true)] out Variable? variable)
+        {
+            if (Values.TryGetValue(targetName, out variable))
+            {
+                return true;
+            }
+            
+            if (Enclosing?.TryGetVariable(targetName, out variable) == true)
+            {
+                return true;
+            }
+
+            return false;
+        }
+        
+        public bool RemoveVariable(string targetName)
+        {
+            if (Values.Remove(targetName))
+            {
+                return true;
+            }
+            
+            Enclosing?.RemoveVariable(targetName);
+            return false;
+        }
+    }
+    
     private IList<Stmt> Statements { get; }
     private string OutDir { get; set; }
-    private Environment Environment { get; set; }
+    private Environment Scope { get; set; }
     private string RootNamespace { get; init; }
     
     public Compiler(IList<Stmt> statements, string rootNamespace, string outDir)
     {
         Statements = statements;
         OutDir = Path.Combine(outDir, "data");
-        Environment = new Environment("_init");
+        Scope = new Environment("_init");
         RootNamespace = rootNamespace;
     }
     
@@ -24,17 +118,17 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
             Compile(statement);
         }
         
-        Project.CreateFunctionTags(OutDir, Environment);
+        Project.CreateFunctionTags(OutDir, Scope.InitializingFunctions, Scope.TickingFunctions);
     }
     
      private void AddCommand(string command)
      {
-         if (Environment.Enclosing == null)
+         if (Scope.Enclosing == null)
          {
-             Environment.InitializingFunctions.Add(RootNamespace + ":" + Path.Combine(Environment.Namespace, "_init"));
+             Scope.InitializingFunctions.Add(RootNamespace + ":" + Path.Combine(Scope.Namespace, "_init"));
          }
          
-         var filePath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, Environment.CurrentFunction + ".mcfunction");
+         var filePath = Path.Combine(OutDir, RootNamespace, "functions", Scope.Namespace, Scope.CurrentFunction + ".mcfunction");
          if (!File.Exists(filePath))
          {
              File.Create(filePath).Close();
@@ -44,9 +138,9 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
      
      private void AddInitCommand(string command)
      {
-         Environment.InitializingFunctions.Add(RootNamespace + ":" + Path.Combine(Environment.Namespace, "_init"));
+         Scope.InitializingFunctions.Add(RootNamespace + ":" + Path.Combine(Scope.Namespace, "_init"));
          
-         var filePath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, "_init.mcfunction");
+         var filePath = Path.Combine(OutDir, RootNamespace, "functions", Scope.Namespace, "_init.mcfunction");
          if (!File.Exists(filePath))
          {
              File.Create(filePath).Close();
@@ -56,13 +150,13 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     private void CompileBlock(IEnumerable<Stmt> statements, string currentFunction = "_init", string scope = "")
     {
-        var previous = Environment;
-        Environment = new Environment(Environment, currentFunction, scope);
+        var previous = Scope;
+        Scope = new Environment(Scope, currentFunction, scope);
         foreach (var statement in statements)
         {
             Compile(statement);
         }
-        Environment = previous;
+        Scope = previous;
     }
 
     private void Compile(Stmt stmt)
@@ -77,7 +171,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitAssignExpr(Expr.Assign expr)
     {
-        if (!Environment.TryGetVariable(expr.Name.Lexeme, out var variable))
+        if (!Scope.TryGetVariable(expr.Name.Lexeme, out var variable))
         {
             throw new SyntaxException($"Undefined variable {expr.Name.Lexeme}", expr.Name.Line);
         }
@@ -103,7 +197,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitBinaryExpr(Expr.Binary expr)
     {
-        var depth = Environment.BinaryCounter++;
+        var depth = Scope.BinaryCounter++;
         
         var right = Evaluate(expr.Right);
 
@@ -167,7 +261,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         {
             // var variableDefinition = Environment.GetVariable(variable.Name.Lexeme);
             // Todo: get function from environment. Depending on subject, set _out = _ret
-            var functionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, variable.Name.Lexeme);
+            var functionPath = RootNamespace + ":" + Path.Combine(Scope.Namespace, variable.Name.Lexeme);
             AddCommand($"function {functionPath}");
             // return variableDefinition.Subject;
             return Subject.Storage;
@@ -208,8 +302,8 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object VisitArrayExpr(Expr.Array expr)
     {
-        var name = Environment.GetUniqueName();
-        Environment.AddVariable(name, Subject.Storage, out var variable);
+        var name = Scope.GetUniqueName();
+        Scope.AddVariable(name, Subject.Storage, out var variable);
         
         AddCommand($"data modify storage amethyst:internal {variable.Name} set value []");
         foreach (var exprValue in expr.Values)
@@ -230,7 +324,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         }
         AddCommand($"data modify storage amethyst:internal _out set from storage amethyst:internal {variable.Name}");
         AddCommand($"data remove storage amethyst:internal {variable.Name}");
-        Environment.RemoveVariable(name);
+        Scope.RemoveVariable(name);
         return Subject.Storage;
     }
 
@@ -263,7 +357,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitVariableExpr(Expr.Variable expr)
     {
-        if (!Environment.TryGetVariable(expr.Name.Lexeme, out var variable))
+        if (!Scope.TryGetVariable(expr.Name.Lexeme, out var variable))
         {
             throw new SyntaxException($"Undefined variable {expr.Name.Lexeme}", expr.Name.Line);
         }
@@ -281,12 +375,12 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitBlockStmt(Stmt.Block stmt)
     {
-        if (Environment.Enclosing == null)
+        if (Scope.Enclosing == null)
         {
-            Environment.InitializingFunctions.Add(RootNamespace + ":" + Path.Combine(Environment.Namespace, "_init"));
+            Scope.InitializingFunctions.Add(RootNamespace + ":" + Path.Combine(Scope.Namespace, "_init"));
         }
         
-        CompileBlock(stmt.Statements, Environment.CurrentFunction);
+        CompileBlock(stmt.Statements, Scope.CurrentFunction);
         return null;
     }
 
@@ -298,7 +392,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitNamespaceStmt(Stmt.Namespace stmt)
     {
-        var filePath = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, stmt.Name.Lexeme);
+        var filePath = Path.Combine(OutDir, RootNamespace, "functions", Scope.Namespace, stmt.Name.Lexeme);
         Directory.CreateDirectory(filePath);
         CompileBlock(stmt.Body, scope: stmt.Name.Lexeme);
         return null;
@@ -308,65 +402,65 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     {
         // var variable = Environment.AddVariable(stmt.Name.Lexeme, Subject.Storage);
         // Todo: add function to environment
-        var functionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, stmt.Name.Lexeme);
+        var functionPath = RootNamespace + ":" + Path.Combine(Scope.Namespace, stmt.Name.Lexeme);
         
         if (stmt.Initializing)
         {
-            Environment.InitializingFunctions.Add(functionPath);
+            Scope.InitializingFunctions.Add(functionPath);
         }
 
         if (stmt.Ticking)
         {
-            Environment.TickingFunctions.Add(functionPath);
+            Scope.TickingFunctions.Add(functionPath);
         }
         
-        var previous = Environment;
-        Environment = new Environment(Environment, stmt.Name.Lexeme);
+        var previous = Scope;
+        Scope = new Environment(Scope, stmt.Name.Lexeme);
         CompileBlock(stmt.Body, stmt.Name.Lexeme);
-        Environment = previous;
+        Scope = previous;
         return null;
     }
 
     public object? VisitIfStmt(Stmt.If stmt)
     {
-        var functionDirectory = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, Environment.CurrentFunction);
+        var functionDirectory = Path.Combine(OutDir, RootNamespace, "functions", Scope.Namespace, Scope.CurrentFunction);
         Directory.CreateDirectory(functionDirectory);
 
-        var depth = Environment.IfCounter++;
+        var depth = Scope.IfCounter++;
         
-        var ifFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction, $"_if{depth}");
+        var ifFunctionPath = RootNamespace + ":" + Path.Combine(Scope.Namespace, Scope.CurrentFunction, $"_if{depth}");
         AddCommand($"execute if function {ifFunctionPath} run return 1");
         AddCommand("execute if score _brk amethyst matches 1 run return fail");
-        var controlFlowEnvironment = Environment;
-        Environment = new Environment(Environment, $"_if{depth}", Environment.CurrentFunction);
+        var controlFlowEnvironment = Scope;
+        Scope = new Environment(Scope, $"_if{depth}", Scope.CurrentFunction);
         {
-            var controlFlowDirectory = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, Environment.CurrentFunction);
+            var controlFlowDirectory = Path.Combine(OutDir, RootNamespace, "functions", Scope.Namespace, Scope.CurrentFunction);
             Directory.CreateDirectory(controlFlowDirectory);
             Evaluate(stmt.Condition);
             
-            var thenEnvironment = Environment;
-            Environment = new Environment(Environment, "_then", Environment.CurrentFunction);
-            var thenFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction);
+            var thenEnvironment = Scope;
+            Scope = new Environment(Scope, "_then", Scope.CurrentFunction);
+            var thenFunctionPath = RootNamespace + ":" + Path.Combine(Scope.Namespace, Scope.CurrentFunction);
             Compile(stmt.ThenBranch);
-            Environment = thenEnvironment;
+            Scope = thenEnvironment;
             
             AddCommand($"execute if score _out amethyst matches 1 run return run function {thenFunctionPath}");
             
-            var elseEnvironment = Environment;
-            Environment = new Environment(Environment, "_else", Environment.CurrentFunction);
-            var elseFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction);
+            var elseEnvironment = Scope;
+            Scope = new Environment(Scope, "_else", Scope.CurrentFunction);
+            var elseFunctionPath = RootNamespace + ":" + Path.Combine(Scope.Namespace, Scope.CurrentFunction);
             if (stmt.ElseBranch != null)
             {
                 Compile(stmt.ElseBranch);
             }
-            Environment = elseEnvironment;
+            Scope = elseEnvironment;
             
             if (stmt.ElseBranch != null)
             {
                 AddCommand($"return run function {elseFunctionPath}");
             }
         }
-        Environment = controlFlowEnvironment;
+        Scope = controlFlowEnvironment;
         return null;
     }
 
@@ -419,7 +513,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitVarStmt(Stmt.Var stmt)
     {
-        if (!Environment.AddVariable(stmt.Name.Lexeme, Subject.Storage /* temporary; getting overriden later */, out var variable))
+        if (!Scope.AddVariable(stmt.Name.Lexeme, Subject.Storage /* temporary; getting overriden later */, out var variable))
         {
             throw new SyntaxException($"Variable {stmt.Name.Lexeme} already defined", stmt.Name.Line);
         }
@@ -442,15 +536,15 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitWhileStmt(Stmt.While stmt)
     {
-        var functionDirectory = Path.Combine(OutDir, RootNamespace, "functions", Environment.Namespace, Environment.CurrentFunction);
+        var functionDirectory = Path.Combine(OutDir, RootNamespace, "functions", Scope.Namespace, Scope.CurrentFunction);
         Directory.CreateDirectory(functionDirectory);
 
-        var depth = Environment.LoopCounter++;
+        var depth = Scope.LoopCounter++;
         
-        var loopFunctionPath = RootNamespace + ":" + Path.Combine(Environment.Namespace, Environment.CurrentFunction, $"_loop{depth}");
+        var loopFunctionPath = RootNamespace + ":" + Path.Combine(Scope.Namespace, Scope.CurrentFunction, $"_loop{depth}");
         AddCommand($"execute if function {loopFunctionPath} run return 1");
-        var loopEnvironment = Environment;
-        Environment = new Environment(Environment, $"_loop{depth}", Environment.CurrentFunction);
+        var loopEnvironment = Scope;
+        Scope = new Environment(Scope, $"_loop{depth}", Scope.CurrentFunction);
         {
             if (Evaluate(stmt.Condition) is Subject.Scoreboard)
             {
@@ -459,7 +553,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
             Compile(stmt.Body);
             AddCommand($"return run function {loopFunctionPath}");
         }
-        Environment = loopEnvironment;
+        Scope = loopEnvironment;
         return null;
     }
 }

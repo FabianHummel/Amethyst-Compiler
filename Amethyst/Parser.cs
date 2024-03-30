@@ -689,7 +689,11 @@ public class Parser
         
         Consume(TokenType.EQUAL, "Expected '=' after variable name");
 
-        var initializer = Expression();
+        Expr? initializer = null;
+        if (!Check(TokenType.SEMICOLON))
+        {
+            initializer = Expression();
+        }
         
         Consume(TokenType.SEMICOLON, "Expected ';' after variable declaration");
         return new Stmt.Var

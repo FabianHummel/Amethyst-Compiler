@@ -121,7 +121,7 @@ ToString = "continue"
 [Stmt.Var]
 Fields = [
     "Token Name",
-    "Expr Initializer",
+    "Expr? Initializer",
     "bool IsPreprocessed"
 ]
 ToString = "var {Name} = {Initializer}"

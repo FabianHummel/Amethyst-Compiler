@@ -1,12 +1,40 @@
+using System.Collections;
+using System.Diagnostics.CodeAnalysis;
+
 namespace Amethyst;
 
-public class Preprocessor : Stmt.IVisitor<Stmt>, Expr.IVisitor<object>
+public class Preprocessor : Stmt.IVisitor<Stmt?>, Expr.IVisitor<object>
 {
+    private class Environment
+    {
+        private Dictionary<string, object> Values { get; } = new();
+        
+        public void Define(string name, object value)
+        {
+            Values[name] = value;
+        }
+
+        public bool TryGet(string name, [NotNullWhen(true)] out object? value)
+        {
+            return Values.TryGetValue(name, out value);
+        }
+        
+        public void Assign(string name, object value)
+        {
+            if (Values.ContainsKey(name))
+            {
+                Values[name] = value;
+            }
+        }
+    }
+    
     private IList<Stmt> Statements { get; }
+    private Environment Scope { get; }
     
     public Preprocessor(IList<Stmt> stmts)
     {
         Statements = stmts;
+        Scope = new Environment();
     }
     
     public IList<Stmt> Preprocess()
@@ -47,7 +75,11 @@ public class Preprocessor : Stmt.IVisitor<Stmt>, Expr.IVisitor<object>
 
     public Stmt VisitExpressionStmt(Stmt.Expression stmt)
     {
-        return stmt;
+        return stmt.Expr.Accept(this) switch
+        {
+            null => null!,
+            _ => stmt
+        };
     }
 
     public Stmt VisitNamespaceStmt(Stmt.Namespace stmt)
@@ -81,7 +113,7 @@ public class Preprocessor : Stmt.IVisitor<Stmt>, Expr.IVisitor<object>
         };
     }
 
-    public Stmt VisitIfStmt(Stmt.If stmt)
+    public Stmt? VisitIfStmt(Stmt.If stmt)
     {
         if (!stmt.IsPreprocessed) return stmt;
         
@@ -103,13 +135,20 @@ public class Preprocessor : Stmt.IVisitor<Stmt>, Expr.IVisitor<object>
         return stmt;
     }
 
-    public Stmt VisitPrintStmt(Stmt.Print stmt)
+    public Stmt? VisitPrintStmt(Stmt.Print stmt)
     {
-        if (!stmt.IsPreprocessed) return stmt;
+        if (!stmt.IsPreprocessed) return new Stmt.Print
+        {
+            Expr = new Expr.Literal
+            {
+                Value = stmt.Expr.Accept(this)
+            },
+            IsPreprocessed = true
+        };
 
         Console.Out.WriteLine(stmt.Expr.Accept(this));
-        
-        return stmt;
+
+        return null;
     }
 
     public Stmt VisitCommentStmt(Stmt.Comment stmt)
@@ -138,18 +177,23 @@ public class Preprocessor : Stmt.IVisitor<Stmt>, Expr.IVisitor<object>
         return stmt;
     }
 
-    public Stmt VisitVarStmt(Stmt.Var stmt)
+    public Stmt? VisitVarStmt(Stmt.Var stmt)
     {
         if (!stmt.IsPreprocessed) return stmt;
         
-        // todo: add variable to the scope
-        
-        return stmt;
+        if (stmt.Initializer != null)
+        {
+            Scope.Define(stmt.Name.Lexeme, stmt.Initializer.Accept(this));
+        }
+
+        return null;
     }
 
     public Stmt VisitWhileStmt(Stmt.While stmt)
     {
         if (!stmt.IsPreprocessed) return stmt;
+        
+        var output = new List<Stmt>();
         
         if (stmt.Condition.Accept(this) is not bool condition)
         {
@@ -158,19 +202,30 @@ public class Preprocessor : Stmt.IVisitor<Stmt>, Expr.IVisitor<object>
         
         while (condition)
         {
-            stmt.Body.Accept(this);
+            if (stmt.Body.Accept(this) is { } result)
+            {
+                output.Add(result);
+            }
 
             condition = (bool) stmt.Condition.Accept(this);
         }
         
-        return stmt;
+        return new Stmt.Block
+        {
+            Statements = output
+        };
     }
 
     public object VisitAssignExpr(Expr.Assign expr)
     {
-        // todo: check if the variable is in the scope
+        if (!Scope.TryGet(expr.Name.Lexeme, out var value))
+        {
+            return expr;
+        }
         
-        return expr;
+        Scope.Assign(expr.Name.Lexeme, expr.Value.Accept(this));
+        
+        return null!;
     }
 
     public object VisitBinaryExpr(Expr.Binary expr)
@@ -180,17 +235,17 @@ public class Preprocessor : Stmt.IVisitor<Stmt>, Expr.IVisitor<object>
 
         return expr.Operator.Type switch
         {
-            TokenType.PLUS => (double)left + (double)right,
-            TokenType.MINUS => (double)left - (double)right,
-            TokenType.STAR => (double)left * (double)right,
-            TokenType.SLASH => (double)left / (double)right,
-            TokenType.MODULO => (double)left % (double)right,
-            TokenType.GREATER => (double)left > (double)right,
+            TokenType.PLUS          => (double)left + (double)right,
+            TokenType.MINUS         => (double)left - (double)right,
+            TokenType.STAR          => (double)left * (double)right,
+            TokenType.SLASH         => (double)left / (double)right,
+            TokenType.MODULO        => (double)left % (double)right,
+            TokenType.GREATER       => (double)left > (double)right,
             TokenType.GREATER_EQUAL => (double)left >= (double)right,
-            TokenType.LESS => (double)left < (double)right,
-            TokenType.LESS_EQUAL => (double)left <= (double)right,
-            TokenType.BANG_EQUAL => !left.Equals(right),
-            TokenType.EQUAL_EQUAL => left.Equals(right),
+            TokenType.LESS          => (double)left < (double)right,
+            TokenType.LESS_EQUAL    => (double)left <= (double)right,
+            TokenType.BANG_EQUAL    => !left.Equals(right),
+            TokenType.EQUAL_EQUAL   => left.Equals(right),
             _ => throw new Exception($"Unknown binary operator {expr.Operator}")
         };
     }
@@ -209,7 +264,12 @@ public class Preprocessor : Stmt.IVisitor<Stmt>, Expr.IVisitor<object>
 
     public object VisitLiteralExpr(Expr.Literal expr)
     {
-        return expr;
+        if (expr.Value is not (string or bool or double or Array or IDictionary))
+        {
+            throw new Exception("Unsupported literal type.");
+        }
+        
+        return expr.Value;
     }
 
     public object VisitObjectExpr(Expr.Object expr)
@@ -234,8 +294,11 @@ public class Preprocessor : Stmt.IVisitor<Stmt>, Expr.IVisitor<object>
 
     public object VisitVariableExpr(Expr.Variable expr)
     {
-        // todo: check if the variable is in the scope
+        if (!Scope.TryGet(expr.Name.Lexeme, out var value))
+        {
+            throw new Exception($"Undefined variable '{expr.Name.Lexeme}'.");
+        }
         
-        return expr;
+        return value;
     }
 }

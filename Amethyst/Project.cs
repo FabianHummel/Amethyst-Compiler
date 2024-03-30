@@ -58,7 +58,7 @@ public static class Project
         Directory.CreateDirectory(minecraftDir);
     }
 
-    public static void CreateFunctionTags(string outDir, Environment context)
+    public static void CreateFunctionTags(string outDir, IEnumerable<string> tickingFunctions, IEnumerable<string> initializingFunctions)
     {
         var minecraftDir = Path.Combine(outDir, "minecraft/tags/functions/");
         
@@ -67,10 +67,10 @@ public static class Project
         {
             using (var reader = new StreamReader(stream))
             {
-                var tickingFunctions = reader.ReadToEnd();
-                var content = string.Join(",\n    ", context.TickingFunctions.Select(i => $"\"{i}\""));
-                tickingFunctions = tickingFunctions.Replace("{{ticking_functions}}", content);
-                File.WriteAllText(Path.Combine(minecraftDir + "tick.json"), tickingFunctions);
+                var tickingFunctionsTemplate = reader.ReadToEnd();
+                var content = string.Join(",\n    ", tickingFunctionsTemplate.Select(i => $"\"{i}\""));
+                tickingFunctionsTemplate = tickingFunctionsTemplate.Replace("{{ticking_functions}}", content);
+                File.WriteAllText(Path.Combine(minecraftDir + "tick.json"), tickingFunctionsTemplate);
             }
         }
         
@@ -78,13 +78,13 @@ public static class Project
         {
             using (var reader = new StreamReader(stream))
             {
-                var loadingFunctions = reader.ReadToEnd();
-                var functions = context.InitializingFunctions.Select(i => $"\"{i}\"").ToList();
+                var initializingFunctionsTemplate = reader.ReadToEnd();
+                var functions = initializingFunctions.Select(i => $"\"{i}\"").ToList();
                 var content = string.Join(",\n    ", functions);
-                loadingFunctions = loadingFunctions
+                initializingFunctionsTemplate = initializingFunctionsTemplate
                     .Replace("{{amethyst_init}}", $"\"amethyst:_init\"{(functions.Count > 0 ? "," : "")}")
                     .Replace("{{loading_functions}}", content);
-                File.WriteAllText(Path.Combine(minecraftDir + "load.json"), loadingFunctions);
+                File.WriteAllText(Path.Combine(minecraftDir + "load.json"), initializingFunctionsTemplate);
             }
         }
     }
