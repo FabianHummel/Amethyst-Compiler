@@ -43,136 +43,26 @@ public class Optimizer : Expr.IVisitor<Expr>, Stmt.IVisitor<Stmt>
         var left = expr.Left.Accept(this);
         var right = expr.Right.Accept(this);
         
-        if (left is Expr.Literal l && right is Expr.Literal r)
+        if (left is Expr.Literal { Value: {} l } && right is Expr.Literal { Value: {} r })
         {
-            switch (expr.Operator.Type)
+            return new Expr.Literal
             {
-                case TokenType.PLUS:
+                Value = expr.Operator.Type switch
                 {
-                    if (l.Value is double ld && r.Value is double rd)
-                    {
-                        return new Expr.Literal
-                        {
-                            Value = ld + rd
-                        };
-                    }
-
-                    if (l.Value is string ls2 && r.Value is double rd2)
-                    {
-                        return new Expr.Literal
-                        {
-                            Value = ls2 + rd2
-                        };
-                    }
-
-                    return new Expr.Literal
-                    {
-                        Value = string.Concat(l.Value, r.Value)
-                    };
+                    TokenType.PLUS => DynamicArithmetics.Add(l, r),
+                    TokenType.MINUS => DynamicArithmetics.Sub(l, r),
+                    TokenType.STAR => DynamicArithmetics.Mul(l, r),
+                    TokenType.SLASH => DynamicArithmetics.Div(l, r),
+                    TokenType.MODULO => DynamicArithmetics.Mod(l, r),
+                    TokenType.GREATER => DynamicArithmetics.Gt(l, r),
+                    TokenType.GREATER_EQUAL => DynamicArithmetics.Ge(l, r),
+                    TokenType.LESS => DynamicArithmetics.Lt(l, r),
+                    TokenType.LESS_EQUAL => DynamicArithmetics.Le(l, r),
+                    TokenType.BANG_EQUAL => DynamicArithmetics.Ne(l, r),
+                    TokenType.EQUAL_EQUAL => DynamicArithmetics.Eq(l, r),
+                    _ => throw new Exception($"Unknown binary operator {expr.Operator}")
                 }
-                case TokenType.MINUS:
-                {
-                    if (l.Value is double ld2 && r.Value is double rd2)
-                    {
-                        return new Expr.Literal
-                        {
-                            Value = ld2 - rd2
-                        };
-                    }
-                    break;
-                }
-                case TokenType.STAR:
-                {
-                    if (l.Value is double ld3 && r.Value is double rd3)
-                    {
-                        return new Expr.Literal
-                        {
-                            Value = ld3 * rd3
-                        };
-                    }
-                    break;
-                }
-                case TokenType.SLASH:
-                {
-                    if (l.Value is double ld4 && r.Value is double rd4)
-                    {
-                        return new Expr.Literal
-                        {
-                            Value = ld4 / rd4
-                        };
-                    }
-                    break;
-                }
-                case TokenType.MODULO:
-                {
-                    if (l.Value is double ld5 && r.Value is double rd5)
-                    {
-                        return new Expr.Literal
-                        {
-                            Value = ld5 % rd5
-                        };
-                    }
-                    break;
-                }
-                case TokenType.GREATER:
-                {
-                    if (l.Value is double ld6 && r.Value is double rd6)
-                    {
-                        return new Expr.Literal
-                        {
-                            Value = ld6 > rd6
-                        };
-                    }
-                    break;
-                }
-                case TokenType.GREATER_EQUAL:
-                {
-                    if (l.Value is double ld7 && r.Value is double rd7)
-                    {
-                        return new Expr.Literal
-                        {
-                            Value = ld7 >= rd7
-                        };
-                    }
-                    break;
-                }
-                case TokenType.LESS:
-                {
-                    if (l.Value is double ld8 && r.Value is double rd8)
-                    {
-                        return new Expr.Literal
-                        {
-                            Value = ld8 < rd8
-                        };
-                    }
-                    break;
-                }
-                case TokenType.LESS_EQUAL:
-                {
-                    if (l.Value is double ld9 && r.Value is double rd9)
-                    {
-                        return new Expr.Literal
-                        {
-                            Value = ld9 <= rd9
-                        };
-                    }
-                    break;
-                }
-                case TokenType.EQUAL_EQUAL:
-                {
-                    return new Expr.Literal
-                    {
-                        Value = l.Value == r.Value
-                    };
-                }
-                case TokenType.BANG_EQUAL:
-                {
-                    return new Expr.Literal
-                    {
-                        Value = l.Value != r.Value
-                    };
-                }
-            }
+            };
         }
 
         return new Expr.Binary

@@ -443,6 +443,16 @@ public class Parser
         
         if (Match(TokenType.ELSE))
         {
+            if (isPreprocessed && !IsPreprocessed(Previous()))
+            {
+                throw new SyntaxException("Expected preprocessed 'else'", Previous().Line);
+            }
+            
+            if (!isPreprocessed && IsPreprocessed(Previous()))
+            {
+                throw new SyntaxException("Expected runtime 'else' after runtime 'if'", Previous().Line);
+            }
+            
             elseBranch = Statement();
         }
         

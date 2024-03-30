@@ -40,6 +40,7 @@ public class Tokenizer
         { "NAMESPACE",      TokenType.NAMESPACE },
         { "FOR",            TokenType.FOR },
         { "IF",             TokenType.IF },
+        { "ELSE",           TokenType.ELSE },
         { "BREAK",          TokenType.BREAK },
         { "RETURN",         TokenType.RETURN },
         { "VAR",            TokenType.VAR },

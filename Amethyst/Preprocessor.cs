@@ -1,35 +1,60 @@
-using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Amethyst;
 
-public class Preprocessor : Stmt.IVisitor<Stmt?>, Expr.IVisitor<object>
+public class Preprocessor : Stmt.IVisitor<Stmt?>, Expr.IVisitor<Expr?>
 {
     private class Environment
     {
-        private Dictionary<string, object> Values { get; } = new();
+        public Environment? Enclosing { get; init; }
+        public Dictionary<string, object?> Values { get; } = new();
+        public Dictionary<string, Stmt.Function> Functions { get; } = new();
+        public IList<Stmt> CurrentStmts { get; set; }
         
-        public void Define(string name, object value)
+        public bool IsVariableDefined(string name)
         {
-            Values[name] = value;
-        }
-
-        public bool TryGet(string name, [NotNullWhen(true)] out object? value)
-        {
-            return Values.TryGetValue(name, out value);
+            return Values.ContainsKey(name) || Enclosing?.IsVariableDefined(name) == true;
         }
         
-        public void Assign(string name, object value)
+        public bool IsFunctionDefined(string name)
+        {
+            return Functions.ContainsKey(name) || Enclosing?.IsFunctionDefined(name) == true;
+        }
+        
+        public bool AssignVariable(string name, object value)
         {
             if (Values.ContainsKey(name))
             {
                 Values[name] = value;
+                return true;
             }
+
+            return Enclosing?.AssignVariable(name, value) == true;
+        }
+        
+        public bool TryGetVariable(string name, out object? value)
+        {
+            if (Values.TryGetValue(name, out value))
+            {
+                return true;
+            }
+
+            return Enclosing?.TryGetVariable(name, out value) == true;
+        }
+        
+        public bool TryGetFunction(string name, [MaybeNullWhen(false)] out Stmt.Function value)
+        {
+            if (Functions.TryGetValue(name, out value))
+            {
+                return true;
+            }
+
+            return Enclosing?.TryGetFunction(name, out value) == true;
         }
     }
     
     private IList<Stmt> Statements { get; }
-    private Environment Scope { get; }
+    private Environment Scope { get; set; }
     
     public Preprocessor(IList<Stmt> stmts)
     {
@@ -52,7 +77,13 @@ public class Preprocessor : Stmt.IVisitor<Stmt?>, Expr.IVisitor<object>
     
     private IList<Stmt> PreprocessBlock(IEnumerable<Stmt> statements)
     {
-        var stmts = new List<Stmt>();
+        var previous = Scope;
+        Scope = new Environment
+        {
+            Enclosing = previous
+        };
+        
+        var stmts = Scope.CurrentStmts = new List<Stmt>();
         
         foreach (var statement in statements)
         {
@@ -61,6 +92,8 @@ public class Preprocessor : Stmt.IVisitor<Stmt?>, Expr.IVisitor<object>
                 stmts.Add(stmt);
             }
         }
+        
+        Scope = previous;
         
         return stmts;
     }
@@ -73,51 +106,85 @@ public class Preprocessor : Stmt.IVisitor<Stmt?>, Expr.IVisitor<object>
         };
     }
 
-    public Stmt VisitExpressionStmt(Stmt.Expression stmt)
+    public Stmt? VisitExpressionStmt(Stmt.Expression stmt)
     {
-        return stmt.Expr.Accept(this) switch
+        if (stmt.Expr.Accept(this) is { } expr)
         {
-            null => null!,
-            _ => stmt
-        };
+            return new Stmt.Expression
+            {
+                Expr = expr
+            };
+        }
+        
+        return null;
     }
 
-    public Stmt VisitNamespaceStmt(Stmt.Namespace stmt)
+    public Stmt? VisitNamespaceStmt(Stmt.Namespace stmt)
     {
-        if (!stmt.IsPreprocessed) return stmt;
+        if (!stmt.IsPreprocessed)
+        {
+            return new Stmt.Namespace
+            {
+                Name = stmt.Name,
+                Body = PreprocessBlock(stmt.Body),
+                IsPreprocessed = true
+            };
+        }
         
         // todo: add namespace to the scope
-        
-        return new Stmt.Namespace
-        {
-            Name = stmt.Name,
-            Body = PreprocessBlock(stmt.Body),
-            IsPreprocessed = true
-        };
+
+        return null;
     }
 
-    public Stmt VisitFunctionStmt(Stmt.Function stmt)
+    public Stmt? VisitFunctionStmt(Stmt.Function stmt)
     {
-        if (!stmt.IsPreprocessed) return stmt;
-        
-        // todo: add function to the scope
-        
-        return new Stmt.Function
+        if (!stmt.IsPreprocessed)
         {
-            Name = stmt.Name,
-            Body = PreprocessBlock(stmt.Body),
-            Params = stmt.Params,
-            Initializing = stmt.Initializing,
-            Ticking = stmt.Ticking,
-            IsPreprocessed = true
-        };
+            return new Stmt.Function
+            {
+                Name = stmt.Name,
+                Body = PreprocessBlock(stmt.Body),
+                Params = stmt.Params,
+                Initializing = stmt.Initializing,
+                Ticking = stmt.Ticking,
+                IsPreprocessed = true
+            };
+        }
+
+        foreach (var param in stmt.Params)
+        {
+            if (Scope.IsVariableDefined(param.Lexeme))
+            {
+                throw new Exception($"Variable '{param.Lexeme}' is already defined.");
+            }
+            
+            Scope.Values[param.Lexeme] = null;
+        }
+
+        if (Scope.IsFunctionDefined(stmt.Name.Lexeme))
+        {
+            throw new Exception($"Function '{stmt.Name.Lexeme}' is already defined.");
+        }
+
+        Scope.Functions[stmt.Name.Lexeme] = stmt;
+
+        return null;
     }
 
     public Stmt? VisitIfStmt(Stmt.If stmt)
     {
-        if (!stmt.IsPreprocessed) return stmt;
+        if (!stmt.IsPreprocessed)
+        {
+            return new Stmt.If
+            {
+                Condition = stmt.Condition.Accept(this) ?? throw new Exception("If statement must have a condition."),
+                ThenBranch = stmt.ThenBranch.Accept(this) ?? throw new Exception("If statement must have a body."),
+                ElseBranch = stmt.ElseBranch?.Accept(this),
+                IsPreprocessed = true
+            };
+        }
         
-        if (stmt.Condition.Accept(this) is not bool condition)
+        if (stmt.Condition.Accept(this) is not Expr.Literal { Value: bool condition })
         {
             throw new Exception("If statement condition must be a constant boolean expression.");
         }
@@ -139,10 +206,7 @@ public class Preprocessor : Stmt.IVisitor<Stmt?>, Expr.IVisitor<object>
     {
         if (!stmt.IsPreprocessed) return new Stmt.Print
         {
-            Expr = new Expr.Literal
-            {
-                Value = stmt.Expr.Accept(this)
-            },
+            Expr = stmt.Expr.Accept(this) ?? throw new Exception("Print statement must have an expression."),
             IsPreprocessed = true
         };
 
@@ -181,9 +245,9 @@ public class Preprocessor : Stmt.IVisitor<Stmt?>, Expr.IVisitor<object>
     {
         if (!stmt.IsPreprocessed) return stmt;
         
-        if (stmt.Initializer != null)
+        if (stmt.Initializer?.Accept(this) is Expr.Literal { Value: { } value })
         {
-            Scope.Define(stmt.Name.Lexeme, stmt.Initializer.Accept(this));
+            Scope.Values[stmt.Name.Lexeme] = value;
         }
 
         return null;
@@ -195,7 +259,7 @@ public class Preprocessor : Stmt.IVisitor<Stmt?>, Expr.IVisitor<object>
         
         var output = new List<Stmt>();
         
-        if (stmt.Condition.Accept(this) is not bool condition)
+        if (stmt.Condition.Accept(this) is not Expr.Literal { Value: bool condition })
         {
             throw new Exception("While statement condition must be a constant boolean expression.");
         }
@@ -207,7 +271,12 @@ public class Preprocessor : Stmt.IVisitor<Stmt?>, Expr.IVisitor<object>
                 output.Add(result);
             }
 
-            condition = (bool) stmt.Condition.Accept(this);
+            if (stmt.Condition.Accept(this) is not Expr.Literal { Value: bool newCondition })
+            {
+                throw new Exception("While statement condition must be a constant boolean expression.");
+            }
+            
+            condition = newCondition;
         }
         
         return new Stmt.Block
@@ -216,89 +285,129 @@ public class Preprocessor : Stmt.IVisitor<Stmt?>, Expr.IVisitor<object>
         };
     }
 
-    public object VisitAssignExpr(Expr.Assign expr)
+    public Expr? VisitAssignExpr(Expr.Assign expr)
     {
-        if (!Scope.TryGet(expr.Name.Lexeme, out var value))
+        if (!Scope.IsVariableDefined(expr.Name.Lexeme))
         {
             return expr;
         }
         
-        Scope.Assign(expr.Name.Lexeme, expr.Value.Accept(this));
-        
-        return null!;
+        if (expr.Value.Accept(this) is Expr.Literal { Value: { } value })
+        {
+            Scope.AssignVariable(expr.Name.Lexeme, value);
+        }
+
+        return null;
     }
 
-    public object VisitBinaryExpr(Expr.Binary expr)
+    public Expr VisitBinaryExpr(Expr.Binary expr)
     {
-        var left = expr.Left.Accept(this);
-        var right = expr.Right.Accept(this);
-
-        return expr.Operator.Type switch
+        if (expr.Left.Accept(this) is not Expr.Literal { Value: { } left })
         {
-            TokenType.PLUS          => (double)left + (double)right,
-            TokenType.MINUS         => (double)left - (double)right,
-            TokenType.STAR          => (double)left * (double)right,
-            TokenType.SLASH         => (double)left / (double)right,
-            TokenType.MODULO        => (double)left % (double)right,
-            TokenType.GREATER       => (double)left > (double)right,
-            TokenType.GREATER_EQUAL => (double)left >= (double)right,
-            TokenType.LESS          => (double)left < (double)right,
-            TokenType.LESS_EQUAL    => (double)left <= (double)right,
-            TokenType.BANG_EQUAL    => !left.Equals(right),
-            TokenType.EQUAL_EQUAL   => left.Equals(right),
-            _ => throw new Exception($"Unknown binary operator {expr.Operator}")
+            return expr;
+        }
+        
+        if (expr.Right.Accept(this) is not Expr.Literal { Value: { } right })
+        {
+            return expr;
+        }
+
+        return new Expr.Literal
+        {
+            Value = expr.Operator.Type switch
+            {
+                TokenType.PLUS          => DynamicArithmetics.Add(left, right),
+                TokenType.MINUS         => DynamicArithmetics.Sub(left, right),
+                TokenType.STAR          => DynamicArithmetics.Mul(left, right),
+                TokenType.SLASH         => DynamicArithmetics.Div(left, right),
+                TokenType.MODULO        => DynamicArithmetics.Mod(left, right),
+                TokenType.GREATER       => DynamicArithmetics.Gt(left, right),
+                TokenType.GREATER_EQUAL => DynamicArithmetics.Ge(left, right),
+                TokenType.LESS          => DynamicArithmetics.Lt(left, right),
+                TokenType.LESS_EQUAL    => DynamicArithmetics.Le(left, right),
+                TokenType.BANG_EQUAL    => DynamicArithmetics.Ne(left, right),
+                TokenType.EQUAL_EQUAL   => DynamicArithmetics.Eq(left, right),
+                _ => throw new Exception($"Unknown binary operator {expr.Operator}")
+            }
         };
     }
 
-    public object VisitCallExpr(Expr.Call expr)
+    public Expr? VisitCallExpr(Expr.Call expr)
     {
-        // todo: check if the function is in the scope
-        
-        return expr;
-    }
-
-    public object VisitGroupingExpr(Expr.Grouping expr)
-    {
-        return expr;
-    }
-
-    public object VisitLiteralExpr(Expr.Literal expr)
-    {
-        if (expr.Value is not (string or bool or double or Array or IDictionary))
+        if (expr.Callee is Expr.Variable variable && Scope.TryGetFunction(variable.Name.Lexeme, out var function))
         {
-            throw new Exception("Unsupported literal type.");
+            try
+            {
+                foreach (var (param, arg) in function.Params.Zip(expr.Arguments))
+                {
+                    if (arg.Accept(this) is Expr.Literal { Value: { } value })
+                    {
+                        Scope.Values[param.Lexeme] = value;
+                    }
+                }
+                foreach (var stmt in PreprocessBlock(function.Body))
+                {
+                    Scope.CurrentStmts.Add(stmt);
+                }
+            }
+            catch (Return e)
+            {
+                return e.Value;
+            }
+            finally
+            {
+                foreach (var param in function.Params)
+                {
+                    Scope.Values.Remove(param.Lexeme);
+                }
+            }
+            
+            return null;
         }
         
-        return expr.Value;
+        return expr;
     }
 
-    public object VisitObjectExpr(Expr.Object expr)
+    public Expr? VisitGroupingExpr(Expr.Grouping expr)
+    {
+        return expr.Expression.Accept(this);
+    }
+
+    public Expr VisitLiteralExpr(Expr.Literal expr)
     {
         return expr;
     }
 
-    public object VisitArrayExpr(Expr.Array expr)
+    public Expr VisitObjectExpr(Expr.Object expr)
     {
         return expr;
     }
 
-    public object VisitLogicalExpr(Expr.Logical expr)
+    public Expr VisitArrayExpr(Expr.Array expr)
     {
         return expr;
     }
 
-    public object VisitUnaryExpr(Expr.Unary expr)
+    public Expr VisitLogicalExpr(Expr.Logical expr)
     {
         return expr;
     }
 
-    public object VisitVariableExpr(Expr.Variable expr)
+    public Expr VisitUnaryExpr(Expr.Unary expr)
     {
-        if (!Scope.TryGet(expr.Name.Lexeme, out var value))
+        return expr;
+    }
+
+    public Expr VisitVariableExpr(Expr.Variable expr)
+    {
+        if (!Scope.TryGetVariable(expr.Name.Lexeme, out var value))
         {
             throw new Exception($"Undefined variable '{expr.Name.Lexeme}'.");
         }
         
-        return value;
+        return new Expr.Literal
+        {
+            Value = value ?? throw new Exception($"Variable '{expr.Name.Lexeme}' is not initialized when used.")
+        };
     }
 }

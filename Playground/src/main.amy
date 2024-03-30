@@ -1,3 +1,13 @@
-FOR (VAR i = 0; i < 100 ; i = i + 1) {
-    PRINT i;
+FUNCTION hello(n) {
+    if (true) {
+        FOR(VAR i = 0; i < n; i = i + 1) {
+            PRINT "compiling: " + i;
+            print i;
+        }
+    }
+    else {
+        print "false";
+    }
 }
+
+hello(20);
