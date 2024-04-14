@@ -2,14 +2,14 @@ namespace Amethyst;
 
 public static class PipelineExtensions
 {
-    public static IList<Token> Tokenize(this string input)
+    public static IList<Token> Tokenize(this string input, string sourceFile)
     {
-        return new Tokenizer(input).Tokenize();
+        return new Tokenizer(input, sourceFile).Tokenize();
     }
     
-    public static IList<Stmt> Parse(this IList<Token> tokens)
+    public static IList<Stmt> Parse(this IList<Token> tokens, string sourceFile)
     {
-        return new Parser(tokens).Parse();
+        return new Parser(tokens, sourceFile).Parse();
     }
     
     public static IList<Stmt> Optimize(this IList<Stmt> stmts)
@@ -22,8 +22,8 @@ public static class PipelineExtensions
         return new Preprocessor(stmts).Preprocess();
     }
     
-    public static void Compile(this IList<Stmt> stmts, string rootNamespace, string outDir)
+    public static void Compile(this IList<Stmt> stmts, string rootNamespace, string outDir, string sourceFile)
     {
-        new Compiler(stmts, rootNamespace, outDir).Compile();
+        new Compiler(stmts, rootNamespace, outDir, sourceFile).Compile();
     }
 }

@@ -3,11 +3,14 @@ namespace Amethyst;
 public class Parser
 {
     private IList<Token> Tokens { get; }
+    private string SourceFile { get; }
     private int current;
     
-    public Parser(IList<Token> tokens)
+    public Parser(IList<Token> tokens, string sourceFile)
     {
         Tokens = tokens;
+        SourceFile = sourceFile;
+        current = 0;
     }
     
     private bool IsPreprocessed(Token token)
@@ -74,7 +77,7 @@ public class Parser
             return Advance();
         }
         
-        throw new SyntaxException(message, Peek().Line);
+        throw new SyntaxException(message, Peek().Line, SourceFile);
     }
     
     private KeyValuePair<Expr, Expr> Mapping()
@@ -166,7 +169,7 @@ public class Parser
             return Array();
         }
 
-        throw new SyntaxException("Expected expression", Peek().Line);
+        throw new SyntaxException("Expected expression", Peek().Line, SourceFile);
     }
     
     private Expr FinishCall(Expr callee)
@@ -344,7 +347,7 @@ public class Parser
                 };
             }
             
-            throw new SyntaxException("Invalid assignment target", equals.Line);
+            throw new SyntaxException("Invalid assignment target", equals.Line, SourceFile);
         }
         
         return expr;
@@ -445,12 +448,12 @@ public class Parser
         {
             if (isPreprocessed && !IsPreprocessed(Previous()))
             {
-                throw new SyntaxException("Expected preprocessed 'else'", Previous().Line);
+                throw new SyntaxException("Expected preprocessed 'else'", Previous().Line, SourceFile);
             }
             
             if (!isPreprocessed && IsPreprocessed(Previous()))
             {
-                throw new SyntaxException("Expected runtime 'else' after runtime 'if'", Previous().Line);
+                throw new SyntaxException("Expected runtime 'else' after runtime 'if'", Previous().Line, SourceFile);
             }
             
             elseBranch = Statement();

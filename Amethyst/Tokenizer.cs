@@ -2,12 +2,14 @@ namespace Amethyst;
 
 public class Tokenizer
 {
-    public Tokenizer(string input)
+    public Tokenizer(string input, string sourceFile)
     {
-        Source = input;
+        Input = input;
+        SourceFile = sourceFile;
     }
 
-    private string Source { get; }
+    private string Input { get; }
+    private string SourceFile { get; }
     private IList<Token> Tokens { get; } = new List<Token>();
     
     private int start = 0;
@@ -49,17 +51,17 @@ public class Tokenizer
         { "CONTINUE",       TokenType.CONTINUE }
     };
 
-    private bool IsAtEnd => current >= Source.Length;
+    private bool IsAtEnd => current >= Input.Length;
     
     private char Advance()
     {
-        return Source[current++];
+        return Input[current++];
     }
     
     private bool Match(char expected)
     {
         if (IsAtEnd) return false;
-        if (Source[current] != expected) return false;
+        if (Input[current] != expected) return false;
 
         current++;
         return true;
@@ -68,13 +70,13 @@ public class Tokenizer
     private char Peek()
     {
         if (IsAtEnd) return '\0';
-        return Source[current];
+        return Input[current];
     }
     
     private char PeekNext()
     {
-        if (current + 1 >= Source.Length) return '\0';
-        return Source[current + 1];
+        if (current + 1 >= Input.Length) return '\0';
+        return Input[current + 1];
     }
     
     private bool IsDigit(char c)
@@ -100,14 +102,14 @@ public class Tokenizer
         }
 
         if (IsAtEnd) {
-            throw new SyntaxException("Unterminated string.", line);
+            throw new SyntaxException("Unterminated string", line, SourceFile);
         }
 
         // The closing ".
         Advance();
 
         // Trim the surrounding quotes.
-        string value = Source[(start + 1)..(current - 1)];
+        string value = Input[(start + 1)..(current - 1)];
         AddToken(TokenType.STRING, value);
     }
     
@@ -123,14 +125,14 @@ public class Tokenizer
             while (IsDigit(Peek())) Advance();
         }
 
-        AddToken(TokenType.NUMBER, double.Parse(Source[start..current]));
+        AddToken(TokenType.NUMBER, double.Parse(Input[start..current]));
     }
     
     private void Identifier()
     {
         while (IsAlphaNumeric(Peek())) Advance();
 
-        string text = Source[start..current]; 
+        string text = Input[start..current]; 
         if (KEYWORDS.TryGetValue(text, out var type))
         {
             AddToken(type);
@@ -143,7 +145,7 @@ public class Tokenizer
 
     private void AddToken(TokenType type, object? literal = null)
     {
-        string text = Source[start..current];
+        string text = Input[start..current];
         Tokens.Add(new Token
         {
             Type = type,
@@ -208,7 +210,7 @@ public class Tokenizer
                 }
                 else
                 {
-                    throw new SyntaxException($"Unexpected character '{c}'", line);
+                    throw new SyntaxException($"Unexpected character '{c}'", line, SourceFile);
                 }
                 break;
         }

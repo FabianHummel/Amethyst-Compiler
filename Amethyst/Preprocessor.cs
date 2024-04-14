@@ -9,7 +9,7 @@ public class Preprocessor : Stmt.IVisitor<Stmt?>, Expr.IVisitor<Expr?>
         public Environment? Enclosing { get; init; }
         public Dictionary<string, object?> Values { get; } = new();
         public Dictionary<string, Stmt.Function> Functions { get; } = new();
-        public IList<Stmt> CurrentStmts { get; set; }
+        public IList<Stmt> CurrentStmts { get; set; } = new List<Stmt>();
         
         public bool IsVariableDefined(string name)
         {
@@ -210,7 +210,7 @@ public class Preprocessor : Stmt.IVisitor<Stmt?>, Expr.IVisitor<Expr?>
             IsPreprocessed = true
         };
 
-        Console.Out.WriteLine(stmt.Expr.Accept(this));
+        Console.Out.Write(stmt.Expr.Accept(this));
 
         return null;
     }
@@ -390,7 +390,25 @@ public class Preprocessor : Stmt.IVisitor<Stmt?>, Expr.IVisitor<Expr?>
 
     public Expr VisitLogicalExpr(Expr.Logical expr)
     {
-        return expr;
+        if (expr.Left.Accept(this) is not Expr.Literal { Value: { } left })
+        {
+            return expr;
+        }
+        
+        if (expr.Right.Accept(this) is not Expr.Literal { Value: { } right })
+        {
+            return expr;
+        }
+        
+        return new Expr.Literal
+        {
+            Value = expr.Operator.Type switch
+            {
+                TokenType.AND => DynamicArithmetics.And(left, right),
+                TokenType.OR  => DynamicArithmetics.Or(left, right),
+                _ => throw new Exception($"Unknown logical operator {expr.Operator}")
+            }
+        };
     }
 
     public Expr VisitUnaryExpr(Expr.Unary expr)

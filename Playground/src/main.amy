@@ -1,13 +1,11 @@
-FUNCTION hello(n) {
-    if (true) {
-        FOR(VAR i = 0; i < n; i = i + 1) {
-            PRINT "compiling: " + i;
-            print i;
+for (var i = 0; i < 10; i = i + 1) {
+    for (var j = 0; j < 10; j = j + 1) {
+        if (i == 0 or i == 9 or j == 0 or j == 9) {
+            print "*";
+        }
+        
+        else {
+            print " ";
         }
     }
-    else {
-        print "false";
-    }
 }
-
-hello(20);

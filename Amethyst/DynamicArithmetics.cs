@@ -56,4 +56,14 @@ public static class DynamicArithmetics
     {
         return a.Equals(b);
     }
+    
+    public static dynamic And(dynamic a, dynamic b)
+    {
+        return a && b;
+    }
+    
+    public static dynamic Or(dynamic a, dynamic b)
+    {
+        return a || b;
+    }
 }

@@ -100,25 +100,25 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     private string OutDir { get; set; }
     private Environment Scope { get; set; }
     private string RootNamespace { get; init; }
+    private string SourceFile { get; init; }
     
-    public Compiler(IList<Stmt> statements, string rootNamespace, string outDir)
+    public Compiler(IList<Stmt> statements, string rootNamespace, string outDir, string sourceFile)
     {
         Statements = statements;
-        OutDir = Path.Combine(outDir, "data");
+        OutDir = outDir;
         Scope = new Environment("_init");
         RootNamespace = rootNamespace;
+        SourceFile = sourceFile;
     }
     
     public void Compile()
     {
-        Project.CopyAmethystInternalModule(OutDir);
-        
         foreach (var statement in Statements)
         {
             Compile(statement);
         }
         
-        Project.CreateFunctionTags(OutDir, Scope.InitializingFunctions, Scope.TickingFunctions);
+        Program.CreateFunctionTags(Scope.InitializingFunctions, Scope.TickingFunctions);
     }
     
      private void AddCommand(string command)
@@ -173,12 +173,12 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     {
         if (!Scope.TryGetVariable(expr.Name.Lexeme, out var variable))
         {
-            throw new SyntaxException($"Undefined variable {expr.Name.Lexeme}", expr.Name.Line);
+            throw new SyntaxException($"Undefined variable {expr.Name.Lexeme}", expr.Name.Line, SourceFile);
         }
 
         if (Evaluate(expr.Value) is not Subject subject)
         {
-            throw new SyntaxException("Invalid assignment", expr.Name.Line);
+            throw new SyntaxException("Invalid assignment", expr.Name.Line, SourceFile);
         }
         
         variable.Subject = subject;
@@ -207,7 +207,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
             
             if (Evaluate(expr.Left) is not Subject subject)
             {
-                throw new SyntaxException("Invalid binary operation", expr.Operator.Line);
+                throw new SyntaxException("Invalid binary operation", expr.Operator.Line, SourceFile);
             }
             
             switch (expr.Operator.Type, subject)
@@ -248,7 +248,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
                     AddCommand($"execute store success score _out amethyst if score _out amethyst <= _tmp{depth} amethyst");
                     return Subject.Scoreboard;
                 default:
-                    throw new SyntaxException("Invalid binary operator", expr.Operator.Line);
+                    throw new SyntaxException("Invalid binary operator", expr.Operator.Line, SourceFile);
             }
         }
         
@@ -343,23 +343,23 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
                     AddCommand("scoreboard players operation _out amethyst *= -1 amethyst_const");
                     return Subject.Scoreboard;
                 case (TokenType.MINUS, Subject.Storage):
-                    throw new SyntaxException("Can't apply unary minus to storage", expr.Operator.Line);
+                    throw new SyntaxException("Can't apply unary minus to storage", expr.Operator.Line, SourceFile);
                 case (TokenType.BANG, Subject.Scoreboard):
                     AddCommand("execute store success score _out amethyst if score _out amethyst matches 0");
                     return Subject.Scoreboard;
                 case (TokenType.BANG, Subject.Storage):
-                    throw new SyntaxException("Can't apply logical not to storage", expr.Operator.Line);
+                    throw new SyntaxException("Can't apply logical not to storage", expr.Operator.Line, SourceFile);
             }
         }
         
-        throw new SyntaxException("Invalid unary operator", expr.Operator.Line);
+        throw new SyntaxException("Invalid unary operator", expr.Operator.Line, SourceFile);
     }
 
     public object? VisitVariableExpr(Expr.Variable expr)
     {
         if (!Scope.TryGetVariable(expr.Name.Lexeme, out var variable))
         {
-            throw new SyntaxException($"Undefined variable {expr.Name.Lexeme}", expr.Name.Line);
+            throw new SyntaxException($"Undefined variable {expr.Name.Lexeme}", expr.Name.Line, SourceFile);
         }
         switch (variable.Subject)
         {
@@ -515,7 +515,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     {
         if (!Scope.AddVariable(stmt.Name.Lexeme, Subject.Storage /* temporary; getting overriden later */, out var variable))
         {
-            throw new SyntaxException($"Variable {stmt.Name.Lexeme} already defined", stmt.Name.Line);
+            throw new SyntaxException($"Variable {stmt.Name.Lexeme} already defined", stmt.Name.Line, SourceFile);
         }
 
         if (Evaluate(stmt.Initializer) is Subject subject)
