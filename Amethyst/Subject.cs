@@ -2,6 +2,9 @@ namespace Amethyst;
 
 public enum Subject
 {
-    Scoreboard,
-    Storage
+    Boolean,
+    Number,
+    String,
+    // Object,
+    Array,
 }

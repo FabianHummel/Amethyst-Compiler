@@ -204,11 +204,7 @@ public class Preprocessor : Stmt.IVisitor<Stmt?>, Expr.IVisitor<Expr?>
 
     public Stmt? VisitPrintStmt(Stmt.Print stmt)
     {
-        if (!stmt.IsPreprocessed) return new Stmt.Print
-        {
-            Expr = stmt.Expr.Accept(this) ?? throw new Exception("Print statement must have an expression."),
-            IsPreprocessed = true
-        };
+        if (!stmt.IsPreprocessed) return stmt;
 
         Console.Out.Write(stmt.Expr.Accept(this));
 

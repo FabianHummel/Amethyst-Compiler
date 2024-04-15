@@ -1,11 +1,5 @@
-for (var i = 0; i < 10; i = i + 1) {
-    for (var j = 0; j < 10; j = j + 1) {
-        if (i == 0 or i == 9 or j == 0 or j == 9) {
-            print "*";
-        }
-        
-        else {
-            print " ";
-        }
-    }
-}
+var a = "nice";
+
+var x = [1, "string", [10, a, "a string inside an array inside an array! =)", true], false, "nice"];
+
+print x;

@@ -4,7 +4,6 @@ using CommandLine;
 namespace Amethyst;
 
 using Tommy;
-using Crayon;
 
 internal static class Program
 {
@@ -47,13 +46,6 @@ internal static class Program
                     });
                     thread.Start();
                     
-                    ReadAndSetConfigFile();
-                    SetMinecraftRootFolder();
-                    SetProjectName();
-                    SetProjectNamespace();
-                    SetOutputDirectory();
-                    RecreateProjectStructure();
-                    CopyAmethystInternalModule();
                     RecompileProject();
 
                     while (Console.ReadLine() != "exit")
@@ -265,15 +257,8 @@ internal static class Program
             }
         }
     }
-
-    private static void RecreateProjectStructure()
-    {
-        RegenerateOutputFolder();
-        CreateMcMeta();
-        CreateDataFolders();
-    }
     
-    private static void RecompileProject()
+    private static void CompileProject()
     {
         // var _frame = 0;
         // var animation = new Timer(DrawLoadingAnimation, null, 0, 100);
@@ -333,8 +318,8 @@ internal static class Program
             Console.Error.WriteLine($"{relativeFile} ({e.Line}): {e.Message}.");
         }
     }
-
-    private static void OnChangedSource(object sender, FileSystemEventArgs e)
+    
+    private static void RecompileProject()
     {
         DeleteOutputFiles();
         ReadAndSetConfigFile();
@@ -342,7 +327,15 @@ internal static class Program
         SetProjectName();
         SetProjectNamespace();
         SetOutputDirectory();
-        RecreateProjectStructure();
+        RegenerateOutputFolder();
+        CreateMcMeta();
+        CreateDataFolders();
+        CopyAmethystInternalModule();
+        CompileProject();
+    }
+
+    private static void OnChangedSource(object sender, FileSystemEventArgs e)
+    {
         RecompileProject();
     }
 }

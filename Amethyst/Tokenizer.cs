@@ -29,6 +29,7 @@ public class Tokenizer
         { "if",             TokenType.IF },
         { "null",           TokenType.NULL },
         { "or",             TokenType.OR },
+        { "xor",            TokenType.XOR },
         { "break",          TokenType.BREAK },
         { "return",         TokenType.RETURN },
         { "true",           TokenType.TRUE },

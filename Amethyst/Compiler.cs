@@ -118,7 +118,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
             Compile(statement);
         }
         
-        Program.CreateFunctionTags(Scope.InitializingFunctions, Scope.TickingFunctions);
+        Program.CreateFunctionTags(Scope.TickingFunctions, Scope.InitializingFunctions);
     }
     
      private void AddCommand(string command)
@@ -146,6 +146,11 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
              File.Create(filePath).Close();
          }
          File.AppendAllText(filePath, command + "\n");
+     }
+     
+     private void NotImplemented()
+     {
+         AddCommand("tellraw @a {\"color\":\"yellow\",\"text\":\"Not implemented\"}");
      }
 
     private void CompileBlock(IEnumerable<Stmt> statements, string currentFunction = "_init", string scope = "")
@@ -184,75 +189,150 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         variable.Subject = subject;
         switch (subject)
         {
-            case Subject.Scoreboard:
+            case Subject.Number:
+            case Subject.Boolean:
                 AddCommand($"scoreboard players operation {variable.Name} amethyst = _out amethyst");
                 break;
-            case Subject.Storage:
+            case Subject.String:
+            case Subject.Array:
                 AddCommand($"data modify storage amethyst:internal {variable.Name} set from storage amethyst:internal _out");
                 break;
         }
-        
-        return null;
+
+        return subject;
     }
 
     public object? VisitBinaryExpr(Expr.Binary expr)
     {
         var depth = Scope.BinaryCounter++;
-        
-        var right = Evaluate(expr.Right);
 
-        if (right is Subject.Scoreboard)
+        switch (Evaluate(expr.Right))
         {
-            AddCommand($"scoreboard players operation _tmp{depth} amethyst = _out amethyst");
-            
-            if (Evaluate(expr.Left) is not Subject subject)
+            case Subject.Number:
             {
-                throw new SyntaxException("Invalid binary operation", expr.Operator.Line, SourceFile);
+                AddCommand($"scoreboard players operation _tmp{depth} amethyst = _out amethyst");
+
+                switch (expr.Operator.Type, Evaluate(expr.Left))
+                {
+                    case (TokenType.MINUS, Subject.Number):
+                        AddCommand($"scoreboard players operation _out amethyst -= _tmp{depth} amethyst");
+                        return Subject.Number;
+                    case (TokenType.PLUS, Subject.Number):
+                        AddCommand($"scoreboard players operation _out amethyst += _tmp{depth} amethyst");
+                        return Subject.Number;
+                    case (TokenType.SLASH, Subject.Number):
+                        AddCommand($"scoreboard players operation _out amethyst /= _tmp{depth} amethyst");
+                        AddCommand("scoreboard players operation _out amethyst *= 100 amethyst_const");
+                        return Subject.Number;
+                    case (TokenType.STAR, Subject.Number):
+                        AddCommand($"scoreboard players operation _out amethyst *= _tmp{depth} amethyst");
+                        AddCommand("scoreboard players operation _out amethyst /= 100 amethyst_const");
+                        return Subject.Number;
+                    case (TokenType.MODULO, Subject.Number):
+                        AddCommand($"scoreboard players operation _out amethyst %= _tmp{depth} amethyst");
+                        return Subject.Number;
+                    case (TokenType.BANG_EQUAL, Subject.Number):
+                        AddCommand($"execute store success score _out amethyst unless score _out amethyst = _tmp{depth} amethyst");
+                        return Subject.Number;
+                    case (TokenType.EQUAL_EQUAL, Subject.Number):
+                        AddCommand($"execute store success score _out amethyst if score _out amethyst = _tmp{depth} amethyst");
+                        return Subject.Number;
+                    case (TokenType.GREATER, Subject.Number):
+                        AddCommand($"execute store success score _out amethyst if score _out amethyst > _tmp{depth} amethyst");
+                        return Subject.Number;
+                    case (TokenType.GREATER_EQUAL, Subject.Number):
+                        AddCommand($"execute store success score _out amethyst if score _out amethyst >= _tmp{depth} amethyst");
+                        return Subject.Number;
+                    case (TokenType.LESS, Subject.Number):
+                        AddCommand($"execute store success score _out amethyst if score _out amethyst < _tmp{depth} amethyst");
+                        return Subject.Number;
+                    case (TokenType.LESS_EQUAL, Subject.Number):
+                        AddCommand($"execute store success score _out amethyst if score _out amethyst <= _tmp{depth} amethyst");
+                        return Subject.Number;
+                    
+                    case (TokenType.PLUS, Subject.String):
+                        AddCommand($"execute store result storage amethyst:internal _tmp int 1.0 run scoreboard players get _tmp{depth} amethyst");
+                        AddCommand("function amethyst:api/string/concat with storage amethyst:internal");
+                        return Subject.String;
+                    case (TokenType.STAR, Subject.String):
+                        AddCommand($"scoreboard players operation _tmp amethyst = _tmp{depth} amethyst");
+                        AddCommand("function amethyst:api/string/multiply with storage amethyst:internal");
+                        return Subject.String;
+                    
+                    case (TokenType.PLUS, Subject.Array):
+                        AddCommand($"data modify storage amethyst:internal _out append from storage amethyst:internal _tmp{depth}");
+                        return Subject.Array;
+                }
+                break;
             }
-            
-            switch (expr.Operator.Type, subject)
+
+            case Subject.String:
             {
-                case (TokenType.MINUS, Subject.Scoreboard):
-                    AddCommand($"scoreboard players operation _out amethyst -= _tmp{depth} amethyst");
-                    return Subject.Scoreboard;
-                case (TokenType.PLUS, Subject.Scoreboard):
-                    AddCommand($"scoreboard players operation _out amethyst += _tmp{depth} amethyst");
-                    return Subject.Scoreboard;
-                case (TokenType.SLASH, Subject.Scoreboard):
-                    AddCommand($"scoreboard players operation _out amethyst /= _tmp{depth} amethyst");
-                    AddCommand($"scoreboard players operation _out amethyst *= 100 amethyst_const");
-                    return Subject.Scoreboard;
-                case (TokenType.STAR, Subject.Scoreboard):
-                    AddCommand($"scoreboard players operation _out amethyst *= _tmp{depth} amethyst");
-                    AddCommand($"scoreboard players operation _out amethyst /= 100 amethyst_const");
-                    return Subject.Scoreboard;
-                case (TokenType.MODULO, Subject.Scoreboard):
-                    AddCommand($"scoreboard players operation _out amethyst %= _tmp{depth} amethyst");
-                    return Subject.Scoreboard;
-                case (TokenType.BANG_EQUAL, Subject.Scoreboard):
-                    AddCommand($"execute store success score _out amethyst unless score _out amethyst = _tmp{depth} amethyst");
-                    return Subject.Scoreboard;
-                case (TokenType.EQUAL_EQUAL, Subject.Scoreboard):
-                    AddCommand($"execute store success score _out amethyst if score _out amethyst = _tmp{depth} amethyst");
-                    return Subject.Scoreboard;
-                case (TokenType.GREATER, Subject.Scoreboard):
-                    AddCommand($"execute store success score _out amethyst if score _out amethyst > _tmp{depth} amethyst");
-                    return Subject.Scoreboard;
-                case (TokenType.GREATER_EQUAL, Subject.Scoreboard):
-                    AddCommand($"execute store success score _out amethyst if score _out amethyst >= _tmp{depth} amethyst");
-                    return Subject.Scoreboard;
-                case (TokenType.LESS, Subject.Scoreboard):
-                    AddCommand($"execute store success score _out amethyst if score _out amethyst < _tmp{depth} amethyst");
-                    return Subject.Scoreboard;
-                case (TokenType.LESS_EQUAL, Subject.Scoreboard):
-                    AddCommand($"execute store success score _out amethyst if score _out amethyst <= _tmp{depth} amethyst");
-                    return Subject.Scoreboard;
-                default:
-                    throw new SyntaxException("Invalid binary operator", expr.Operator.Line, SourceFile);
+                AddCommand($"data modify storage amethyst:internal _tmp{depth} set from storage amethyst:internal _out");
+
+                switch (expr.Operator.Type, Evaluate(expr.Left))
+                {
+                    case (TokenType.PLUS, Subject.String):
+                        AddCommand($"data modify storage amethyst:internal _tmp set from storage amethyst:internal _tmp{depth}");
+                        AddCommand("function amethyst:api/string/concat with storage amethyst:internal");
+                        return Subject.String;
+                    
+                    case (TokenType.PLUS, Subject.Array):
+                        AddCommand($"data modify storage amethyst:internal _out append from storage amethyst:internal _tmp{depth}");
+                        return Subject.Array;
+                }
+                break;
+            }
+
+            case Subject.Array:
+            {
+                AddCommand($"data modify storage amethyst:internal _tmp{depth} set from storage amethyst:internal _out");
+
+                switch (expr.Operator.Type, Evaluate(expr.Left))
+                {
+                    case (TokenType.PLUS, Subject.String):
+                        AddCommand($"data modify storage amethyst:internal _tmp set from storage amethyst:internal _tmp{depth}");
+                        AddCommand("function amethyst:api/string/concat with storage amethyst:internal");
+                        return Subject.String;
+                    
+                    case (TokenType.PLUS, Subject.Array):
+                        AddCommand($"data modify storage amethyst:internal _out append from storage amethyst:internal _tmp{depth}");
+                        return Subject.Array;
+                    
+                }
+                break;
+            }
+
+            case Subject.Boolean:
+            {
+                AddCommand($"scoreboard players operation _tmp{depth} amethyst = _out amethyst");
+
+                switch (expr.Operator.Type, Evaluate(expr.Left))
+                {
+                    case (TokenType.BANG_EQUAL, Subject.Boolean):
+                        AddCommand($"execute store success score _out amethyst unless score _out amethyst = _tmp{depth} amethyst");
+                        return Subject.Boolean;
+                    case (TokenType.EQUAL_EQUAL, Subject.Boolean):
+                        AddCommand($"execute store success score _out amethyst if score _out amethyst = _tmp{depth} amethyst");
+                        return Subject.Boolean;
+                    case (TokenType.AND, Subject.Boolean):
+                        AddCommand($"execute store success score _out amethyst if score _out amethyst matches 1 if score _tmp{depth} amethyst matches 1");
+                        return Subject.Boolean;
+                    case (TokenType.OR, Subject.Boolean):
+                        AddCommand("scoreboard players operation _out amethyst += _tmp{depth} amethyst");
+                        AddCommand("execute store success score _out amethyst if score _out amethyst matches 1..");
+                        return Subject.Boolean;
+                    case (TokenType.XOR, Subject.Boolean):
+                        AddCommand("scoreboard players operation _out amethyst += _tmp{depth} amethyst");
+                        AddCommand("execute store success score _out amethyst if score _out amethyst matches 1");
+                        return Subject.Boolean;
+                }
+                break;
+            
             }
         }
         
-        return null;
+        throw new SyntaxException("Invalid binary operation", expr.Operator.Line, SourceFile);
     }
 
     public object? VisitCallExpr(Expr.Call expr)
@@ -264,7 +344,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
             var functionPath = RootNamespace + ":" + Path.Combine(Scope.Namespace, variable.Name.Lexeme);
             AddCommand($"function {functionPath}");
             // return variableDefinition.Subject;
-            return Subject.Storage;
+            throw new NotImplementedException();
         }
         return null;
     }
@@ -279,19 +359,18 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         switch (expr.Value)
         {
             case string value:
-                AddCommand($"data modify storage amethyst:internal _out set value \"{value}\"");
-                return Subject.Storage;
+                AddCommand($"data modify storage amethyst:internal _out set value {value.ToNbtString()}");
+                return Subject.String;
             case bool value:
                 AddCommand($"scoreboard players set _out amethyst {(value ? 1 : 0)}");
-                return Subject.Scoreboard;
+                return Subject.Boolean;
             case double value:
                 AddCommand($"scoreboard players set _out amethyst {(int)(value * 100)}");
-                return Subject.Scoreboard;
+                return Subject.Number;
             case object[] value:
-                AddCommand($"data modify storage amethyst:internal _out set value [{string.Join(',', value)}]");
-                return Subject.Storage;
+                AddCommand($"data modify storage amethyst:internal _out set value {string.Join(',', value.ToNbtString())}");
+                return Subject.Array;
         }
-
         return null;
     }
 
@@ -303,21 +382,24 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     public object VisitArrayExpr(Expr.Array expr)
     {
         var name = Scope.GetUniqueName();
-        Scope.AddVariable(name, Subject.Storage, out var variable);
+        Scope.AddVariable(name, Subject.Array, out var variable);
         
         AddCommand($"data modify storage amethyst:internal {variable.Name} set value []");
         foreach (var exprValue in expr.Values)
         {
             if (Evaluate(exprValue) is Subject subject)
             {
+                AddCommand($"data modify storage amethyst:internal {variable.Name} append value {{}}");
+                
                 switch (subject)
                 {
-                    case Subject.Scoreboard:
-                        AddCommand($"data modify storage amethyst:internal {variable.Name} append value 0");
-                        AddCommand($"execute store result storage amethyst:internal {variable.Name}[-1] int 1.0 run scoreboard players get _out amethyst");
+                    case Subject.Number:
+                    case Subject.Boolean:
+                        AddCommand($"execute store result storage amethyst:internal {variable.Name}[-1].0 int 1 run scoreboard players get _out amethyst");
                         break;
-                    case Subject.Storage:
-                        AddCommand($"data modify storage amethyst:internal {variable.Name} append from storage amethyst:internal _out");
+                    case Subject.String:
+                    case Subject.Array:
+                        AddCommand($"data modify storage amethyst:internal {variable.Name}[-1].0 set from storage amethyst:internal _out");
                         break;
                 }
             }
@@ -325,7 +407,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         AddCommand($"data modify storage amethyst:internal _out set from storage amethyst:internal {variable.Name}");
         AddCommand($"data remove storage amethyst:internal {variable.Name}");
         Scope.RemoveVariable(name);
-        return Subject.Storage;
+        return Subject.Array;
     }
 
     public object? VisitLogicalExpr(Expr.Logical expr)
@@ -339,16 +421,12 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         {
             switch (expr.Operator.Type, subject)
             {
-                case (TokenType.MINUS, Subject.Scoreboard):
+                case (TokenType.MINUS, Subject.Number):
                     AddCommand("scoreboard players operation _out amethyst *= -1 amethyst_const");
-                    return Subject.Scoreboard;
-                case (TokenType.MINUS, Subject.Storage):
-                    throw new SyntaxException("Can't apply unary minus to storage", expr.Operator.Line, SourceFile);
-                case (TokenType.BANG, Subject.Scoreboard):
+                    return Subject.Number;
+                case (TokenType.BANG, Subject.Boolean):
                     AddCommand("execute store success score _out amethyst if score _out amethyst matches 0");
-                    return Subject.Scoreboard;
-                case (TokenType.BANG, Subject.Storage):
-                    throw new SyntaxException("Can't apply logical not to storage", expr.Operator.Line, SourceFile);
+                    return Subject.Boolean;
             }
         }
         
@@ -363,12 +441,14 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         }
         switch (variable.Subject)
         {
-            case Subject.Storage:
+            case Subject.String:
+            case Subject.Array:
                 AddCommand($"data modify storage amethyst:internal _out set from storage amethyst:internal {variable.Name}");
-                return Subject.Storage;
-            case Subject.Scoreboard:
+                return variable.Subject;
+            case Subject.Number:
+            case Subject.Boolean:
                 AddCommand($"scoreboard players operation _out amethyst = {variable.Name} amethyst");
-                return Subject.Scoreboard;
+                return variable.Subject;
         }
         return null;
     }
@@ -466,17 +546,23 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitPrintStmt(Stmt.Print stmt)
     {
-        if (Evaluate(stmt.Expr) is Subject subject)
+        if (Evaluate(stmt.Expr) is Subject subject) // Todo: destination targeting (-> _in)
         {
             switch (subject)
             {
-                case Subject.Scoreboard:
+                case Subject.Number:
                     AddCommand("execute store result storage amethyst:internal _out float 0.01 run scoreboard players get _out amethyst");
                     break;
-                case Subject.Storage:
+                case Subject.Boolean:
+                    AddCommand($"execute if score _out amethyst matches 1 run data modify storage amethyst:internal _out set value {true.ToNbtString()}");
+                    AddCommand($"execute if score _out amethyst matches 0 run data modify storage amethyst:internal _out set value {false.ToNbtString()}");
                     break;
             }
+            // AddCommand("data modify storage amethyst:internal _in set from storage amethyst:internal _out"); // Todo: then remove this line
+            // AddCommand("function amethyst:api/string/prettify");
             AddCommand("tellraw @a {\"storage\":\"amethyst:internal\",\"nbt\":\"_out\"}");
+            
+            // Todo: the idea is to store the prettified output as a long ass json string with syntax highlighting that is printed via tellraw and interpret:true. But how do I pretty-print?
         }
         return null;
     }
@@ -513,20 +599,22 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitVarStmt(Stmt.Var stmt)
     {
-        if (!Scope.AddVariable(stmt.Name.Lexeme, Subject.Storage /* temporary; getting overriden later */, out var variable))
+        if (!Scope.AddVariable(stmt.Name.Lexeme, Subject.String /* temporary; getting overriden later */, out var variable))
         {
             throw new SyntaxException($"Variable {stmt.Name.Lexeme} already defined", stmt.Name.Line, SourceFile);
         }
 
-        if (Evaluate(stmt.Initializer) is Subject subject)
+        if (stmt.Initializer != null && Evaluate(stmt.Initializer) is Subject subject)
         {
             variable.Subject = subject;
             switch (subject)
             {
-                case Subject.Scoreboard:
+                case Subject.Number:
+                case Subject.Boolean:
                     AddCommand($"scoreboard players operation {variable.Name} amethyst = _out amethyst");
                     break;
-                case Subject.Storage:
+                case Subject.String:
+                case Subject.Array:
                     AddCommand($"data modify storage amethyst:internal {variable.Name} set from storage amethyst:internal _out");
                     break;
             }
@@ -546,7 +634,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         var loopEnvironment = Scope;
         Scope = new Environment(Scope, $"_loop{depth}", Scope.CurrentFunction);
         {
-            if (Evaluate(stmt.Condition) is Subject.Scoreboard)
+            if (Evaluate(stmt.Condition) is Subject.Boolean)
             {
                 AddCommand("execute if score _out amethyst matches 0 run return fail");
             }

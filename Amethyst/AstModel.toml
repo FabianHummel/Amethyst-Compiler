@@ -27,11 +27,11 @@ ToString = "{Value}"
 
 [Expr.Object]
 Fields = [ "IDictionary<Expr, Expr> Values" ]
-ToString = "{Values}"
+ToString = "{{{string.Join(',', Values.Select(kvp => kvp.Key.ToString() + ':' + kvp.Value.ToString()))}}}"
 
 [Expr.Array]
 Fields = [ "IList<Expr> Values" ]
-ToString = "{Values}"
+ToString = "[{string.Join(',', Values)}]"
 
 [Expr.Logical]
 Fields = [
