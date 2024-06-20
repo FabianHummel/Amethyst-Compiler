@@ -35,7 +35,7 @@ namespace SourceGenerators
                 {
                     var writer = new StringWriter();
                     writer.WriteLine("#nullable enable");
-                    writer.WriteLine("namespace Amethyst;"); 
+                    writer.WriteLine("namespace Amethyst.Model;"); 
                     writer.WriteLine();
                     writer.WriteLine("public abstract class " + key);
                     writer.WriteLine("{");

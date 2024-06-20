@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
+using Amethyst.Model;
 
-namespace Amethyst;
+namespace Amethyst.Framework;
 
 public class Preprocessor : Stmt.IVisitor<Stmt?>, Expr.IVisitor<Expr?>
 {

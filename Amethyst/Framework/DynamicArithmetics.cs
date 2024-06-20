@@ -1,4 +1,4 @@
-namespace Amethyst;
+namespace Amethyst.Framework;
 
 public static class DynamicArithmetics
 {

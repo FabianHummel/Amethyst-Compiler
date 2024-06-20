@@ -1,8 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
+using Amethyst.Model;
+using Amethyst.Utility;
 
-namespace Amethyst;
+namespace Amethyst.Framework;
 
-public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
+public partial class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 {
     private class Environment
     {
@@ -29,6 +31,7 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         
         private IDictionary<string, Variable> Values { get; } = new Dictionary<string, Variable>();
         private ISet<string> VariableNames { get; } = new HashSet<string>();
+        private IList<string> Parameters { get; } = new List<string>();
 
         public string Namespace => Path.Combine(Enclosing?.Namespace ?? "", Scope);
 
@@ -93,6 +96,23 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
             
             Enclosing?.RemoveVariable(targetName);
             return false;
+        }
+        
+        public void AddParameter(string name)
+        {
+            Parameters.Add(name);
+        }
+        
+        public bool TryGetParameter(string name, [NotNullWhen(true)] out int? idx)
+        {
+            idx = Parameters.IndexOf(name);
+            
+            if (idx == -1 && Enclosing?.TryGetParameter(name, out idx) == true)
+            {
+                return true;
+            }
+            
+            return idx != -1;
         }
     }
     
@@ -172,6 +192,23 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
     private object? Evaluate(Expr expr)
     {
         return expr.Accept(this);
+    }
+
+    private void RemuxToStorage(object value)
+    {
+        if (value is Subject subject)
+        {
+            switch (subject)
+            {
+                case Subject.Number:
+                    AddCommand("execute store result storage amethyst:internal _out float 0.01 run scoreboard players get _out amethyst");
+                    break;
+                case Subject.Boolean:
+                    AddCommand($"execute if score _out amethyst matches 1 run data modify storage amethyst:internal _out set value {true.ToNbtString()}");
+                    AddCommand($"execute if score _out amethyst matches 0 run data modify storage amethyst:internal _out set value {false.ToNbtString()}");
+                    break;
+            }
+        }
     }
 
     public object? VisitAssignExpr(Expr.Assign expr)
@@ -342,9 +379,21 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
             // var variableDefinition = Environment.GetVariable(variable.Name.Lexeme);
             // Todo: get function from environment. Depending on subject, set _out = _ret
             var functionPath = RootNamespace + ":" + Path.Combine(Scope.Namespace, variable.Name.Lexeme);
+            foreach (var argument in expr.Arguments)
+            {
+                if (Evaluate(argument) is { } output)
+                {
+                    RemuxToStorage(output);
+                }
+
+                AddCommand("function amethyst:api/interpreter/push_arg with storage amethyst:internal");
+            }
             AddCommand($"function {functionPath}");
-            // return variableDefinition.Subject;
-            throw new NotImplementedException();
+            for (var i = 0; i < expr.Arguments.Count; i++)
+            {
+                AddCommand("data remove storage amethyst:internal _argv[0]");
+            }
+            return null;
         }
         return null;
     }
@@ -435,21 +484,30 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
 
     public object? VisitVariableExpr(Expr.Variable expr)
     {
-        if (!Scope.TryGetVariable(expr.Name.Lexeme, out var variable))
+        if (Scope.TryGetParameter(expr.Name.Lexeme, out var idx))
+        {
+            AddCommand($"data modify storage amethyst:internal _out set from storage amethyst:internal _argv[{idx}]");
+            return null;
+        }
+        if (Scope.TryGetVariable(expr.Name.Lexeme, out var variable))
+        {
+            switch (variable.Subject)
+            {
+                case Subject.String:
+                case Subject.Array:
+                    AddCommand($"data modify storage amethyst:internal _out set from storage amethyst:internal {variable.Name}");
+                    return variable.Subject;
+                case Subject.Number:
+                case Subject.Boolean:
+                    AddCommand($"scoreboard players operation _out amethyst = {variable.Name} amethyst");
+                    return variable.Subject;
+            }   
+        }
+        else
         {
             throw new SyntaxException($"Undefined variable {expr.Name.Lexeme}", expr.Name.Line, SourceFile);
         }
-        switch (variable.Subject)
-        {
-            case Subject.String:
-            case Subject.Array:
-                AddCommand($"data modify storage amethyst:internal _out set from storage amethyst:internal {variable.Name}");
-                return variable.Subject;
-            case Subject.Number:
-            case Subject.Boolean:
-                AddCommand($"scoreboard players operation _out amethyst = {variable.Name} amethyst");
-                return variable.Subject;
-        }
+        
         return null;
     }
 
@@ -496,7 +554,14 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
         
         var previous = Scope;
         Scope = new Environment(Scope, stmt.Name.Lexeme);
-        CompileBlock(stmt.Body, stmt.Name.Lexeme);
+        foreach (var param in stmt.Params)
+        {
+            Scope.AddParameter(param.Lexeme);
+        }
+        foreach (var statement in stmt.Body)
+        {
+            Compile(statement);
+        }
         Scope = previous;
         return null;
     }
@@ -560,10 +625,11 @@ public class Compiler : Expr.IVisitor<object?>, Stmt.IVisitor<object?>
             }
             // AddCommand("data modify storage amethyst:internal _in set from storage amethyst:internal _out"); // Todo: then remove this line
             // AddCommand("function amethyst:api/string/prettify");
-            AddCommand("tellraw @a {\"storage\":\"amethyst:internal\",\"nbt\":\"_out\"}");
             
             // Todo: the idea is to store the prettified output as a long ass json string with syntax highlighting that is printed via tellraw and interpret:true. But how do I pretty-print?
         }
+        
+        AddCommand("tellraw @a {\"storage\":\"amethyst:internal\",\"nbt\":\"_out._\"}");
         return null;
     }
 

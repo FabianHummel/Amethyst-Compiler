@@ -23,10 +23,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="res/**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="res\amethyst\functions\internal\" />
+        <EmbeddedResource Include="Resources/**" />
     </ItemGroup>
 </Project>

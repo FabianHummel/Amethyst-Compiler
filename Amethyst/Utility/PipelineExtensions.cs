@@ -1,4 +1,7 @@
-namespace Amethyst;
+using Amethyst.Framework;
+using Amethyst.Model;
+
+namespace Amethyst.Utility;
 
 public static class PipelineExtensions
 {

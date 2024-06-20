@@ -1,4 +1,6 @@
 ﻿using System.Reflection;
+using Amethyst.Model;
+using Amethyst.Utility;
 using CommandLine;
 
 namespace Amethyst;
@@ -180,7 +182,7 @@ internal static class Program
         var mcMeta = Path.Combine(OutputDir, "pack.mcmeta");
 
         var assembly = Assembly.GetExecutingAssembly();
-        using (var stream = assembly.GetManifestResourceStream("Amethyst.res.pack.mcmeta")!)
+        using (var stream = assembly.GetManifestResourceStream("Amethyst.Resources.pack.mcmeta")!)
         {
             using (var reader = new StreamReader(stream))
             {
@@ -207,7 +209,7 @@ internal static class Program
         var minecraftDir = Path.Combine(DataDir, "minecraft/tags/functions/");
         
         var assembly = Assembly.GetExecutingAssembly();
-        using (var stream = assembly.GetManifestResourceStream("Amethyst.res.tick.json")!)
+        using (var stream = assembly.GetManifestResourceStream("Amethyst.Resources.tick.json")!)
         {
             using (var reader = new StreamReader(stream))
             {
@@ -220,7 +222,7 @@ internal static class Program
             }
         }
         
-        using (var stream = assembly.GetManifestResourceStream("Amethyst.res.load.json")!)
+        using (var stream = assembly.GetManifestResourceStream("Amethyst.Resources.load.json")!)
         {
             using (var reader = new StreamReader(stream))
             {
@@ -240,10 +242,10 @@ internal static class Program
         var moduleDir = Path.Combine(DataDir, "amethyst");
         
         var assembly = Assembly.GetExecutingAssembly();
-        var templateFiles = assembly.GetManifestResourceNames().Where(s => s.StartsWith("Amethyst.res.amethyst"));
+        var templateFiles = assembly.GetManifestResourceNames().Where(s => s.StartsWith("Amethyst.Resources.amethyst"));
         foreach (var templateFile in templateFiles)
         {
-            var path = templateFile["Amethyst.res.amethyst".Length..];
+            var path = templateFile["Amethyst.Resources.amethyst".Length..];
             path = path[..path.LastIndexOf('.')].Replace(".", "/") + path[path.LastIndexOf('.')..];
             path = moduleDir + path;
             using (var stream = assembly.GetManifestResourceStream(templateFile)!)

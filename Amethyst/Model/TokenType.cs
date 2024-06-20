@@ -1,4 +1,4 @@
-namespace Amethyst;
+namespace Amethyst.Model;
 
 public enum TokenType
 {

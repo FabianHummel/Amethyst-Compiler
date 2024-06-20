@@ -1,6 +1,6 @@
 using CommandLine;
 
-namespace Amethyst;
+namespace Amethyst.Model;
 
 // ReSharper disable once ClassNeverInstantiated.Global
 public class Options

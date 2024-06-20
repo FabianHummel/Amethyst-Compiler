@@ -1,4 +1,6 @@
-namespace Amethyst;
+using Amethyst.Model;
+
+namespace Amethyst.Framework;
 
 public class Parser
 {
