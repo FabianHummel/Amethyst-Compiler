@@ -3,18 +3,11 @@ Fields = [ "Token Name" , "Expr Value" ]
 ToString = "{Name} = {Value}"
 
 [Expr.Binary]
-Fields = [
-    "Expr Left",
-    "Token Operator",
-    "Expr Right"
-]
+Fields = [ "Expr Left", "Token Operator", "Expr Right" ]
 ToString = "{Left} {Operator} {Right}"
 
 [Expr.Call]
-Fields = [
-    "Expr Callee",
-    "IList<Expr> Arguments"
-]
+Fields = [ "Expr Callee", "IList<Expr> Arguments" ]
 ToString = "{Callee}({Arguments})"
 
 [Expr.Grouping]
@@ -34,18 +27,11 @@ Fields = [ "IList<Expr> Values" ]
 ToString = "[{string.Join(',', Values)}]"
 
 [Expr.Logical]
-Fields = [
-    "Expr Left",
-    "Token Operator",
-    "Expr Right"
-]
+Fields = [ "Expr Left", "Token Operator", "Expr Right" ]
 ToString = "{Left} {Operator} {Right}"
 
 [Expr.Unary]
-Fields = [
-    "Token Operator",
-    "Expr Right"
-]
+Fields = [ "Token Operator", "Expr Right" ]
 ToString = "{Operator}{Right}"
 
 [Expr.Variable]
@@ -61,75 +47,41 @@ Fields = [ "Expr Expr" ]
 ToString = "{Expr}"
 
 [Stmt.Namespace]
-Fields = [
-    "Token Name",
-    "IList<Stmt> Body",
-    "bool IsPreprocessed"
-]
+Fields = [ "Token Name", "Stmt Body" ]
 ToString = "namespace {Name} {Body}"
 
 [Stmt.Function]
-Fields = [
-    "bool Ticking",
-    "bool Initializing",
-    "Token Name",
-    "IList<Token> Params",
-    "IList<Stmt> Body",
-    "bool IsPreprocessed"
-]
+Fields = [ "Token Name", "IList<Token> Params", "Stmt Body" ]
 ToString = "function {Name}({Params}) {Body}"
 
 [Stmt.If]
-Fields = [
-    "Expr Condition",
-    "Stmt ThenBranch",
-    "Stmt? ElseBranch",
-    "bool IsPreprocessed"
-]
+Fields = [ "Expr Condition", "Stmt ThenBranch", "Stmt? ElseBranch" ]
 ToString = "if {Condition} then {ThenBranch} else {ElseBranch}"
 
-[Stmt.Print]
-Fields = [ 
-    "Expr Expr",
-    "bool IsPreprocessed"
-]
-ToString = "print {Expr}"
+[Stmt.Debug]
+Fields = [ "Expr Expr" ]
+ToString = "debug {Expr}"
 
 [Stmt.Comment]
 Fields = [ "Token Value" ]
 ToString = "# {Value}"
 
 [Stmt.Return]
-Fields = [ 
-    "Expr? Value",
-    "bool IsPreprocessed"
-]
+Fields = [ "Expr? Value" ]
 ToString = "return {Value}"
 
 [Stmt.Break]
-Fields = [
-    "bool IsPreprocessed"
-]
+Fields = [ ]
 ToString = "break"
 
 [Stmt.Continue]
-Fields = [
-    "bool IsPreprocessed"
-]
+Fields = [ ]
 ToString = "continue"
 
 [Stmt.Var]
-Fields = [
-    "Token Name",
-    "Expr? Initializer",
-    "bool IsPreprocessed"
-]
+Fields = [ "Token Name", "Expr? Initializer" ]
 ToString = "var {Name} = {Initializer}"
 
 [Stmt.While]
-Fields = [
-    "Expr Condition",
-    "Stmt Body",
-    "bool IsPreprocessed"
-]
+Fields = [ "Expr Condition", "Stmt Body" ]
 ToString = "while {Condition} do {Body}"

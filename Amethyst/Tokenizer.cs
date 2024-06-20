@@ -1,57 +1,51 @@
 using Amethyst.Model;
 
-namespace Amethyst.Framework;
+namespace Amethyst;
 
 public class Tokenizer
 {
-    public Tokenizer(string input, string sourceFile)
+    private string Input { get; }
+    private Namespace Context { get; }
+    private IList<Token> Tokens { get; } = new List<Token>();
+ 
+    public Tokenizer(string input, Namespace context)
     {
         Input = input;
-        SourceFile = sourceFile;
+        Context = context;
     }
-
-    private string Input { get; }
-    private string SourceFile { get; }
-    private IList<Token> Tokens { get; } = new List<Token>();
     
     private int start = 0;
     private int current = 0;
     private int line = 1;
+    private TokenType intOrDecimal;
 
     private static readonly Dictionary<string, TokenType> KEYWORDS = new()
     {
-        { "and",            TokenType.AND },
-        { "else",           TokenType.ELSE },
-        { "false",          TokenType.FALSE },
-        { "function",       TokenType.FUNCTION },
-        { "ticking",        TokenType.TICKING },
-        { "initializing",   TokenType.INITIALIZING },
-        { "namespace",      TokenType.NAMESPACE },
-        { "for",            TokenType.FOR },
-        { "if",             TokenType.IF },
-        { "null",           TokenType.NULL },
-        { "or",             TokenType.OR },
-        { "xor",            TokenType.XOR },
-        { "break",          TokenType.BREAK },
-        { "return",         TokenType.RETURN },
-        { "true",           TokenType.TRUE },
-        { "var",            TokenType.VAR },
-        { "while",          TokenType.WHILE },
-        { "print",          TokenType.PRINT },
-        { "comment",        TokenType.COMMENT },
-        { "continue",       TokenType.CONTINUE },
-        
-        { "FUNCTION",       TokenType.FUNCTION },
-        { "NAMESPACE",      TokenType.NAMESPACE },
-        { "FOR",            TokenType.FOR },
-        { "IF",             TokenType.IF },
-        { "ELSE",           TokenType.ELSE },
-        { "BREAK",          TokenType.BREAK },
-        { "RETURN",         TokenType.RETURN },
-        { "VAR",            TokenType.VAR },
-        { "WHILE",          TokenType.WHILE },
-        { "PRINT",          TokenType.PRINT },
-        { "CONTINUE",       TokenType.CONTINUE }
+        { "if", TokenType.IF }, 
+        { "else", TokenType.ELSE },
+        { "for", TokenType.FOR },
+        { "foreach", TokenType.FOREACH },
+        { "while", TokenType.WHILE },
+        { "and", TokenType.AND },
+        { "or", TokenType.OR },
+        { "xor", TokenType.XOR },
+        { "break", TokenType.BREAK },
+        { "continue", TokenType.CONTINUE },
+        { "return", TokenType.RETURN },
+        { "true", TokenType.TRUE },
+        { "false", TokenType.FALSE },
+        { "function", TokenType.FUNCTION },
+        { "namespace", TokenType.NAMESPACE },
+        { "var", TokenType.VAR },
+        { "record", TokenType.RECORD },
+        { "debug", TokenType.DEBUG },
+        { "comment", TokenType.COMMENT },
+        { "string", TokenType.DT_STRING },
+        { "int", TokenType.DT_INT },
+        { "dec", TokenType.DT_DEC },
+        { "bool", TokenType.DT_BOOL },
+        { "array", TokenType.DT_ARRAY },
+        { "object", TokenType.DT_OBJECT }
     };
 
     private bool IsAtEnd => current >= Input.Length;
@@ -105,7 +99,7 @@ public class Tokenizer
         }
 
         if (IsAtEnd) {
-            throw new SyntaxException("Unterminated string", line, SourceFile);
+            throw new SyntaxException("Unterminated string", line, Context.SourcePath);
         }
 
         // The closing ".
@@ -118,17 +112,18 @@ public class Tokenizer
     
     private void Number()
     {
+        intOrDecimal = TokenType.INTEGER;
         while (IsDigit(Peek())) Advance();
 
         // Look for a fractional part.
         if (Peek() == '.' && IsDigit(PeekNext())) {
+            intOrDecimal = TokenType.DECIMAL;
             // Consume the "."
             Advance();
-
             while (IsDigit(Peek())) Advance();
         }
 
-        AddToken(TokenType.NUMBER, double.Parse(Input[start..current]));
+        AddToken(intOrDecimal, double.Parse(Input[start..current]));
     }
     
     private void Identifier()
@@ -153,7 +148,7 @@ public class Tokenizer
         {
             Type = type,
             Lexeme = text,
-            Literal = literal,
+            Literal = literal!,
             Line = line
         });
     }
@@ -213,7 +208,7 @@ public class Tokenizer
                 }
                 else
                 {
-                    throw new SyntaxException($"Unexpected character '{c}'", line, SourceFile);
+                    throw new SyntaxException($"Unexpected character '{c}'", line, Context.SourcePath);
                 }
                 break;
         }
@@ -232,7 +227,7 @@ public class Tokenizer
         {
             Type = TokenType.EOF,
             Lexeme = "",
-            Literal = null,
+            Literal = null!,
             Line = line
         });
         

@@ -1,7 +1,10 @@
-minecraft = "/Users/fabian/Library/Application Support/PrismLauncher/instances/23w33a/.minecraft"
+ minecraft = "/Users/fabian/Library/Application Support/PrismLauncher/instances/23w33a/.minecraft"
 
+[datapack]
 name = "playground"
-namespace = "playground"
-description = "Test project for the amethyst compiler"
-pack_format = 18
+description = "Test datapack for the amethyst compiler"
 output = "New World"
+
+[resourcepack]
+name = "playground"
+description = "Test resourcepack for the amethyst compiler"

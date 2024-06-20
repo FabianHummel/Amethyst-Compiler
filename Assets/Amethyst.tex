@@ -154,21 +154,21 @@ Amethyst simplifies these things by abstracting the configuration and logic behi
         Amethyst comes in prebuilt binaries for all major Operating Systems and can be downloaded from the Github repository. Once installed, you can start creating Amethyst projects right away.
     \subsection{Usage}
         \subsubsection{Configuration}
-            Projects can be created by creating an \lstinline{amethyst.toml} (main configuration file) and a \lstinline{src/} folder where all the project code will be in. Files end in \lstinline{.amy} endings. All other files will be ignored for compilation (with some exceptions like resources)
+            Projects can be created by creating an \lstinline{amethyst.toml} (main configuration file) and a \lstinline{src/} folder where all the project code will be in. Files end in \lstinline{.amy} endings. All other files will be ignored for compilation (for exceptions see section~\ref{sec:resources})
+            
+            The namespace that is used for compilation of a source file correlates to the folder name in the \lstinline{src/} folder of which this file is placed. For a detailed visualization see figure~\ref{fig:file_tree}
             
             \begin{lstlisting}[numbers=none]
                 minecraft = "/path/to/.minecraft" # if .minecraft is not at the default location
                 
                 [datapack]
                 name = "playground" # project name (resulting folder name)
-                namespace = "playground" # datapack namespace (defaults to the project name)
                 description = "Test project for the amethyst compiler" # datapack description
                 pack_format = 48 # specific pack format (defaults to the latest)
                 output = "New World" # folder name of the world where the datapack will be compiled into
                 
                 [resourcepack]
                 name = "playground"
-                namespace = "playground"
                 description = "Resources for the test project"
                 pack_format = 34
             \end{lstlisting}
@@ -317,7 +317,7 @@ Amethyst simplifies these things by abstracting the configuration and logic behi
             
             When creating a record, keep in mind that the default value will be assigned to each player in the world once, or whenever they \textit{join or leave the game}\footnote{Special events on when to reassign the default value can be configured for a record using the attributes \lstinline{[assign_on_join]} and \lstinline{[assign_on_leave]}. This is useful to reset e.g. points in a minigame whenever a player leaves the game.}. When assigning a record during execution of the program, the value will be set for all players immediately.
             
-            \label{first_data_resource} \begin{lstlisting}[title=Increase points for a player that kills another player]
+            \label{fig:first_data_resource} \begin{lstlisting}[title=Increase points for a player that kills another player]
                 ADVANCEMENT player_killed_player {
                   "criteria": {
                     "requirement": {
@@ -363,16 +363,15 @@ Amethyst simplifies these things by abstracting the configuration and logic behi
                     
                     execute as @a run give_coin_and_say_thanks(rand_int(10));
                 \end{lstlisting}
-                
-        \subsubsection{Data Resources}
-            As already used earlier in an \textit{\hyperref[first_data_resource]{example snippet}}, Amethyst allows for inline declaration of data resources such as \textbf{Advancements, Predicates, Loot Tables} and much more you would find in any ordinary datapack. The same applies to resourcepacks, where we can declare \textbf{textures, models}, and more right in the Amethyst project.
+            
+        \subsubsection{Data Resources} \label{sec:resources}
+            As already used earlier in an \textit{\hyperref[fig:first_data_resource]{example snippet}}, Amethyst allows for inline declaration of data resources such as \textbf{Advancements, Predicates, Loot Tables} and much more you would find in any ordinary datapack. The same applies to resourcepacks, where we can declare \textbf{textures, models}, and more right in the Amethyst project.
             
             Resources are declared with uppercase letters "\lstinline{ADVANCEMENT}" or "\lstinline{PREDICATE}" which means they are \textit{compile-time constants} and let you preprocess them however you like to save important time\footnote{In this case, compile-time constants allow the creation a template resource with variables and automatically generate multiple variants of that resource during compilation.}.
             
             With the use of \lstinline{FOR} and \lstinline{YIELD} you can save hours of tedious work of copying files or code over and over again with the risk of making simple mistakes by letting the compiler do the work for you.
             
-            \begin{lstlisting}
-                [override]
+            \begin{lstlisting}[title=src/minecraft/magic\_wand.amy]
                 RESOURCE models/item/carrot_on_a_stick {
                   "parent": "item/generated",
                   "textures": {
@@ -385,9 +384,8 @@ Amethyst simplifies these things by abstracting the configuration and logic behi
                 }
             \end{lstlisting}
             
-            \begin{lstlisting}
+            \begin{lstlisting}[title=src/minecraft/dirt\_variants.amy]
                 FOR (VAR variant = 1; variant <= 10; variant++) {
-                    [override]
                     RESOURCE "models/block/dirt_" + variant {
                       "parent": "block/cube_all",
                       "textures": {
@@ -397,21 +395,24 @@ Amethyst simplifies these things by abstracting the configuration and logic behi
                 }
             \end{lstlisting}
             
-            Traditional resource files (\lstinline{.json} files) can still be placed in the project under the directory where they would normally go in a data- or resourcepack and will be copied to the output directory as usual. However, keep in mind that these files do not support preprocessing natively through Amethyst.
+            Traditional resource files (e.g. \lstinline{.json} files) can still be placed in the project under the directory where they would normally go in a data- or resourcepack and will be copied to the output directory as usual. However, keep in mind that these files do not support preprocessing natively through Amethyst.
             
-            This way, you can even add your own \lstinline{.mcfunction} files to the datapack if you require to keep some functions native or want to include a datapack library.
+            This way, you can even add your own \lstinline{.mcfunction} files to the datapack if you require to keep some functions native or want to include a datapack library. Just be careful to not name your functions anything along the lines of \lstinline{_amethyst_[...].mcfunction}.
             
-            \begin{lstlisting}
+            \label{fig:file_tree} \begin{lstlisting}
                 amethyst.toml
                 /src
-                |   /data
-                |   |   /my_pack
-                |   |   |   /loot_tables
-                |   |   |   |   /my_loot_table.json
-                |   |   /included_library
-                |   |   |   /functions
-                |   |   |   |   /lib_code.mcfunction
-                |   main.amy
+                    /my_pack
+                        main.amy # Here go your Amethyst source files
+                /data # Additional datapack files
+                |   /my_pack
+                |   |   /loot_tables
+                |   |   |   /my_loot_table.json
+                |   /included_library
+                |   |   /functions
+                |   |   |   /lib_code.mcfunction
+                /assets # Additional resourcepack files
+                |   /my_pack
             \end{lstlisting}
             
         \subsubsection{Preprocessing}

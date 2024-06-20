@@ -25,4 +25,8 @@
     <ItemGroup>
         <EmbeddedResource Include="Resources/**" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Resources\resourcepack\assets\" />
+    </ItemGroup>
 </Project>

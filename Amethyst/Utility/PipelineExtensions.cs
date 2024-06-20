@@ -1,32 +1,21 @@
-using Amethyst.Framework;
 using Amethyst.Model;
 
 namespace Amethyst.Utility;
 
 public static class PipelineExtensions
 {
-    public static IList<Token> Tokenize(this string input, string sourceFile)
+    public static IEnumerable<Token> Tokenize(this string input, Namespace context)
     {
-        return new Tokenizer(input, sourceFile).Tokenize();
+        return new Tokenizer(input, context).Tokenize();
     }
     
-    public static IList<Stmt> Parse(this IList<Token> tokens, string sourceFile)
+    public static Stmt Parse(this IEnumerable<Token> tokens, Namespace context)
     {
-        return new Parser(tokens, sourceFile).Parse();
+        return new Parser.Parser(tokens.ToList(), context).Parse();
     }
     
-    public static IList<Stmt> Optimize(this IList<Stmt> stmts)
+    public static void Compile(this IEnumerable<Stmt> stmts, Context context)
     {
-        return new Optimizer(stmts).Optimize();
-    }
-    
-    public static IList<Stmt> Preprocess(this IList<Stmt> stmts)
-    {
-        return new Preprocessor(stmts).Preprocess();
-    }
-    
-    public static void Compile(this IList<Stmt> stmts, string rootNamespace, string outDir, string sourceFile)
-    {
-        new Compiler(stmts, rootNamespace, outDir, sourceFile).Compile();
+        new Compiler.Compiler(stmts.ToList(), context).Compile();
     }
 }
