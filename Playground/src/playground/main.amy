@@ -1,0 +1,5 @@
+namespace nice::okay::fine {
+    function hello() {
+        var this = is + { not: so.cool };
+    }
+}

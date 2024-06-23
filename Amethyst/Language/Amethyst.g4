@@ -1,6 +1,8 @@
 grammar Amethyst;
 
-SPACE: [ \r\t\u000C\n]+ -> channel(HIDDEN);
+SPACE: [ \r\t\u000C\n]+ -> skip;
+COMMENT: '#' ~[\r\n]* -> skip;
+IDENTIFIER: [a-zA-Z] [a-zA-Z0-9_]*;
 
 file
  : declaration* EOF
@@ -22,7 +24,7 @@ namespace_identifier
  ;
  
 function_declaration
- : attribute_list* 'function' identifier '(' parameter_list? ')' block
+ : attribute_list* 'function' identifier '(' parameter_list? ')' (':' type)? block
  ;
  
 attribute_list
@@ -112,7 +114,6 @@ expression_statement
 expression
  : conditional
  | assignment
- | selector
  ;
  
 assignment
@@ -157,6 +158,7 @@ unary
 primary
  : literal                      # literal_expression
  | group                        # group_expression
+ | selector                     # selector_expression
  | primary '.' identifier       # member_access
  | function_call                # function_call_expression
  | namespace_access             # identifier_expression
@@ -206,7 +208,8 @@ namespace_access
  ;
  
 selector
- : selector_type ('[' selector_query_list ']')?
+ : selector_type ('[' selector_query_list ']')?      # selector_specification
+ | selector '.' identifier                       # selector_member_access
  ;
  
 selector_query_list
@@ -224,16 +227,10 @@ selector_type
 argument_list
  : expression (',' expression)*
  ;
-
-identifier
- : IDENTIFIER
- ;
-
-IDENTIFIER: [a-z] ([a-z_0-9]* [a-z0-9])?;
- 
+  
 object_creation
  : '{}'
- | '{' (identifier ':' expression (',' identifier ':' expression)*)? '}'
+ | '{' identifier ':' expression '}'
  ;
 
 array_creation
@@ -241,23 +238,10 @@ array_creation
  | '[' (expression (',' expression)*)? ']'
  ;
  
+identifier
+ : IDENTIFIER
+ ;
+ 
 type
- : Basic_Type (Typed_Array_Type | Typed_Object_Type)?
- ;
- 
-Basic_Type
- : 'int'
- | 'dec'
- | 'string'
- | 'bool'
- | 'array'
- | 'object'
- ;
- 
-Typed_Array_Type
- : '[]'
- ;
- 
-Typed_Object_Type
- : '{}'
+ : ('int' | 'dec' | 'string' | 'bool' | 'array' | 'object') ('[]' | '{}')?
  ;

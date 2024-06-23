@@ -52,11 +52,10 @@ public static class ConsoleUtility
                 var i = 0;
                 while (!cts.Token.IsCancellationRequested)
                 {
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
-                    Console.Write($"\r > {executionText} {"\u280b\u2819\u2839\u2838\u283c\u2834\u2826\u2827\u2807\u280f"[i]} ");
+                    Console.Write($"\r {Dim($"\u279c {executionText} {"\u280b\u2819\u2839\u2838\u283c\u2834\u2826\u2827\u2807\u280f"[i]} ")}");
                     i = (i + 1) % 10;
                     Console.ResetColor();
-                    Thread.Sleep(1000);
+                    Thread.Sleep(100);
                 }
 
                 stopwatch.Stop();

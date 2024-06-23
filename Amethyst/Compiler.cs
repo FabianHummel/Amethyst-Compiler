@@ -13,11 +13,6 @@ public partial class Compiler : AmethystBaseVisitor<object?>
         Files = files;
         Context = context;
     }
-    
-    public override object? VisitFile(AmethystParser.FileContext context)
-    {
-        return null;
-    }
 
     public void Compile()
     {

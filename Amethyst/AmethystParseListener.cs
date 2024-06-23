@@ -13,15 +13,18 @@ public class AmethystParseListener : AmethystBaseListener
         Context = context;
     }
     
-    private List<string> GetNamespacePath(List<string> path, RuleContext context)
+    private List<string> GetNamespacePath(List<string> path, AmethystParser.Namespace_declarationContext? context)
     {
-        if (context.Parent is AmethystParser.Namespace_declarationContext ns)
+        if (context is not null)
         {
-            path.InsertRange(0, ns.namespace_identifier().GetText().Split("::"));
+            path.Insert(0, context.namespace_identifier().GetText());
+        }
+        if (context?.Parent is AmethystParser.Namespace_declarationContext ns)
+        {
+            path.InsertRange(0, context.namespace_identifier().GetText().Split("::"));
             return GetNamespacePath(path, ns);
         }
-
-        return new List<string> { Context.Name };
+        return path;
     }
     
     private Namespace CreateOrGetNamespace(IReadOnlyList<string> path, Namespace context)
@@ -51,7 +54,7 @@ public class AmethystParseListener : AmethystBaseListener
     
     public override void ExitFunction_declaration(AmethystParser.Function_declarationContext context)
     {
-        var path = GetNamespacePath(new List<string>(), context);
+        var path = GetNamespacePath(new List<string>(), context.Parent.Parent as AmethystParser.Namespace_declarationContext);
         var ns = CreateOrGetNamespace(path, Context);
         var name = context.identifier().GetText();
         ns.Functions.Add(name, context);

@@ -30,6 +30,8 @@ internal static class Program
                 ConsoleUtility.ClearConsole();
                 ConsoleUtility.PrintAmethystLogoAndVersion();
                 
+                ReinitializeProject();
+                
                 if (o.Watch)
                 {
                     var thread = new Thread(() =>
@@ -68,8 +70,6 @@ internal static class Program
                         _configWatcher.EnableRaisingEvents = true;
                     });
                     thread.Start();
-                    
-                    ReinitializeProject();
 
                     while (Console.ReadLine() != "exit")
                     {
@@ -341,46 +341,36 @@ internal static class Program
     private static void CompileProject()
     {
         var cts = ConsoleUtility.PrintLongTask("Compiling program", out var getElapsed);
-        
-        var files = Directory.GetDirectories(Context.SourcePath).SelectMany(dir =>
-        {
-            var nsName = Path.GetFileName(dir);
-            var ns = new Namespace
-            {
-                Name = nsName,
-                Parent = null,
-                Context = Context
-            };
-            Context.Namespaces.Add(nsName, ns);
-
-            return FindCompileTargets(dir).Select(target =>
-            {
-                var content = File.ReadAllText(target);
-                try
-                {
-                    return content.Parse(target, ns);
-                }
-                catch (SyntaxException e)
-                {
-                    var relativeFile = Path.GetRelativePath(Context.SourcePath, e.File);
-                    ConsoleUtility.PrintError($"Syntax error: {relativeFile} ({e.Line}:{e.PosInLine}): {e.Message}.");
-                    throw;
-                }
-            });
-        }).ToList();
-        
-        CreateFunctionTags();
-        
         try
         {
+            var files = Directory.GetDirectories(Context.SourcePath).SelectMany(dir =>
+            {
+                var nsName = Path.GetFileName(dir);
+                var ns = new Namespace
+                {
+                    Name = nsName,
+                    Parent = null,
+                    Context = Context
+                };
+                Context.Namespaces.Add(nsName, ns);
+
+                return FindCompileTargets(dir).Select(target =>
+                {
+                    var content = File.ReadAllText(target);
+                    return content.Parse(target, ns);
+                });
+            }).ToList();
+        
+            CreateFunctionTags();
+            
             files.Compile(Context);
             cts.Cancel();
             ConsoleUtility.PrintMessageWithTime("Program compiled.", getElapsed());
         }
-        catch (CompilationException e)
+        catch (SyntaxException e)
         {
             var relativeFile = Path.GetRelativePath(Context.SourcePath, e.File);
-            ConsoleUtility.PrintError($"Compilation error: {relativeFile} ({e.Line}:{e.PosInLine}): {e.Message}.");
+            ConsoleUtility.PrintError($"Syntax error: {relativeFile} ({e.Line}:{e.PosInLine}): {e.Message}.");
         }
     }
     
@@ -413,24 +403,24 @@ internal static class Program
 
     private static void ReinitializeProject()
     {
-        try
-        {
-            ReadAndSetConfigFile();
-            SetMinecraftRootFolder();
-            SetSourcePath();
-            RecompileProject();
-        }
-        catch
-        {
-            // ignored
-        }
+        ReadAndSetConfigFile();
+        SetMinecraftRootFolder();
+        SetSourcePath();
+        RecompileProject();
     }
     
     private static void RecompileProject()
     {
-        Context.Namespaces.Clear();
-        CreateDatapackAndResourcepackContext();
-        CompileProject();
+        try
+        {
+            Context.Namespaces.Clear();
+            CreateDatapackAndResourcepackContext();
+            CompileProject();
+        }
+        catch (Exception e)
+        {
+            ConsoleUtility.PrintError(e.Message);
+        }
     }
 
     private static void OnChangedSource(object sender, FileSystemEventArgs e)
