@@ -1,6 +1,5 @@
 {
   "values": [
-    "amethyst:_tick"
-    {{ticking_functions}}
+    "amethyst:_tick"{{ticking_functions}}
   ]
 }

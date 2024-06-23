@@ -2,6 +2,8 @@ namespace Amethyst.Model;
 
 public class Resourcepack
 {
+    public required Context Context { get; init; }
+    
     /// <summary>
     /// The name of the resourcepack.
     /// </summary>

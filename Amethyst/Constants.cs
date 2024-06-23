@@ -11,7 +11,11 @@ public static class Constants
     public const string DEFAULT_RESOURCEPACK_DESCRIPTION = "An Amethyst Resourcepack";
     public const int DEFAULT_DATAPACK_FORMAT = 48;
     public const int DEFAULT_RESOURCEPACK_FORMAT = 34;
+    
     public static readonly string MINECRAFT_ROOT_WINDOWS = Environment.ExpandEnvironmentVariables("%APPDATA%\\.minecraft");
     public static readonly string MINECRAFT_ROOT_MACOS = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library/Application Support/minecraft");
     public static readonly string MINECRAFT_ROOT_LINUX = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".minecraft");
+
+    public const string ATTRIBUTE_LOAD_FUNCTION = "initializing";
+    public const string ATTRIBUTE_TICK_FUNCTION = "ticking";
 }

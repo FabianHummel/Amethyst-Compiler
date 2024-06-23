@@ -2,8 +2,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Amethyst", "Amethyst\Amethyst.csproj", "{BE1DDF3F-F4DE-41DD-84F9-178A8FE21E88}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceGenerators", "SourceGenerators\SourceGenerators.csproj", "{03942B8B-A25B-4EBA-97D0-9B16F8BC3F87}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,9 +12,5 @@ Global
 		{BE1DDF3F-F4DE-41DD-84F9-178A8FE21E88}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE1DDF3F-F4DE-41DD-84F9-178A8FE21E88}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE1DDF3F-F4DE-41DD-84F9-178A8FE21E88}.Release|Any CPU.Build.0 = Release|Any CPU
-		{03942B8B-A25B-4EBA-97D0-9B16F8BC3F87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{03942B8B-A25B-4EBA-97D0-9B16F8BC3F87}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{03942B8B-A25B-4EBA-97D0-9B16F8BC3F87}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{03942B8B-A25B-4EBA-97D0-9B16F8BC3F87}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
