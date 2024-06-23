@@ -25,11 +25,15 @@ internal static class Program
         CommandLine.Parser.Default.ParseArguments<Options>(args)
             .WithParsed(o =>
             {
+                ConsoleUtility.WatchMode = o.Watch;
+                
+                ConsoleUtility.ClearConsole();
+                ConsoleUtility.PrintAmethystLogoAndVersion();
+                
                 if (o.Watch)
                 {
                     var thread = new Thread(() =>
                     {
-                        Console.Out.WriteLine("Starting Amethyst in watch mode...");
                         _srcWatcher = new FileSystemWatcher();
                         _srcWatcher.Path = Path.Combine(Environment.CurrentDirectory, SOURCE_DIRECTORY);
                         _srcWatcher.NotifyFilter = NotifyFilters.Attributes |
@@ -77,7 +81,7 @@ internal static class Program
             {
                 foreach (var error in errors)
                 {
-                    Console.Error.WriteLine($"Invalid argument {error.Tag}");
+                    ConsoleUtility.PrintError($"Invalid argument {error.Tag}");
                 }
             });
     }
@@ -93,7 +97,7 @@ internal static class Program
         }
         catch (Exception)
         {
-            Console.WriteLine($"Missing or invalid configuration file '{CONFIG_FILE}' found in current working directory '{Environment.CurrentDirectory}'");
+            ConsoleUtility.PrintError($"Missing or invalid configuration file '{CONFIG_FILE}' found in current working directory '{Environment.CurrentDirectory}'");
             throw;
         }
     }
@@ -124,7 +128,7 @@ internal static class Program
         if (!Directory.Exists(Context.MinecraftRoot))
         {
             var defaultPath = Path.Combine(Environment.CurrentDirectory, SOURCE_DIRECTORY, DEFAULT_OUTPUT_DIRECTORY);
-            Console.Error.WriteLine($"Minecraft root not found at default locations, using current directory as source if a world name has been specified for the output. ({defaultPath})");
+            ConsoleUtility.PrintWarning($"Minecraft root not found at default locations, using current directory as source if a world name has been specified for the output. ({defaultPath})");
             Context.MinecraftRoot = null;
         }
     }
@@ -336,6 +340,8 @@ internal static class Program
     
     private static void CompileProject()
     {
+        var cts = ConsoleUtility.PrintLongTask("Compiling program", out var getElapsed);
+        
         var files = Directory.GetDirectories(Context.SourcePath).SelectMany(dir =>
         {
             var nsName = Path.GetFileName(dir);
@@ -352,12 +358,12 @@ internal static class Program
                 var content = File.ReadAllText(target);
                 try
                 {
-                    return content.Parse(ns);
+                    return content.Parse(target, ns);
                 }
                 catch (SyntaxException e)
                 {
                     var relativeFile = Path.GetRelativePath(Context.SourcePath, e.File);
-                    Console.Error.WriteLine($"Syntax error: {relativeFile} ({e.Line}:{e.PosInLine}): {e.Message}.");
+                    ConsoleUtility.PrintError($"Syntax error: {relativeFile} ({e.Line}:{e.PosInLine}): {e.Message}.");
                     throw;
                 }
             });
@@ -368,17 +374,20 @@ internal static class Program
         try
         {
             files.Compile(Context);
-            Console.Out.WriteLine("Compilation finished.");
+            cts.Cancel();
+            ConsoleUtility.PrintMessageWithTime("Program compiled.", getElapsed());
         }
         catch (CompilationException e)
         {
             var relativeFile = Path.GetRelativePath(Context.SourcePath, e.File);
-            Console.Error.WriteLine($"Compilation error: {relativeFile} ({e.Line}:{e.PosInLine}): {e.Message}.");
+            ConsoleUtility.PrintError($"Compilation error: {relativeFile} ({e.Line}:{e.PosInLine}): {e.Message}.");
         }
     }
     
     private static void CreateDatapackAndResourcepackContext()
     {
+        var cts = ConsoleUtility.PrintLongTask("Creating project structure", out var getElapsed);
+        
         if (Table.HasKey("datapack"))
         {
             Context.Datapack = new Datapack { Context = Context };
@@ -397,6 +406,9 @@ internal static class Program
             CopyResourcepackTemplate();
             CreateResourcepackMeta();
         }
+        
+        cts.Cancel();
+        ConsoleUtility.PrintMessageWithTime("Project structure created.", getElapsed());
     }
 
     private static void ReinitializeProject()
@@ -428,7 +440,8 @@ internal static class Program
         Task.Delay(100, _onChangedSourceTokenSource.Token).ContinueWith(t => {
             if (t.IsCompletedSuccessfully)
             {
-                Console.Clear();
+                ConsoleUtility.ClearConsole();
+                ConsoleUtility.PrintAmethystLogoAndVersion();
                 RecompileProject();
             }
         }, TaskScheduler.Default);
@@ -441,7 +454,8 @@ internal static class Program
         Task.Delay(100, _onChangedSourceTokenSource.Token).ContinueWith(t => {
             if (t.IsCompletedSuccessfully)
             {
-                Console.Clear();
+                ConsoleUtility.ClearConsole();
+                ConsoleUtility.PrintAmethystLogoAndVersion();
                 Console.WriteLine("Configuration changed, reinitializing project...");
                 ReinitializeProject();
             }

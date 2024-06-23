@@ -18,4 +18,6 @@ public static class Constants
 
     public const string ATTRIBUTE_LOAD_FUNCTION = "initializing";
     public const string ATTRIBUTE_TICK_FUNCTION = "ticking";
+    
+    public static readonly string AMETHYST_VERSION = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!.ToString();
 }

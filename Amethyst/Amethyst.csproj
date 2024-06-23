@@ -6,6 +6,9 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>preview</LangVersion>
+        <Version>1.0.0</Version>
+        <AssemblyVersion>1.0.0</AssemblyVersion>
+        <FileVersion>1.0.0</FileVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,6 +22,7 @@
       </PackageReference>
       <PackageReference Include="Antlr4.Runtime" Version="4.6.6" />
       <PackageReference Include="CommandLineParser" Version="2.9.1" />
+      <PackageReference Include="Crayon" Version="2.0.69" />
       <PackageReference Include="Tommy" Version="3.1.2" />
     </ItemGroup>
 
