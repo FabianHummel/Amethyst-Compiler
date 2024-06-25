@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Text;
 using Amethyst.Language;
 using Amethyst.Model;
 using Amethyst.Utility;
@@ -233,9 +232,9 @@ internal static class Program
             {
                 var mcMetaContents = reader.ReadToEnd();
                 var description = Table["datapack"]["description"].AsString ?? DEFAULT_DATAPACK_DESCRIPTION;
-                mcMetaContents = mcMetaContents.Replace("{{description}}", $"\"{description}\"");
+                mcMetaContents = mcMetaContents.Replace(SUBSTITUTIONS["description"], $"\"{description}\"");
                 var packFormat = Table["datapack"]["pack_format"].AsInteger ?? DEFAULT_DATAPACK_FORMAT;
-                mcMetaContents = mcMetaContents.Replace("{{pack_format}}", packFormat.ToString());
+                mcMetaContents = mcMetaContents.Replace(SUBSTITUTIONS["pack_format"], packFormat.ToString());
                 File.WriteAllText(mcMeta, mcMetaContents);
             }
         }
@@ -252,9 +251,9 @@ internal static class Program
             {
                 var mcMetaContents = reader.ReadToEnd();
                 var description = Table["resourcepack"]["description"].AsString ?? DEFAULT_RESOURCEPACK_DESCRIPTION;
-                mcMetaContents = mcMetaContents.Replace("{{description}}", $"\"{description}\"");
+                mcMetaContents = mcMetaContents.Replace(SUBSTITUTIONS["description"], $"\"{description}\"");
                 var packFormat = Table["resourcepack"]["pack_format"].AsInteger ?? DEFAULT_RESOURCEPACK_FORMAT;
-                mcMetaContents = mcMetaContents.Replace("{{pack_format}}", packFormat.ToString());
+                mcMetaContents = mcMetaContents.Replace(SUBSTITUTIONS["pack_format"], packFormat.ToString());
                 File.WriteAllText(mcMeta, mcMetaContents);
             }
         }
@@ -265,13 +264,13 @@ internal static class Program
         {
             var path = Path.Combine(Context.Datapack!.OutputDir, "data", "minecraft", "tags", "functions", "load.json");
             var content = File.ReadAllText(path);
-            content = content.Replace("{{loading_functions}}", string.Join("", Context.Datapack!.LoadFunctions.Select(f => $",\n    \"{f}\"")));
+            content = content.Replace(SUBSTITUTIONS["loading_functions"], string.Join("", Context.Datapack!.LoadFunctions.Select(f => $",\n    \"{f}\"")));
             File.WriteAllText(path, content);
         }
         {
             var path = Path.Combine(Context.Datapack!.OutputDir, "data", "minecraft", "tags", "functions", "tick.json");
             var content = File.ReadAllText(path);
-            content = content.Replace("{{ticking_functions}}", string.Join("", Context.Datapack!.TickFunctions.Select(f => $",\n    \"{f}\"")));
+            content = content.Replace(SUBSTITUTIONS["ticking_functions"], string.Join("", Context.Datapack!.TickFunctions.Select(f => $",\n    \"{f}\"")));
             File.WriteAllText(path, content);
         }
     }
@@ -324,7 +323,7 @@ internal static class Program
     
     private static IEnumerable<string> FindCompileTargets(string sDir) 
     {
-        foreach (var f in Directory.GetFiles(sDir, "*.amy"))
+        foreach (var f in Directory.GetFiles(sDir, SOURCE_FILE))
         {
             yield return f;
         }
@@ -343,27 +342,46 @@ internal static class Program
         var cts = ConsoleUtility.PrintLongTask("Compiling program", out var getElapsed);
         try
         {
-            var files = Directory.GetDirectories(Context.SourcePath).SelectMany(dir =>
+            foreach (var directory in Directory.GetDirectories(Context.SourcePath))
             {
-                var nsName = Path.GetFileName(dir);
                 var ns = new Namespace
                 {
-                    Name = nsName,
-                    Parent = null,
-                    Context = Context
+                    Context = Context,
+                    Scope = new Scope
+                    {
+                        Name = Path.GetFileName(directory),
+                        Parent = null,
+                        Context = Context
+                    }
                 };
-                Context.Namespaces.Add(nsName, ns);
+                
+                ns.Functions.Add("_load", new Function
+                {
+                    Scope = ns.Scope,
+                    Name = ns.GenerateFunctionName(),
+                    Attributes = new List<string> { ATTRIBUTE_LOAD_FUNCTION }
+                });
 
-                return FindCompileTargets(dir).Select(target =>
+                Context.Namespaces.Add(ns);
+                
+                var nsFiles = FindCompileTargets(directory).Select(target =>
                 {
                     var content = File.ReadAllText(target);
-                    return content.Parse(target, ns);
-                });
-            }).ToList();
-        
+                    return Context.Parse(content, target, ns);
+                }).ToList();
+                
+                ns.Files.AddRange(nsFiles);
+            }
+
+            foreach (var file in Directory.GetFiles(Context.SourcePath, SOURCE_FILE))
+            {
+                var content = File.ReadAllText(file);
+                Context.Parse(content, file, null);
+            }
+            
             CreateFunctionTags();
             
-            files.Compile(Context);
+            Context.Compile();
             cts.Cancel();
             ConsoleUtility.PrintMessageWithTime("Program compiled.", getElapsed());
         }

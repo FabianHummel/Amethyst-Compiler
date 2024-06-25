@@ -5,20 +5,34 @@ namespace Amethyst;
 
 public partial class Compiler : AmethystBaseVisitor<object?>
 {
-    private IEnumerable<AmethystParser.FileContext> Files { get; }
     private Context Context { get; }
+    private Scope Scope { get; set; } = null!;
+    private Namespace Namespace { get; set; } = null!;
     
-    public Compiler(IEnumerable<AmethystParser.FileContext> files, Context context)
+    public Compiler(Context context)
     {
-        Files = files;
         Context = context;
     }
 
     public void Compile()
     {
-        foreach (var file in Files)
+        foreach (var ns in Context.Namespaces)
         {
-            VisitFile(file);
+            Namespace = ns;
+            
+            Scope = new Scope
+            {
+                Name = ns.Functions["_load"].Name,
+                Parent = ns.Scope,
+                Context = Context
+            };
+            
+            Scope.AddCode("");
+            
+            foreach (var file in ns.Files)
+            {
+                VisitFile(file);
+            }
         }
     }
 }

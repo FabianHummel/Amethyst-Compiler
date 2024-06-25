@@ -7,17 +7,13 @@ public partial class Compiler
 {
     public override object? VisitDeclaration(AmethystParser.DeclarationContext context)
     {
-        if (context.namespace_declaration() is { } namespaceDeclaration)
-        {
-            return null;
-        }
         if (context.function_declaration() is { } functionDeclaration)
         {
-            return null;
+            return VisitFunction_declaration(functionDeclaration);
         }
         if (context.statement() is { } statement)
         {
-            return null;
+            return VisitStatement(statement);
         }
     
         throw new UnreachableException();

@@ -5,17 +5,15 @@ namespace Amethyst;
 
 public class AmethystErrorListener : BaseErrorListener
 {
-    private Namespace Context { get; }
-    private string FileName { get; }
+    private Parser Parser { get; }
     
-    public AmethystErrorListener(Namespace context, string fileName)
+    public AmethystErrorListener(Parser parser)
     {
-        Context = context;
-        FileName = fileName;
+        Parser = parser;
     }
     
     public override void SyntaxError(IRecognizer recognizer, IToken offendingSymbol, int line, int charPositionInLine, string msg, RecognitionException e)
     {
-        throw new SyntaxException(msg, line, charPositionInLine, Path.Combine(Context.SourceFilePath, FileName));
+        throw new SyntaxException(msg, line, charPositionInLine, Parser.FilePath);
     }
 }

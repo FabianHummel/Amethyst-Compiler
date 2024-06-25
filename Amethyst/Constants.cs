@@ -1,9 +1,13 @@
+using System.Collections.ObjectModel;
+
 namespace Amethyst;
 
 public static class Constants
 {
     public const string CONFIG_FILE = "amethyst.toml";
+    public const string SOURCE_FILE = "*.amy";
     public const string SOURCE_DIRECTORY = "src";
+    public const string MCFUNCTION_FILE_EXTENSION = ".mcfunction";
     public const string DEFAULT_DATAPACK_NAME = "Amethyst Datapack";
     public const string DEFAULT_RESOURCEPACK_NAME = "Amethyst Resourcepack";
     public const string DEFAULT_OUTPUT_DIRECTORY = "build";
@@ -20,4 +24,22 @@ public static class Constants
     public const string ATTRIBUTE_TICK_FUNCTION = "ticking";
     
     public static readonly string AMETHYST_VERSION = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!.ToString();
+
+    public static readonly IReadOnlyDictionary<string, string> SUBSTITUTIONS = new Dictionary<string, string>
+    {
+        { "description", "{{description}}" },
+        { "pack_format", "{{pack_format}}" },
+        { "loading_functions", "{{loading_functions}}" },
+        { "ticking_functions", "{{ticking_functions}}" },
+        { "date", "{{date}}" },
+        { "amethyst_version", "{{amethyst_version}}" },
+    };
+    
+    public static readonly IReadOnlyDictionary<string, object> SUBSTITUTION_VALUES = new Dictionary<string, object>
+    {
+        { "date", DateTime.Now.ToString("yyyy-MM-dd") },
+        { "amethyst_version", AMETHYST_VERSION }
+    };
+
+    public const string DATAPACK_FUNCTIONS_DIRECTORY = "functions";
 }

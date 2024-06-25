@@ -1,68 +1,69 @@
 using Amethyst.Language;
 using Amethyst.Model;
-using Antlr4.Runtime;
+using static Amethyst.Constants;
 
 namespace Amethyst;
 
 public class AmethystParseListener : AmethystBaseListener
 {
-    private Namespace Context { get; }
+    private Parser Parser { get; }
     
-    public AmethystParseListener(Namespace context)
+    public AmethystParseListener(Parser parser)
     {
-        Context = context;
-    }
-    
-    private List<string> GetNamespacePath(List<string> path, AmethystParser.Namespace_declarationContext? context)
-    {
-        if (context is not null)
-        {
-            path.Insert(0, context.namespace_identifier().GetText());
-        }
-        if (context?.Parent is AmethystParser.Namespace_declarationContext ns)
-        {
-            path.InsertRange(0, context.namespace_identifier().GetText().Split("::"));
-            return GetNamespacePath(path, ns);
-        }
-        return path;
-    }
-    
-    private Namespace CreateOrGetNamespace(IReadOnlyList<string> path, Namespace context)
-    {
-        if (path.Count == 0 || path[0] == context.Name)
-        {
-            return context;
-        }
-
-        var name = path[0];
-        if (context.Namespaces.TryGetValue(name, out var ns))
-        {
-            return CreateOrGetNamespace(path.Skip(1).ToList(), ns);
-        }
-
-        var newNs = new Namespace
-        {
-            Parent = context,
-            Context = context.Context,
-            Name = name,
-        };
-        
-        context.Namespaces.Add(name, newNs);
-        
-        return CreateOrGetNamespace(path.Skip(1).ToList(), newNs);
+        Parser = parser;
     }
     
     public override void ExitFunction_declaration(AmethystParser.Function_declarationContext context)
     {
-        var path = GetNamespacePath(new List<string>(), context.Parent.Parent as AmethystParser.Namespace_declarationContext);
-        var ns = CreateOrGetNamespace(path, Context);
+        if (Parser.Ns == null)
+        {
+            throw new Exception("Namespace is not defined. Either place the file in a folder or use the namespace keyword.");
+        }
+        
         var name = context.identifier().GetText();
-        ns.Functions.Add(name, context);
+        var function = new Function
+        {
+            Name = Parser.Ns.GenerateFunctionName(),
+            Scope = Parser.Ns.Scope,
+            Attributes = context.attribute_list().SelectMany(Attribute_listContext =>
+            {
+                return Attribute_listContext.attribute().Select(Attribute_listContext_inner =>
+                {
+                    return Attribute_listContext_inner.identifier().GetText();
+                });
+            }).ToList()
+        };
+        
+        Parser.Ns.Functions.Add(name, function);
     }
 
     public override void ExitNamespace_declaration(AmethystParser.Namespace_declarationContext context)
     {
-        var path = GetNamespacePath(new List<string>(), context);
-        CreateOrGetNamespace(path, Context);
+        var name = context.identifier().GetText();
+        if (Parser.Ns is { } ns)
+        {
+            throw new Exception($"Namespace '{name}' cannot be used instead of '{ns.Scope.Name}' because the file is placed inside '/{SOURCE_DIRECTORY}/{ns.Scope.Name}'. " +
+                                $"Either place the file directly inside '/{SOURCE_DIRECTORY}' or remove the namespace declaration.");
+        }
+
+        Parser.Ns = new Namespace
+        {
+            Context = Parser.Context,
+            Scope = new Scope
+            {
+                Name = name,
+                Parent = null,
+                Context = Parser.Context
+            }
+        };
+
+        Parser.Ns.Functions.Add("_load", new Function
+        {
+            Scope = Parser.Ns.Scope,
+            Name = "_load",
+            Attributes = new List<string> { ATTRIBUTE_LOAD_FUNCTION }
+        });
+
+        Parser.Context.Namespaces.Add(Parser.Ns);
     }
 }

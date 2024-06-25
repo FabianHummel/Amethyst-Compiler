@@ -1,5 +1,5 @@
-namespace nice::okay::fine {
-    function hello() {
-        var this = is + { not: so.cool };
-    }
+[initializing]
+function nice() {
+    debug "okey";
+    debug "nice";
 }

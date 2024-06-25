@@ -1,32 +1,22 @@
-using System.Text;
 using Amethyst.Language;
+using Amethyst.Utility;
 
 namespace Amethyst.Model;
 
 public class Namespace
 {
     public required Context Context { get; init; }
-    public required string Name { get; init; }
-    public required Namespace? Parent { get; init; }
-    public Dictionary<string, AmethystParser.Function_declarationContext> Functions { get; } = new();
-    public Dictionary<string, AmethystParser.Variable_declarationContext> Variables { get; } = new();
-    public Dictionary<string, AmethystParser.Record_declarationContext> Records { get; } = new();
-    public Dictionary<string, Namespace> Namespaces { get; } = new();
-    
-    public string SourceFilePath => Path.Combine(Context.SourcePath, Name).Replace('\\', '/');
+    public required Scope Scope { get; init; }
+    public List<AmethystParser.FileContext> Files { get; } = new();
+    public Dictionary<string, Function> Functions { get; } = new();
 
-    public string McFunctionPath
+    public string GenerateFunctionName()
     {
-        get
+        var randomString = StringGenerator.GenerateRandomString(8);
+        if (Functions.ContainsKey(randomString))
         {
-            var sb = new StringBuilder("/");
-            var current = this;
-            while (current.Parent is not null)
-            {
-                sb.Insert(0, $"/{current.Name}");
-                current = current.Parent;
-            }
-            return $"{current.Name}:{sb.ToString()[1..]}";
+            return GenerateFunctionName();
         }
+        return randomString;
     }
 }

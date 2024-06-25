@@ -27,4 +27,8 @@
     <ItemGroup>
         <EmbeddedResource Include="Resources/**" />
     </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Amethyst.csproj.DotSettings" />
+    </ItemGroup>
 </Project>

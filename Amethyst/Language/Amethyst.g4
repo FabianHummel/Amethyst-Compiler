@@ -5,22 +5,16 @@ COMMENT: '#' ~[\r\n]* -> skip;
 IDENTIFIER: [a-zA-Z] [a-zA-Z0-9_]*;
 
 file
- : declaration* EOF
- ;
- 
-declaration
- : namespace_declaration
- | function_declaration
- | statement
+ : namespace_declaration? declaration* EOF
  ;
  
 namespace_declaration
- : 'namespace' namespace_identifier '{' declaration* '}'
- | 'namespace' namespace_identifier ';' declaration*
+ : 'namespace' identifier ';'
  ;
- 
-namespace_identifier
- : identifier ('::' identifier)*
+
+declaration
+ : function_declaration
+ | statement
  ;
  
 function_declaration

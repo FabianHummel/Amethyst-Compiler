@@ -7,14 +7,16 @@ namespace Amethyst;
 public class Parser
 {
     private string Source { get; }
-    private string FileName { get; }
-    private Namespace Context { get; }
+    public string FilePath { get; }
+    public Context Context { get; }
+    public Namespace? Ns { get; set; }
     
-    public Parser(string source, string fileName, Namespace context)
+    public Parser(Context context, string source, string filePath, Namespace? ns)
     {
         Source = source;
-        FileName = fileName;
+        FilePath = filePath;
         Context = context;
+        Ns = ns;
     }
     
     public AmethystParser.FileContext Parse()
@@ -23,8 +25,8 @@ public class Parser
         var lexer = new AmethystLexer(inputStream);
         var tokenStream = new CommonTokenStream(lexer);
         var parser = new AmethystParser(tokenStream);
-        parser.AddErrorListener(new AmethystErrorListener(Context, FileName));
-        parser.AddParseListener(new AmethystParseListener(Context));
+        parser.AddErrorListener(new AmethystErrorListener(this));
+        parser.AddParseListener(new AmethystParseListener(this));
         return parser.file();
     }
 }
