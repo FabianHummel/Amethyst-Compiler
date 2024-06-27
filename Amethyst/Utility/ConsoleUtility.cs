@@ -7,6 +7,8 @@ namespace Amethyst.Utility;
 public static class ConsoleUtility
 {
     public static bool WatchMode { get; set; }
+    public static bool DebugMode { get; set; }
+
     private static CancellationTokenSource? LongTaskCts { get; set; }
 
     public static void ClearConsole()
@@ -36,6 +38,11 @@ public static class ConsoleUtility
             Console.ForegroundColor = ConsoleColor.DarkCyan;
             Console.Write(" (watch mode)");
         }
+        if (DebugMode)
+        {
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.Write(" (debug mode)");
+        }
         Console.WriteLine();
         Console.ResetColor();
         Console.WriteLine();
@@ -52,7 +59,7 @@ public static class ConsoleUtility
                 var i = 0;
                 while (!cts.Token.IsCancellationRequested)
                 {
-                    Console.Write($"\r {Dim($"\u279c {executionText} {"\u280b\u2819\u2839\u2838\u283c\u2834\u2826\u2827\u2807\u280f"[i]} ")}");
+                    Console.Write($"\r {Dim($"\u279c {executionText} {"\u280b\u2819\u2839\u2838\u283c\u2834\u2826\u2827\u2807\u280f"[i]} ")}".PadRight(Console.WindowWidth));
                     i = (i + 1) % 10;
                     Console.ResetColor();
                     Thread.Sleep(100);
@@ -66,28 +73,34 @@ public static class ConsoleUtility
     
     public static void PrintMessageWithTime(string s, long elapsed)
     {
-        Console.WriteLine($"\r {Dim("\u279c")} {s} {Dim($"({elapsed}ms)")}");
+        Console.WriteLine($"\r {Dim("\u279c")} {s} {Dim($"({elapsed}ms)")}".PadRight(Console.WindowWidth));
+        Console.ResetColor();
+    }
+    
+    public static void PrintDebugMessageWithTime(string s, long elapsed)
+    {
+        if (!DebugMode) return;
+        Console.WriteLine($"\r {Dim("\u279c")} {Dim(s)} {Dim($"({elapsed}ms)")}".PadRight(Console.WindowWidth));
         Console.ResetColor();
     }
     
     public static void PrintError(string s)
     {
         LongTaskCts?.Cancel();
-        Console.WriteLine($"\r {Red().Dim("\u279c")} {Red().Bold(s)}");
+        Console.WriteLine($"\r {Red().Dim("\u279c")} {Red().Bold(s)}".PadRight(Console.WindowWidth));
         Console.ResetColor();
     }
 
     public static void PrintWarning(string s)
     {
-        LongTaskCts?.Cancel();
-        Console.WriteLine($"\r {Yellow().Dim("\u279c")} {s}");
+        Console.WriteLine($"\r {Yellow().Dim("\u279c")} {s}".PadRight(Console.WindowWidth));
         Console.ResetColor();
     }
     
-    public static void PrintInfo(string s)
+    public static void PrintDebug(string s)
     {
-        LongTaskCts?.Cancel();
-        Console.WriteLine($"\r {Dim("\u279c")} {s}");
+        if (!DebugMode) return;
+        Console.WriteLine($"\r {Dim("\u279c")} {Dim(s)}".PadRight(Console.WindowWidth));
         Console.ResetColor();
     }
 }

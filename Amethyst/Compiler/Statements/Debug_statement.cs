@@ -8,11 +8,11 @@ public partial class Compiler
     {
         var result = VisitExpression(context.expression());
         
+        // Todo: prettify result into _out
         
-        
-        Scope.AddCode($$"""
-                        tellraw @a ["",{"text":"[DEBUG]: ","bold":true,"italic":true,"color":"gray"},{"nbt":"_out","storage":"amethyst","interpret":true}]
-                        """);
+        AddCode("""
+                tellraw @a ["",{"text":"[DEBUG]: ","bold":true,"italic":true,"color":"gray"},{"nbt":"_out","storage":"amethyst","interpret":true}]
+                """);
 
         return null;
     }

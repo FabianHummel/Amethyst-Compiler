@@ -14,7 +14,7 @@ public partial class Compiler
         
         var previousFunction = Scope.Name;
         var functionName = context.identifier().GetText();
-        Scope.Name = Namespace.Functions[functionName].Name;
+        Scope.Name = Namespace.Functions[functionName].Scope.Name;
         
         VisitBlock(context.block());
         

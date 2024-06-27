@@ -23,8 +23,12 @@ public class AmethystParseListener : AmethystBaseListener
         var name = context.identifier().GetText();
         var function = new Function
         {
-            Name = Parser.Ns.GenerateFunctionName(),
-            Scope = Parser.Ns.Scope,
+            Scope = new Scope
+            {
+                Name = Parser.Ns.GenerateFunctionName(),
+                Context = Parser.Context,
+                Parent = Parser.Ns.Scope
+            },
             Attributes = context.attribute_list().SelectMany(Attribute_listContext =>
             {
                 return Attribute_listContext.attribute().Select(Attribute_listContext_inner =>
@@ -42,8 +46,11 @@ public class AmethystParseListener : AmethystBaseListener
         var name = context.identifier().GetText();
         if (Parser.Ns is { } ns)
         {
-            throw new Exception($"Namespace '{name}' cannot be used instead of '{ns.Scope.Name}' because the file is placed inside '/{SOURCE_DIRECTORY}/{ns.Scope.Name}'. " +
-                                $"Either place the file directly inside '/{SOURCE_DIRECTORY}' or remove the namespace declaration.");
+            throw new SyntaxException($"Namespace '{name}' cannot be used instead of '{ns.Scope.Name}' because the file is placed inside '/{SOURCE_DIRECTORY}/{ns.Scope.Name}'. " +
+                                      $"Either place the file directly inside '/{SOURCE_DIRECTORY}' or remove the namespace declaration.",
+                context.identifier().Start.Line,
+                context.identifier().Start.Column,
+                Parser.FilePath);
         }
 
         Parser.Ns = new Namespace
@@ -59,8 +66,12 @@ public class AmethystParseListener : AmethystBaseListener
 
         Parser.Ns.Functions.Add("_load", new Function
         {
-            Scope = Parser.Ns.Scope,
-            Name = "_load",
+            Scope = new Scope
+            {
+                Name = Parser.Ns.GenerateFunctionName(),
+                Context = Parser.Context,
+                Parent = Parser.Ns.Scope
+            },
             Attributes = new List<string> { ATTRIBUTE_LOAD_FUNCTION }
         });
 

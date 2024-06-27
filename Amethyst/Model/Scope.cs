@@ -19,7 +19,7 @@ public class Scope
     {
         get
         {
-            var sb = new StringBuilder("/");
+            var sb = new StringBuilder("");
             var current = this;
             while (current.Parent is not null)
             {
@@ -53,7 +53,7 @@ public class Scope
         return Path.Combine("data", current.Name!, location, path);
     }
 
-    private void CreateFunctionFile()
+    public void CreateFunctionFile()
     {
         var directory = Path.GetDirectoryName(FilePath)!;
         Directory.CreateDirectory(directory);

@@ -1,5 +1,6 @@
 using Amethyst.Language;
 using Amethyst.Model;
+using static Amethyst.Constants;
 using Antlr4.Runtime;
 
 namespace Amethyst;
@@ -19,7 +20,7 @@ public class Parser
         Ns = ns;
     }
     
-    public AmethystParser.FileContext Parse()
+    public AmethystParser.FileContext Parse(out Namespace ns)
     {
         var inputStream = new AntlrInputStream(Source);
         var lexer = new AmethystLexer(inputStream);
@@ -27,6 +28,8 @@ public class Parser
         var parser = new AmethystParser(tokenStream);
         parser.AddErrorListener(new AmethystErrorListener(this));
         parser.AddParseListener(new AmethystParseListener(this));
-        return parser.file();
+        var tree = parser.file();
+        ns = Ns ?? throw new SyntaxException($"Namespace not defined. Either use the 'namespace' keyword or place the file in a directory within '/{SOURCE_DIRECTORY}'.", 0, 0, FilePath);
+        return tree;
     }
 }

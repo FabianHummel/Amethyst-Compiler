@@ -1,5 +1,5 @@
-[initializing]
 function nice() {
-    debug "okey";
-    debug "nice";
+    var nice: string = 10;
+
+    debug nice;
 }

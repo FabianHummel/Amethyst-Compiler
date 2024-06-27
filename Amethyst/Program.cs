@@ -1,9 +1,9 @@
 ﻿using System.Reflection;
-using Amethyst.Language;
 using Amethyst.Model;
 using Amethyst.Utility;
 using CommandLine;
 using static Amethyst.Constants;
+using static Amethyst.Utility.ConsoleUtility;
 
 namespace Amethyst;
 
@@ -24,10 +24,11 @@ internal static class Program
         CommandLine.Parser.Default.ParseArguments<Options>(args)
             .WithParsed(o =>
             {
-                ConsoleUtility.WatchMode = o.Watch;
+                WatchMode = o.Watch;
+                DebugMode = o.Debug;
                 
-                ConsoleUtility.ClearConsole();
-                ConsoleUtility.PrintAmethystLogoAndVersion();
+                ClearConsole();
+                PrintAmethystLogoAndVersion();
                 
                 ReinitializeProject();
                 
@@ -80,7 +81,7 @@ internal static class Program
             {
                 foreach (var error in errors)
                 {
-                    ConsoleUtility.PrintError($"Invalid argument {error.Tag}");
+                    PrintError($"Invalid argument {error.Tag}");
                 }
             });
     }
@@ -96,7 +97,7 @@ internal static class Program
         }
         catch (Exception)
         {
-            ConsoleUtility.PrintError($"Missing or invalid configuration file '{CONFIG_FILE}' found in current working directory '{Environment.CurrentDirectory}'");
+            PrintError($"Missing or invalid configuration file '{CONFIG_FILE}' found in current working directory '{Environment.CurrentDirectory}'");
             throw;
         }
     }
@@ -127,7 +128,7 @@ internal static class Program
         if (!Directory.Exists(Context.MinecraftRoot))
         {
             var defaultPath = Path.Combine(Environment.CurrentDirectory, SOURCE_DIRECTORY, DEFAULT_OUTPUT_DIRECTORY);
-            ConsoleUtility.PrintWarning($"Minecraft root not found at default locations, using current directory as source if a world name has been specified for the output. ({defaultPath})");
+            PrintWarning($"Minecraft root not found at default locations, using current directory as source if a world name has been specified for the output. ({defaultPath})");
             Context.MinecraftRoot = null;
         }
     }
@@ -140,11 +141,13 @@ internal static class Program
     private static void SetDatapackName()
     {
         Context.Datapack!.Name = Table["datapack"]["name"].AsString ?? DEFAULT_DATAPACK_NAME;
+        PrintDebug($"Datapack name = '{Context.Datapack.Name}'.");
     }
     
     private static void SetResourcepackName()
     {
         Context.Resourcepack!.Name = Table["resourcepack"]["name"].AsString ?? DEFAULT_RESOURCEPACK_NAME;
+        PrintDebug($"Resourcepack name = '{Context.Resourcepack.Name}'.");
     }
 
     private static void SetDatapackOutputDirectory()
@@ -177,6 +180,8 @@ internal static class Program
             }
             Context.Datapack!.OutputDir = Path.Combine(Context.MinecraftRoot, "saves", outDir, "datapacks", Context.Datapack!.Name);
         }
+        
+        PrintDebug($"Datapack output directory: '{Context.Datapack.OutputDir}'.");
     }
     
     private static void SetResourcepackOutputDirectory()
@@ -199,6 +204,8 @@ internal static class Program
         {
             Context.Resourcepack!.OutputDir = Path.Combine(Context.MinecraftRoot, "resourcepacks", Context.Resourcepack!.Name);
         }
+        
+        PrintDebug($"Resourcepack output directory: '{Context.Resourcepack.OutputDir}'.");
     }
     
     private static void CreateDatapackOutputFolder()
@@ -223,6 +230,7 @@ internal static class Program
 
     private static void CreateDatapackMeta()
     {
+        var cts = PrintLongTask("Creating datapack meta file", out var getElapsed);
         var mcMeta = Path.Combine(Context.Datapack!.OutputDir, "pack.mcmeta");
     
         var assembly = Assembly.GetExecutingAssembly();
@@ -238,10 +246,14 @@ internal static class Program
                 File.WriteAllText(mcMeta, mcMetaContents);
             }
         }
+        
+        cts.Cancel();
+        PrintDebugMessageWithTime($"Datapack meta file created at '{mcMeta}'.", getElapsed());
     }
     
     private static void CreateResourcepackMeta()
     {
+        var cts = PrintLongTask("Creating resourcepack meta file", out var getElapsed);
         var mcMeta = Path.Combine(Context.Resourcepack!.OutputDir, "pack.mcmeta");
     
         var assembly = Assembly.GetExecutingAssembly();
@@ -257,10 +269,14 @@ internal static class Program
                 File.WriteAllText(mcMeta, mcMetaContents);
             }
         }
+        
+        cts.Cancel();
+        PrintDebugMessageWithTime($"Resourcepack meta file created at '{mcMeta}'.", getElapsed());
     }
     
     private static void CreateFunctionTags()
     {
+        var cts = PrintLongTask("Creating function tags", out var getElapsed);
         {
             var path = Path.Combine(Context.Datapack!.OutputDir, "data", "minecraft", "tags", "functions", "load.json");
             var content = File.ReadAllText(path);
@@ -273,10 +289,15 @@ internal static class Program
             content = content.Replace(SUBSTITUTIONS["ticking_functions"], string.Join("", Context.Datapack!.TickFunctions.Select(f => $",\n    \"{f}\"")));
             File.WriteAllText(path, content);
         }
+        
+        cts.Cancel();
+        PrintDebugMessageWithTime("Function tags created.", getElapsed());
     }
     
     private static void CopyDatapackTemplate()
     {
+        var cts = PrintLongTask("Copying datapack template", out var getElapsed);
+        
         var assembly = Assembly.GetExecutingAssembly();
         var templateFiles = assembly.GetManifestResourceNames().Where(s => s.StartsWith("Amethyst.Resources.datapack"));
         foreach (var templateFile in templateFiles)
@@ -296,10 +317,15 @@ internal static class Program
                 }
             }
         }
+        
+        cts.Cancel();
+        PrintDebugMessageWithTime("Datapack template copied.", getElapsed());
     }
     
     private static void CopyResourcepackTemplate()
     {
+        var cts = PrintLongTask("Copying resourcepack template", out var getElapsed);
+        
         var assembly = Assembly.GetExecutingAssembly();
         var templateFiles = assembly.GetManifestResourceNames().Where(s => s.StartsWith("Amethyst.Resources.resourcepack"));
         foreach (var templateFile in templateFiles)
@@ -319,12 +345,19 @@ internal static class Program
                 }
             }
         }
+        
+        cts.Cancel();
+        PrintDebugMessageWithTime("Resourcepack template copied.", getElapsed());
     }
     
     private static IEnumerable<string> FindCompileTargets(string sDir) 
     {
+        var cts = PrintLongTask($"Searching for {SOURCE_FILE} files", out var getElapsed);
+        var count = 0;
+        
         foreach (var f in Directory.GetFiles(sDir, SOURCE_FILE))
         {
+            count++;
             yield return f;
         }
 
@@ -332,18 +365,29 @@ internal static class Program
         {
             foreach (var f in FindCompileTargets(d))
             {
+                count++;
                 yield return f;
             }
         }
+        
+        cts.Cancel();
+        PrintDebugMessageWithTime($"Found {count} {SOURCE_FILE} files.", getElapsed());
     }
     
     private static void CompileProject()
     {
-        var cts = ConsoleUtility.PrintLongTask("Compiling program", out var getElapsed);
+        var cts = PrintLongTask("Compiling program", out var getElapsed);
         try
         {
             foreach (var directory in Directory.GetDirectories(Context.SourcePath))
             {
+                if (Directory.GetFiles(directory, SOURCE_FILE).Length == 0)
+                {
+                    var relativeFile = Path.GetRelativePath(Context.SourcePath, directory);
+                    PrintDebug($"Skipping empty namespace '/{relativeFile}'.");
+                    continue;
+                }
+                
                 var ns = new Namespace
                 {
                     Context = Context,
@@ -357,44 +401,51 @@ internal static class Program
                 
                 ns.Functions.Add("_load", new Function
                 {
-                    Scope = ns.Scope,
-                    Name = ns.GenerateFunctionName(),
+                    Scope = new Scope
+                    {
+                        Name = ns.GenerateFunctionName(),
+                        Context = Context,
+                        Parent = ns.Scope,
+                    },
                     Attributes = new List<string> { ATTRIBUTE_LOAD_FUNCTION }
                 });
 
                 Context.Namespaces.Add(ns);
                 
-                var nsFiles = FindCompileTargets(directory).Select(target =>
+                foreach (var target in FindCompileTargets(directory))
                 {
                     var content = File.ReadAllText(target);
-                    return Context.Parse(content, target, ns);
-                }).ToList();
-                
-                ns.Files.AddRange(nsFiles);
+                    var tree = Context.Parse(content, target, ns, out var @namespace);
+                    var file = new SourceFile { Context = tree, Path = target };
+                    @namespace.Files.Add(file);
+                }
             }
 
-            foreach (var file in Directory.GetFiles(Context.SourcePath, SOURCE_FILE))
+            foreach (var target in Directory.GetFiles(Context.SourcePath, SOURCE_FILE))
             {
-                var content = File.ReadAllText(file);
-                Context.Parse(content, file, null);
+                var content = File.ReadAllText(target);
+                var tree = Context.Parse(content, target, null, out var @namespace);
+                var file = new SourceFile { Context = tree, Path = target };
+                @namespace.Files.Add(file);
             }
             
             CreateFunctionTags();
             
             Context.Compile();
             cts.Cancel();
-            ConsoleUtility.PrintMessageWithTime("Program compiled.", getElapsed());
+            PrintMessageWithTime("Program compiled.", getElapsed());
         }
         catch (SyntaxException e)
         {
+            cts.Cancel();
             var relativeFile = Path.GetRelativePath(Context.SourcePath, e.File);
-            ConsoleUtility.PrintError($"Syntax error: {relativeFile} ({e.Line}:{e.PosInLine}): {e.Message}.");
+            PrintError($"Syntax error: {relativeFile} ({e.Line}:{e.PosInLine}): {e.Message}");
         }
     }
     
     private static void CreateDatapackAndResourcepackContext()
     {
-        var cts = ConsoleUtility.PrintLongTask("Creating project structure", out var getElapsed);
+        var cts = PrintLongTask("Creating project structure", out var getElapsed);
         
         if (Table.HasKey("datapack"))
         {
@@ -416,7 +467,7 @@ internal static class Program
         }
         
         cts.Cancel();
-        ConsoleUtility.PrintMessageWithTime("Project structure created.", getElapsed());
+        PrintMessageWithTime("Project structure created.", getElapsed());
     }
 
     private static void ReinitializeProject()
@@ -429,15 +480,15 @@ internal static class Program
     
     private static void RecompileProject()
     {
+        Context.Namespaces.Clear();
         try
         {
-            Context.Namespaces.Clear();
             CreateDatapackAndResourcepackContext();
             CompileProject();
         }
         catch (Exception e)
         {
-            ConsoleUtility.PrintError(e.Message);
+            PrintError(e.Message);
         }
     }
 
@@ -448,8 +499,8 @@ internal static class Program
         Task.Delay(100, _onChangedSourceTokenSource.Token).ContinueWith(t => {
             if (t.IsCompletedSuccessfully)
             {
-                ConsoleUtility.ClearConsole();
-                ConsoleUtility.PrintAmethystLogoAndVersion();
+                ClearConsole();
+                PrintAmethystLogoAndVersion();
                 RecompileProject();
             }
         }, TaskScheduler.Default);
@@ -462,8 +513,8 @@ internal static class Program
         Task.Delay(100, _onChangedSourceTokenSource.Token).ContinueWith(t => {
             if (t.IsCompletedSuccessfully)
             {
-                ConsoleUtility.ClearConsole();
-                ConsoleUtility.PrintAmethystLogoAndVersion();
+                ClearConsole();
+                PrintAmethystLogoAndVersion();
                 Console.WriteLine("Configuration changed, reinitializing project...");
                 ReinitializeProject();
             }
