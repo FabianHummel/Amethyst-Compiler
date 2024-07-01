@@ -1,5 +1,1 @@
-function nice() {
-    var nice: string = 10;
-
-    debug nice;
-}
+record nice: int = 10;

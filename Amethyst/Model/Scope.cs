@@ -1,19 +1,21 @@
 using System.Reflection;
 using System.Text;
-using Amethyst.Language;
 using static Amethyst.Constants;
 
 namespace Amethyst.Model;
 
 public class Scope
 {
-    public required string? Name { get; set; }
+    public required string? Name { get; set; } // Todo: Make this not nullable (otherwise, variable names will clash)
     public required Scope? Parent { get; init; }
     public required Context Context { get; init; }
-    public Dictionary<string, AmethystParser.Variable_declarationContext> Variables { get; } = new();
-    public Dictionary<string, AmethystParser.Record_declarationContext> Records { get; } = new();
+    public Dictionary<string, Variable> Variables { get; } = new();
+    public Dictionary<string, Record> Records { get; } = new();
     
     public string FilePath => Path.Combine(Context.Datapack!.OutputDir, GetDataSubpath(DATAPACK_FUNCTIONS_DIRECTORY) + MCFUNCTION_FILE_EXTENSION);
+    
+    public int VariableCount => Variables.Count + Parent?.VariableCount ?? 0;
+    public int RecordCount => Records.Count + Parent?.RecordCount ?? 0;
     
     public string McFunctionPath
     {
@@ -32,7 +34,25 @@ public class Scope
             return $"{current.Name}:{sb.ToString()[1..]}";
         }
     }
-    
+
+    public string ScoreboardName
+    {
+        get
+        {
+            var sb = new StringBuilder("");
+            var current = this;
+            while (current.Parent is not null)
+            {
+                if (current.Name is not null)
+                {
+                    sb.Insert(0, $".{current.Name}");
+                }
+                current = current.Parent;
+            }
+            return $"{current.Name}_{sb.ToString()[1..]}";
+        }
+    }
+
     /// <summary>
     /// Gets the data subpath for the given location. Path structure is 'data/{root_namespace}/{location}/...
     /// </summary>

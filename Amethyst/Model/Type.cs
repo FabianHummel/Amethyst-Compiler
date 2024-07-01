@@ -51,4 +51,8 @@ public class Type
     {
         return $"{BasicType.GetDescription()}{Modifier?.GetDescription()}";
     }
+
+    public bool IsScoreboardType => Modifier == null && BasicType is BasicType.Bool or BasicType.Int or BasicType.Dec;
+    
+    public bool IsStorageType => Modifier != null || BasicType is BasicType.String or BasicType.Array or BasicType.Object;
 }

@@ -21,11 +21,20 @@ public class AmethystParseListener : AmethystBaseListener
         }
         
         var name = context.identifier().GetText();
-        var function = new Function
+        
+        if (Parser.Ns.Functions.ContainsKey(name))
+        {
+            throw new SyntaxException($"Function '{name}' is already defined in namespace '{Parser.Ns.Scope.Name}'.",
+                context.identifier().Start.Line,
+                context.identifier().Start.Column,
+                Parser.FilePath);
+        }
+        
+        Parser.Ns.Functions.Add(name, new Function
         {
             Scope = new Scope
             {
-                Name = Parser.Ns.GenerateFunctionName(),
+                Name = Parser.Ns.GetFunctionName(name),
                 Context = Parser.Context,
                 Parent = Parser.Ns.Scope
             },
@@ -36,9 +45,7 @@ public class AmethystParseListener : AmethystBaseListener
                     return Attribute_listContext_inner.identifier().GetText();
                 });
             }).ToList()
-        };
-        
-        Parser.Ns.Functions.Add(name, function);
+        });
     }
 
     public override void ExitNamespace_declaration(AmethystParser.Namespace_declarationContext context)
@@ -68,7 +75,7 @@ public class AmethystParseListener : AmethystBaseListener
         {
             Scope = new Scope
             {
-                Name = Parser.Ns.GenerateFunctionName(),
+                Name = Parser.Ns.GetFunctionName("_load"),
                 Context = Parser.Context,
                 Parent = Parser.Ns.Scope
             },

@@ -22,6 +22,10 @@ public static class Constants
 
     public const string ATTRIBUTE_LOAD_FUNCTION = "initializing";
     public const string ATTRIBUTE_TICK_FUNCTION = "ticking";
+    public const string ATTRIBUTE_ASSIGN_ON_LEAVE = "assign_on_leave";
+    public const string ATTRIBUTE_ASSIGN_ON_JOIN = "assign_on_join";
+    public const string ATTRIBUTE_ASSIGN_ON_TICK = "assign_on_tick";
+    public const string ATTRIBUTE_ASSIGN_ON_LOAD = "assign_on_load";
     
     public static readonly string AMETHYST_VERSION = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!.ToString();
 

@@ -6,9 +6,6 @@ namespace Amethyst.Utility;
 
 public static class ConsoleUtility
 {
-    public static bool WatchMode { get; set; }
-    public static bool DebugMode { get; set; }
-
     private static CancellationTokenSource? LongTaskCts { get; set; }
 
     public static void ClearConsole()
@@ -33,12 +30,12 @@ public static class ConsoleUtility
         
         Console.ForegroundColor = ConsoleColor.DarkGray;
         Console.Write("v" + AMETHYST_VERSION);
-        if (WatchMode)
+        if (Program.WatchMode)
         {
             Console.ForegroundColor = ConsoleColor.DarkCyan;
             Console.Write(" (watch mode)");
         }
-        if (DebugMode)
+        if (Program.DebugMode)
         {
             Console.ForegroundColor = ConsoleColor.DarkYellow;
             Console.Write(" (debug mode)");
@@ -79,7 +76,7 @@ public static class ConsoleUtility
     
     public static void PrintDebugMessageWithTime(string s, long elapsed)
     {
-        if (!DebugMode) return;
+        if (!Program.DebugMode) return;
         Console.WriteLine($"\r {Dim("\u279c")} {Dim(s)} {Dim($"({elapsed}ms)")}".PadRight(Console.WindowWidth));
         Console.ResetColor();
     }
@@ -99,7 +96,7 @@ public static class ConsoleUtility
     
     public static void PrintDebug(string s)
     {
-        if (!DebugMode) return;
+        if (!Program.DebugMode) return;
         Console.WriteLine($"\r {Dim("\u279c")} {Dim(s)}".PadRight(Console.WindowWidth));
         Console.ResetColor();
     }

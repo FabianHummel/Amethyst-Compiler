@@ -1,0 +1,2 @@
+- Destination property in Compiler (name). This destination will be used by the first visitor that wants to store a value and returns a Location (name, subject, value). For variables, the value can then be assigned immediately, and for records, the value is assigned to a record_init_value that is used to assign entries to the record at a later point in time (e.g. player joins late)
+- Stack for variables and records. Don't increment and use that value as name, but push stack.length and pop to get variable or record names.

@@ -46,12 +46,6 @@ public partial class Compiler : AmethystBaseVisitor<object?>
         throw new SyntaxException(message, context.Start.Line, context.Start.Column, SourceFile.Path);
     }
     
-    private bool InferType(object? result, [MaybeNullWhen(false)] out Type type)
-    {
-        type = new Type { BasicType = BasicType.Int };
-        return true;
-    }
-    
     private void AddCode(string code)
     {
         Scope.AddCode(code);

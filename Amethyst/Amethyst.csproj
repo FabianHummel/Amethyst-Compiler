@@ -31,4 +31,8 @@
     <ItemGroup>
       <None Remove="Amethyst.csproj.DotSettings" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Compiler\Expressions\" />
+    </ItemGroup>
 </Project>

@@ -1,5 +1,3 @@
-using Amethyst.Utility;
-
 namespace Amethyst.Model;
 
 public class Namespace
@@ -9,14 +7,14 @@ public class Namespace
     public List<SourceFile> Files { get; } = new();
     public Dictionary<string, Function> Functions { get; } = new();
 
-    public string GenerateFunctionName()
+    public string GetFunctionName(string debugName)
     {
-        var randomString = StringGenerator.GenerateRandomString(8);
-        if (Functions.ContainsKey(randomString))
+        if (Program.DebugMode)
         {
-            return GenerateFunctionName();
+            return debugName;
         }
-        return randomString;
+        
+        return Functions.Count == 0 ? "_load" : $"f{Functions.Count}";
     }
 
     public void AddInitCode(string code)

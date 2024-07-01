@@ -62,7 +62,7 @@ variable_declaration
  ;
  
 record_declaration
- : 'record' identifier (':' type)? ('=' expression)? ';'
+ : attribute_list* 'record' identifier (':' type)? ('=' expression)? ';'
  ;
 
 for_statement

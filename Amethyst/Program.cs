@@ -19,6 +19,9 @@ internal static class Program
     private static FileSystemWatcher _configWatcher = null!;
     private static CancellationTokenSource? _onChangedSourceTokenSource;
     
+    public static bool WatchMode { get; set; }
+    public static bool DebugMode { get; set; }
+    
     private static void Main(string[] args)
     {
         CommandLine.Parser.Default.ParseArguments<Options>(args)
@@ -403,7 +406,7 @@ internal static class Program
                 {
                     Scope = new Scope
                     {
-                        Name = ns.GenerateFunctionName(),
+                        Name = ns.GetFunctionName("_load"),
                         Context = Context,
                         Parent = ns.Scope,
                     },

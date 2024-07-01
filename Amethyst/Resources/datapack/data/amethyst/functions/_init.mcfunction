@@ -8,15 +8,16 @@
 #     -=-=-= COMPILER PLATFORM =-=-=-=-=-=-=-=-=-                                                   
 #
 
-# Amethyst
-scoreboard objectives add amethyst dummy {"text":"Amethyst internals","color":"dark_purple"}
+scoreboard objectives add amethyst dummy
+scoreboard objectives modify amethyst displayname {"text":"Amethyst internals","color":"light_purple"}
 scoreboard players reset * amethyst
 
-scoreboard objectives add amethyst_const dummy {"text":"Amethyst constants","color":"dark_purple"}
+scoreboard objectives add amethyst_const dummy
+scoreboard objectives modify amethyst_const displayname {"text":"Amethyst constants","color":"light_purple"}
 scoreboard players reset * amethyst_const
 
 data merge storage amethyst:internal {_out:{}, _argv:[]}
+data merge storage amethyst:records {}
 data merge storage amethyst:constants {}
 
-scoreboard players set -1 amethyst_const -1
-scoreboard players set 100 amethyst_const 100
+# ["",{"text":"Constant: ","color":"gray"},{"text":"100","color":"red","bold":true}]
