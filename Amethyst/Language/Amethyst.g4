@@ -18,11 +18,11 @@ declaration
  ;
  
 function_declaration
- : attribute_list* 'function' identifier '(' parameter_list? ')' (':' type)? block
+ : attribute_list 'function' identifier '(' parameter_list? ')' (':' type)? block
  ;
  
 attribute_list
- : '[' attribute (',' attribute)* ']'
+ : ('[' attribute (',' attribute)* ']')*
  ;
  
 attribute
@@ -62,7 +62,7 @@ variable_declaration
  ;
  
 record_declaration
- : attribute_list* 'record' identifier (':' type)? ('=' expression)? ';'
+ : attribute_list 'record' identifier (':' type)? ('=' expression)? ';'
  ;
 
 for_statement

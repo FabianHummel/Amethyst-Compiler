@@ -1,20 +1,21 @@
 using System.Diagnostics;
 using Amethyst.Language;
+using Amethyst.Model;
 
 namespace Amethyst;
 
 public partial class Compiler
 {
-    public override object? VisitExpression(AmethystParser.ExpressionContext context)
+    public Result VisitExpressionTargeted(AmethystParser.ExpressionContext context, string target)
     {
         if (context.conditional() is { } conditionalContext)
         {
-            return VisitConditional(conditionalContext);
+            return VisitConditionalTargeted(conditionalContext, target: target);
         }
-        if (context.assignment() is { } assignmentContext)
-        {
-            return VisitAssignment(assignmentContext);
-        }
+        // if (context.assignment() is { } assignmentContext)
+        // {
+        //     return VisitAssignment(assignmentContext);
+        // }
 
         throw new UnreachableException();
     }

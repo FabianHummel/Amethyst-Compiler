@@ -16,8 +16,7 @@ scoreboard objectives add amethyst_const dummy
 scoreboard objectives modify amethyst_const displayname {"text":"Amethyst constants","color":"light_purple"}
 scoreboard players reset * amethyst_const
 
-data merge storage amethyst:internal {_out:{}, _argv:[]}
-data merge storage amethyst:records {}
-data merge storage amethyst:constants {}
+data remove storage amethyst:internal _out
+data remove storage amethyst:internal _argv
 
 # ["",{"text":"Constant: ","color":"gray"},{"text":"100","color":"red","bold":true}]

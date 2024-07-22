@@ -9,6 +9,7 @@ public class Scope
     public required string? Name { get; set; } // Todo: Make this not nullable (otherwise, variable names will clash)
     public required Scope? Parent { get; init; }
     public required Context Context { get; init; }
+    public Dictionary<string, int> Scopes { get; } = new();
     public Dictionary<string, Variable> Variables { get; } = new();
     public Dictionary<string, Record> Records { get; } = new();
     

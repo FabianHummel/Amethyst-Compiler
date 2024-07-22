@@ -1,3 +1,5 @@
+using Antlr4.Runtime;
+
 namespace Amethyst.Model;
 
 public class SyntaxException : Exception
@@ -11,5 +13,12 @@ public class SyntaxException : Exception
         Line = line;
         PosInLine = posInLine;
         File = file;
+    }
+
+    public SyntaxException(string message, ParserRuleContext context)
+    {
+        Line = context.Start.Line;
+        PosInLine = context.Start.Column;
+        File = context.Start.InputStream.SourceName;
     }
 }

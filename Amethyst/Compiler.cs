@@ -10,6 +10,9 @@ public partial class Compiler : AmethystBaseVisitor<object?>
 {
     private Context Context { get; }
     private Scope Scope { get; set; } = null!;
+    private int TotalVariableCount { get; set; } = 0;
+    private int TotalRecordCount { get; set; } = 0;
+    private int StackPointer { get; set; } = 0;
     private Namespace Namespace { get; set; } = null!;
     private SourceFile SourceFile { get; set; } = null!;
     
@@ -41,11 +44,6 @@ public partial class Compiler : AmethystBaseVisitor<object?>
         }
     }
     
-    private void ThrowSyntaxError(string message, ParserRuleContext context)
-    {
-        throw new SyntaxException(message, context.Start.Line, context.Start.Column, SourceFile.Path);
-    }
-    
     private void AddCode(string code)
     {
         Scope.AddCode(code);
@@ -54,5 +52,27 @@ public partial class Compiler : AmethystBaseVisitor<object?>
     private void AddInitCode(string code)
     {
         Namespace.AddInitCode(code);
+    }
+    
+    private Scope EvaluateScoped(string name, Action action)
+    {
+        if (!Scope.Scopes.TryAdd(name, 0))
+        {
+            Scope.Scopes[name]++;
+        }
+        
+        var previousScope = Scope;
+        var newScope = Scope = new Scope
+        {
+            Name = name + Scope.Scopes[name],
+            Parent = previousScope,
+            Context = Context
+        };
+        
+        action();
+        
+        Scope = previousScope;
+        
+        return newScope;
     }
 }

@@ -38,12 +38,9 @@ public class AmethystParseListener : AmethystBaseListener
                 Context = Parser.Context,
                 Parent = Parser.Ns.Scope
             },
-            Attributes = context.attribute_list().SelectMany(Attribute_listContext =>
-            {
-                return Attribute_listContext.attribute().Select(Attribute_listContext_inner =>
-                {
-                    return Attribute_listContext_inner.identifier().GetText();
-                });
+            Attributes = context.attribute_list().attribute().Select(attributeContext =>
+            { 
+                return attributeContext.identifier().GetText();
             }).ToList()
         });
     }
