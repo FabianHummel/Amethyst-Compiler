@@ -7,18 +7,19 @@ public partial class Compiler
 {
     public override object? VisitBlock(AmethystParser.BlockContext context)
     {
-        var previousScope = Scope;
-        Scope = new Scope
-        {
-            Name = null,
-            Parent = previousScope,
-            Context = Context
-        };
-        foreach (var statementContext in context.statement())
-        {
-            VisitStatement(statementContext);
-        }
-        Scope = previousScope;
+        var scope = VisitBlockNamed(context, "_block");
+        AddCode($"function {scope.McFunctionPath}");
         return null;
+    }
+
+    private Scope VisitBlockNamed(AmethystParser.BlockContext context, string name)
+    {
+        return EvaluateScoped(name, () =>
+        {
+            foreach (var statementContext in context.statement())
+            {
+                VisitStatement(statementContext);
+            }
+        });
     }
 }

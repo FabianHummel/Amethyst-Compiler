@@ -12,13 +12,8 @@ public partial class Compiler
             throw new Exception($"Consider configuring the datapack in '{CONFIG_FILE}' in order to use functions.");
         }
         
-        var previousFunction = Scope.Name;
         var functionName = context.identifier().GetText();
-        Scope.Name = Namespace.Functions[functionName].Scope.Name;
-        
-        VisitBlock(context.block());
-        
-        Scope.Name = previousFunction;
+        VisitBlockNamed(context.block(), Namespace.Functions[functionName].Scope.Name!);
         
         return null;
     }

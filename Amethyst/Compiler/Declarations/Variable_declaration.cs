@@ -7,20 +7,8 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    private string GetVariableName()
-    {
-        if (Program.DebugMode)
-        {
-            return (TotalVariableCount-1).ToString();
-        }
-        
-        return Scope.VariableCount.ToString();
-    }
-    
     public override object? VisitVariable_declaration(AmethystParser.Variable_declarationContext context)
     {
-        TotalVariableCount++;
-        
         var variableName = context.identifier().GetText();
         
         if (Scope.Variables.ContainsKey(variableName))
@@ -28,15 +16,15 @@ public partial class Compiler
             throw new SyntaxException($"The variable '{variableName}' has already been declared.", context);
         }
         
-        var name = GetVariableName();
-        
         Result? result = null;
         Type? type = null;
         
         if (context.expression() is { } expression)
         {
-            result = VisitExpressionTargeted(expression, target: name);
+            result = VisitExpression(expression);
         }
+
+        var name = result?.Location ?? MemoryLocation.ToString();
         
         // if a type is defined, set the type to the defined type
         if (context.type() is { } typeContext)
@@ -59,39 +47,17 @@ public partial class Compiler
             type = result.Type;
         }
         
-        Debug.Assert(type != null);
+        Debug.Assert(type != null, nameof(type) + " != null");
+
+        var attributes = VisitAttribute_list(context.attribute_list());
 
         Scope.Variables.Add(variableName, new Variable
         {
-            Name = name,
-            Type = type
+            Location = name,
+            Type = type,
+            Attributes = attributes
         });
-
-        if (type.IsScoreboardType)
-        {
-            if (result == null)
-            {
-                AddCode($"scoreboard players reset {name} amethyst");
-            }
-            
-            if (Program.DebugMode)
-            {
-                AddInitCode($$"""scoreboard players display name {{name}} amethyst ["",{"text":"{{name}}: ","color":"dark_purple"},{"text":"{{Scope.McFunctionPath}}/","color":"gray"},{"text":"{{variableName}}","color":"light_purple"}]""");
-            }
-        }
-        else if (type.IsStorageType)
-        {
-            if (Program.DebugMode)
-            {
-                name = $"{Scope.McFunctionPath}/{variableName}"; // Todo: Move this code to the destination targeting, and the result simply contains this name in "string Location"
-            }
-            
-            if (result == null)
-            {
-                AddCode($"data remove storage amethyst:variables {name}");
-            }
-        }
-
+        
         return null;
     }
 }

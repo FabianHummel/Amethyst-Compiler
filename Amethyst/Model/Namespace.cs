@@ -14,7 +14,7 @@ public class Namespace
             return debugName;
         }
         
-        return Functions.Count == 0 ? "_load" : $"f{Functions.Count}";
+        return Functions.Count == 0 ? "_load" : "_func";
     }
 
     public void AddInitCode(string code)

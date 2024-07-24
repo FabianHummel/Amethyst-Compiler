@@ -1,7 +1,7 @@
 <br>
 <img src="Assets/logo.png" alt="Amethyst Compiler Logo" align="right" />
 
-# The Amethyst Compiler Platform <br>
+# The Amethyst Language <br>
 > A modern, refreshing way of writing Minecraft datapacks
 
 ## Introduction

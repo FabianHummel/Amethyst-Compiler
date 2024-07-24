@@ -15,9 +15,6 @@ public class Scope
     
     public string FilePath => Path.Combine(Context.Datapack!.OutputDir, GetDataSubpath(DATAPACK_FUNCTIONS_DIRECTORY) + MCFUNCTION_FILE_EXTENSION);
     
-    public int VariableCount => Variables.Count + Parent?.VariableCount ?? 0;
-    public int RecordCount => Records.Count + Parent?.RecordCount ?? 0;
-    
     public string McFunctionPath
     {
         get

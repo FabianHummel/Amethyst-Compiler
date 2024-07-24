@@ -6,13 +6,13 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public Result VisitConditionalTargeted(AmethystParser.ConditionalContext context, string target)
+    public override Result VisitConditional(AmethystParser.ConditionalContext context)
     {
-        if (context.or() is { } orContext)
+        if (context.or() is not { } orContext)
         {
-            return VisitOrTargeted(orContext, target: target);
+            throw new UnreachableException();
         }
         
-        throw new UnreachableException();
+        return VisitOr(orContext);
     }
 }

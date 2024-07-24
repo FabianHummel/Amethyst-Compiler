@@ -5,7 +5,7 @@
 #     \ \_\ \_\  \ \_\ \ \_\  \ \_____\   \ \_\   \ \_\ \_\  \/\_____\  \/\_____\    \ \_\ 
 #      \/_/\/_/   \/_/  \/_/   \/_____/    \/_/    \/_/\/_/   \/_____/   \/_____/     \/_/ 
 #                                                                                          
-#     -=-=-= COMPILER PLATFORM =-=-=-=-=-=-=-=-=-                                                   
+#     -=-=-= MCFUNCTION TRANSPILER =-=-=-=-=-=-=-=-=-                                                   
 #
 
 scoreboard objectives add amethyst dummy
@@ -16,7 +16,9 @@ scoreboard objectives add amethyst_const dummy
 scoreboard objectives modify amethyst_const displayname {"text":"Amethyst constants","color":"light_purple"}
 scoreboard players reset * amethyst_const
 
-data remove storage amethyst:internal _out
-data remove storage amethyst:internal _argv
+scoreboard objectives add amethyst_record_initializers dummy
+scoreboard objectives modify amethyst_record_initializers displayname {"text":"Amethyst record initializers","color":"light_purple"}
+# Don't reset this one, it's used to keep track of the initializers, even after restarting the server
+# scoreboard players reset * amethyst_record_initializers
 
 # ["",{"text":"Constant: ","color":"gray"},{"text":"100","color":"red","bold":true}]

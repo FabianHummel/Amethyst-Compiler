@@ -1,8 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
 using Amethyst.Language;
 using Amethyst.Model;
-using Antlr4.Runtime;
-using Type = Amethyst.Model.Type;
 
 namespace Amethyst;
 
@@ -10,9 +7,8 @@ public partial class Compiler : AmethystBaseVisitor<object?>
 {
     private Context Context { get; }
     private Scope Scope { get; set; } = null!;
-    private int TotalVariableCount { get; set; } = 0;
     private int TotalRecordCount { get; set; } = 0;
-    private int StackPointer { get; set; } = 0;
+    private int MemoryLocation { get; set; } = 0;
     private Namespace Namespace { get; set; } = null!;
     private SourceFile SourceFile { get; set; } = null!;
     

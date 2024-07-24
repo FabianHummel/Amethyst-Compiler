@@ -58,7 +58,7 @@ statement
  ;
  
 variable_declaration
- : 'var' identifier (':' type)? ('=' expression)? ';'
+ : attribute_list 'var' identifier (':' type)? ('=' expression)? ';'
  ;
  
 record_declaration

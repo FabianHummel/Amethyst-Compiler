@@ -6,11 +6,11 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public Result VisitExpressionTargeted(AmethystParser.ExpressionContext context, string target)
+    public Result VisitExpression(AmethystParser.ExpressionContext context)
     {
         if (context.conditional() is { } conditionalContext)
         {
-            return VisitConditionalTargeted(conditionalContext, target: target);
+            return VisitConditional(conditionalContext);
         }
         // if (context.assignment() is { } assignmentContext)
         // {

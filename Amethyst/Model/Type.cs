@@ -3,15 +3,29 @@ using Amethyst.Utility;
 
 namespace Amethyst.Model;
 
+[AttributeUsage(AttributeTargets.Field)]
+public class ScaleAttribute : Attribute
+{
+    public int Scale { get; }
+    
+    public ScaleAttribute(int scale)
+    {
+        Scale = scale;
+    }
+}
+
 public enum BasicType
 {
     [Description("int")]
+    [Scale(1)]
     Int,
     [Description("dec")]
+    [Scale(100)]
     Dec,
     [Description("string")]
     String,
     [Description("bool")]
+    [Scale(1)]
     Bool,
     [Description("array")]
     Array,
@@ -69,10 +83,20 @@ public class Type
         }
         return !left.Equals(right);
     }
+    
+    public double? Scale
+    {
+        get
+        {
+            var field = BasicType.GetType().GetField(BasicType.ToString());
+            var attribute = field?.GetCustomAttributes(typeof(ScaleAttribute), false).FirstOrDefault() as ScaleAttribute;
+            return attribute?.Scale;
+        }
+    }
 
     public bool IsScoreboardType => Modifier == null && BasicType is BasicType.Bool or BasicType.Int or BasicType.Dec;
     
     public bool IsStorageType => !IsScoreboardType;
     
-    public bool IsBoolean => BasicType == BasicType.Bool && Modifier == null;
+    public bool IsBoolean => Modifier == null && BasicType == BasicType.Bool;
 }

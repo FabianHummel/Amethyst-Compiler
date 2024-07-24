@@ -9,12 +9,7 @@ public partial class Compiler
 {
     private string GetRecordName()
     {
-        if (Program.DebugMode)
-        {
-            return $"amethyst_r{TotalRecordCount-1}";
-        }
-        
-        return $"amethyst_r{Scope.RecordCount}";
+        return $"amethyst_record_{TotalRecordCount-1}";
     }
     
     public override object? VisitRecord_declaration(AmethystParser.Record_declarationContext context)
@@ -35,7 +30,7 @@ public partial class Compiler
         
         if (context.expression() is { } expression)
         {
-            result = VisitExpressionTargeted(expression, target: name);
+            result = VisitExpression(expression);
         }
         
         // if a type is defined, set the type to the defined type
@@ -59,38 +54,37 @@ public partial class Compiler
             type = result.Type;
         }
         
-        Debug.Assert(type != null);
+        Debug.Assert(type != null, nameof(type) + " != null");
+        
+        var attributes = VisitAttribute_list(context.attribute_list());
 
         Scope.Records.Add(recordName, new Record
         {
             Name = name,
             Type = type,
             InitialValue = result,
-            Attributes = VisitAttribute_list(context.attribute_list())
+            Attributes = attributes
         });
 
         if (type.IsScoreboardType)
         {
             AddInitCode($"scoreboard objectives add {name} dummy");
-            AddInitCode($"scoreboard players reset * {name}");
-            
-            // The actual values are being set when they are needed, so we don't need to set them here
 
             if (Program.DebugMode)
             {
                 AddInitCode($$"""scoreboard objectives modify {{name}} displayname ["",{"text":"Record ","bold":true},{"text":"{{name}}","color":"dark_purple"},{"text":" @ "},{"text":"{{Scope.McFunctionPath}}/","color":"gray"},{"text":"{{recordName}}","color":"light_purple"}]""");
             }
         }
-        else if (type.IsStorageType)
+
+        if (result != null)
         {
-            if (Program.DebugMode)
+            if (result.Type.IsScoreboardType)
             {
-                name = $"{Scope.McFunctionPath}/{recordName}"; // Todo: Move this code to the destination targeting, and the result simply contains this name in "string Location"
+                AddCode($"scoreboard players operation {name} amethyst_record_initializers = {result.Location} amethyst");
             }
-            
-            if (result == null)
+            else if (result.Type.IsStorageType)
             {
-                AddCode($"data remove storage amethyst:records {name}");
+                AddCode($"data modify storage amethyst:record_initializers {name} set from storage amethyst:stack {result.Location}");
             }
         }
 
