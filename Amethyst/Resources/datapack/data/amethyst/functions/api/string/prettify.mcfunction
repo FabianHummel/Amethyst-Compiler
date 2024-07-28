@@ -1,3 +1,3 @@
-data modify storage amethyst:internal _out set value ""
-data modify storage amethyst:internal _tmp set value {}
-function amethyst:internal/string/prettify/loop
+data modify storage amethyst: _out set value ""
+data modify storage amethyst: _tmp set value {}
+function amethyst:/string/prettify/loop

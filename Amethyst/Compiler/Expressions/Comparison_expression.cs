@@ -1,13 +1,13 @@
 using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
-using Type = Amethyst.Model.Type;
+using Amethyst.Model.Types;
 
 namespace Amethyst;
 
 public partial class Compiler
 {
-    public override Result VisitComparison(AmethystParser.ComparisonContext context)
+    public override AbstractResult VisitComparison(AmethystParser.ComparisonContext context)
     {
         if (context.term() is not { } termContexts)
         {
@@ -19,37 +19,50 @@ public partial class Compiler
             return VisitTerm(termContexts[0]);
         }
         
-        if (VisitTerm(termContexts[0]) is not { Type.IsScoreboardType: true } previous)
+        if (VisitTerm(termContexts[0]) is not { DataType.IsScoreboardType: true } previous)
         {
             throw new SyntaxException("Expected term expression.", termContexts[0]);
         }
         
-        foreach (var termContext in termContexts)
+        for (int i = 1; i < context.term().Length; i++)
         {
-            if (VisitTerm(termContext) is not { Type.IsScoreboardType: true } current)
+            if (VisitTerm(termContexts[i]).ToNumber is not { DataType.IsScoreboardType: true } current)
             {
-                throw new SyntaxException("Expected term expression.", termContext);
+                throw new SyntaxException("Expected term expression.", termContexts[i]);
             }
             
-            // this somewhat relates to common denominators
+            var operatorToken = context.GetChild(2 * i - 1).GetText();
             
-            var scalePreviousBy = current.Type.Scale!;
-            var scaleCurrentBy = previous.Type.Scale!;
+            // upscale to a common denominator
+
+            MemoryLocation++;
+            AddCode($"scoreboard players operation {MemoryLocation} amethyst = {previous.Location} amethyst");
+
+            if (current.DataType.Scale != 1)
+            {
+                AddCode($"scoreboard players operation {MemoryLocation} amethyst *= .{current.DataType.Scale} amethyst_const");
+            }
             
-            // after scaling, check for equality
+            var currentLocation = current.Location;
+
+            if (previous.DataType.Scale != 1)
+            {
+                MemoryLocation++;
+                AddCode($"scoreboard players operation {MemoryLocation} amethyst = {current.Location} amethyst");
+                AddCode($"scoreboard players operation {MemoryLocation} amethyst *= .{previous.DataType.Scale} amethyst_const");
+                currentLocation = MemoryLocation.ToString();
+                MemoryLocation--;
+            }
+            
+            AddCode($"execute store result score {MemoryLocation} amethyst run execute if score {MemoryLocation} amethyst {operatorToken} {currentLocation} amethyst");
             
             previous = current;
-            
-            MemoryLocation--;
         }
         
-        return new Result
+        return new BoolResult
         {
-            Location = MemoryLocation.ToString(),
-            Type = new Type
-            {
-                BasicType = BasicType.Bool
-            }
+            Location = MemoryLocation--.ToString(),
+            Compiler = this
         };
     }
 }

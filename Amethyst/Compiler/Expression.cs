@@ -1,12 +1,12 @@
 using System.Diagnostics;
 using Amethyst.Language;
-using Amethyst.Model;
+using Amethyst.Model.Types;
 
 namespace Amethyst;
 
 public partial class Compiler
 {
-    public Result VisitExpression(AmethystParser.ExpressionContext context)
+    public override AbstractResult VisitExpression(AmethystParser.ExpressionContext context)
     {
         if (context.conditional() is { } conditionalContext)
         {

@@ -1,1 +1,1 @@
-$data modify storage amethyst:internal _out set value $(_out)$(_tmp)
+$data modify storage amethyst: _out set value $(_out)$(_tmp)

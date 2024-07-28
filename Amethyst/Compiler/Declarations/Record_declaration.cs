@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
-using Type = Amethyst.Model.Type;
+using Amethyst.Model.Types;
 
 namespace Amethyst;
 
@@ -25,8 +25,8 @@ public partial class Compiler
         
         var name = GetRecordName();
         
-        Result? result = null;
-        Type? type = null;
+        AbstractResult? result = null;
+        DataType? type = null;
         
         if (context.expression() is { } expression)
         {
@@ -39,9 +39,9 @@ public partial class Compiler
             type = VisitType(typeContext);
         }
         // if both types are defined, check if they match
-        if (type != null && result != null && type != result.Type)
+        if (type != null && result != null && type != result.DataType)
         {
-            throw new SyntaxException($"The type of the record '{type}' does not match the inferred type '{result.Type}'.", context);
+            throw new SyntaxException($"The type of the record '{type}' does not match the inferred type '{result.DataType}'.", context);
         }
         // if no type is defined or inferred, throw an error
         if (type == null && result == null)
@@ -51,7 +51,7 @@ public partial class Compiler
         // if no type is defined, but inferred, set the type to the inferred type
         if (type == null && result != null)
         {
-            type = result.Type;
+            type = result.DataType;
         }
         
         Debug.Assert(type != null, nameof(type) + " != null");
@@ -61,7 +61,7 @@ public partial class Compiler
         Scope.Records.Add(recordName, new Record
         {
             Name = name,
-            Type = type,
+            DataType = type,
             InitialValue = result,
             Attributes = attributes
         });
@@ -78,11 +78,11 @@ public partial class Compiler
 
         if (result != null)
         {
-            if (result.Type.IsScoreboardType)
+            if (result.DataType.IsScoreboardType)
             {
                 AddCode($"scoreboard players operation {name} amethyst_record_initializers = {result.Location} amethyst");
             }
-            else if (result.Type.IsStorageType)
+            else if (result.DataType.IsStorageType)
             {
                 AddCode($"data modify storage amethyst:record_initializers {name} set from storage amethyst:stack {result.Location}");
             }

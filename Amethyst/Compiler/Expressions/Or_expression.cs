@@ -1,13 +1,13 @@
 using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
-using Type = Amethyst.Model.Type;
+using Amethyst.Model.Types;
 
 namespace Amethyst;
 
 public partial class Compiler
 {
-    public override Result VisitOr(AmethystParser.OrContext context)
+    public override AbstractResult VisitOr(AmethystParser.OrContext context)
     {
         if (context.and() is not { } andContexts)
         {
@@ -18,35 +18,30 @@ public partial class Compiler
         {
             return VisitAnd(andContexts[0]);
         }
-            
+        
         // We create a scope to be able to instantly return from the function (if the first expression is true).
         var scope = EvaluateScoped("_or", () =>
         {
             foreach (var andContext in andContexts)
             {
-                if (VisitAnd(andContext) is { Type.IsBoolean: true } result)
-                {
-                    // Early return if the first expression is true (we don't need to check the rest).
-                    AddCode($"execute if score {result.Location} amethyst matches 1 run return fail");
-                }
-                else
+                var previousMemoryLocation = MemoryLocation;
+                if (VisitAnd(andContext).ToBool is not { } result)
                 {
                     throw new SyntaxException("Expected boolean expression.", andContext);
                 }
-                
-                MemoryLocation--;
+
+                MemoryLocation = previousMemoryLocation;
+                // Early return if the first expression is true (we don't need to check the rest).
+                AddCode($"execute unless score {result.Location} amethyst matches 0 run return fail");
             }
         });
             
         AddCode($"function {scope.McFunctionPath}");
 
-        return new Result
+        return new BoolResult
         {
             Location = MemoryLocation.ToString(),
-            Type = new Type
-            {
-                BasicType = BasicType.Bool
-            }
+            Compiler = this
         };
     }
 }

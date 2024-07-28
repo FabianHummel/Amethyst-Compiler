@@ -1,13 +1,13 @@
 using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
-using Type = Amethyst.Model.Type;
+using Amethyst.Model.Types;
 
 namespace Amethyst;
 
 public partial class Compiler
 {
-    public override Result VisitAnd(AmethystParser.AndContext context)
+    public override AbstractResult VisitAnd(AmethystParser.AndContext context)
     {
         if (context.equality() is not { } equalityContexts)
         {
@@ -24,29 +24,24 @@ public partial class Compiler
         {
             foreach (var equalityContext in equalityContexts)
             {
-                if (VisitEquality(equalityContext) is { Type.IsBoolean: true } result)
-                {
-                    // Early return if the first expression is false (we don't need to check the rest).
-                    AddCode($"execute if score {result.Location} amethyst matches 0 run return fail");
-                }
-                else
+                var previousMemoryLocation = MemoryLocation;
+                if (VisitEquality(equalityContext).ToBool is not { } result)
                 {
                     throw new SyntaxException("Expected boolean expression.", equalityContext);
                 }
-                
-                MemoryLocation--;
+
+                MemoryLocation = previousMemoryLocation;
+                // Early return if the first expression is false (we don't need to check the rest).
+                AddCode($"execute if score {result.Location} amethyst matches 0 run return fail");
             }
         });
             
         AddCode($"function {scope.McFunctionPath}");
-        
-        return new Result
+
+        return new BoolResult
         {
             Location = MemoryLocation.ToString(),
-            Type = new Type
-            {
-                BasicType = BasicType.Bool
-            }
+            Compiler = this
         };
     }
 }

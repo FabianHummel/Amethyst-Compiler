@@ -1,7 +1,1 @@
-function nice() {
-    var cool = 10;
-}
-
-{
-    var fancy = 20;
-}
+var nice = 10 < 20;

@@ -144,9 +144,9 @@ factor
  
 unary
  : primary
- | ( '+' | '-' | '!' ) unary
  | '++' unary
  | '--' unary
+ | ( '+' | '-' | '!' ) unary
  ;
  
 primary

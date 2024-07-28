@@ -3,14 +3,14 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
-public partial class Compiler : AmethystBaseVisitor<object?>
+public partial class Compiler : AmethystBaseVisitor<object?>, IArithmeticBase
 {
-    private Context Context { get; }
-    private Scope Scope { get; set; } = null!;
-    private int TotalRecordCount { get; set; } = 0;
-    private int MemoryLocation { get; set; } = 0;
-    private Namespace Namespace { get; set; } = null!;
-    private SourceFile SourceFile { get; set; } = null!;
+    internal Context Context { get; }
+    internal Scope Scope { get; set; } = null!;
+    internal int TotalRecordCount { get; set; } = 0;
+    internal int MemoryLocation { get; set; } = 0;
+    internal Namespace Namespace { get; set; } = null!;
+    internal SourceFile SourceFile { get; set; } = null!;
     
     public Compiler(Context context)
     {
@@ -40,17 +40,17 @@ public partial class Compiler : AmethystBaseVisitor<object?>
         }
     }
     
-    private void AddCode(string code)
+    internal void AddCode(string code)
     {
         Scope.AddCode(code);
     }
     
-    private void AddInitCode(string code)
+    internal void AddInitCode(string code)
     {
         Namespace.AddInitCode(code);
     }
     
-    private Scope EvaluateScoped(string name, Action action)
+    internal Scope EvaluateScoped(string name, Action action)
     {
         if (!Scope.Scopes.TryAdd(name, 0))
         {

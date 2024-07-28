@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Amethyst.Model.Types;
 using Amethyst.Utility;
 
 namespace Amethyst.Model;
@@ -41,14 +42,14 @@ public enum Modifier
     Object
 }
 
-public class Type
+public class DataType
 {
     public required BasicType BasicType { get; init; }
     public Modifier? Modifier { get; init; }
 
     public override bool Equals(object? obj)
     {
-        if (obj is not Type type)
+        if (obj is not DataType type)
         {
             return false;
         }
@@ -66,7 +67,7 @@ public class Type
         return $"{BasicType.GetDescription()}{Modifier?.GetDescription()}";
     }
     
-    public static bool operator ==(Type? left, Type? right)
+    public static bool operator ==(DataType? left, DataType? right)
     {
         if (left is null)
         {
@@ -75,7 +76,7 @@ public class Type
         return left.Equals(right);
     }
     
-    public static bool operator !=(Type? left, Type? right)
+    public static bool operator !=(DataType? left, DataType? right)
     {
         if (left is null)
         {
@@ -84,7 +85,7 @@ public class Type
         return !left.Equals(right);
     }
     
-    public double? Scale
+    public int? Scale
     {
         get
         {
@@ -99,4 +100,32 @@ public class Type
     public bool IsStorageType => !IsScoreboardType;
     
     public bool IsBoolean => Modifier == null && BasicType == BasicType.Bool;
+
+    public string? StorageModifier
+    {
+        get
+        {
+            {
+                if (!IsScoreboardType)
+                {
+                    return null;
+                }
+        
+                if (BasicType == BasicType.Bool)
+                {
+                    return $"byte {1 / Scale}";
+                }
+                if (BasicType == BasicType.Int)
+                {
+                    return $"int {1 / Scale}";
+                }
+                if (BasicType == BasicType.Dec)
+                {
+                    return $"double {1 / Scale}";
+                }
+        
+                return null;
+            }
+        }
+    }
 }
