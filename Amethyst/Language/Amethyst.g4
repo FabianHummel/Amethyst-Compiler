@@ -106,61 +106,61 @@ expression_statement
  ;
 
 expression
- : conditional
- | assignment
+ : conditional_expression
+ | assignment_expression
  ;
  
-assignment
- : unary ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' ) expression
+assignment_expression
+ : unary_expression ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' ) expression
  ;
  
-conditional
- : or
+conditional_expression
+ : or_expression
  ;
  
-or
- : and ( '||' and )*
+or_expression
+ : and_expression ( '||' and_expression )*
  ;
  
-and
- : equality ( '&&' equality )*
+and_expression
+ : equality_expression ( '&&' equality_expression )*
  ;
  
-equality
- : comparison ( ( '==' | '!=' ) comparison )*
+equality_expression
+ : comparison_expression ( ( '==' | '!=' ) comparison_expression )*
  ;
 
-comparison
- : term ( ( '<' | '<=' | '>' | '>=' ) term )*
+comparison_expression
+ : term_expression ( ( '<' | '<=' | '>' | '>=' ) term_expression )*
  ;
  
-term
- : factor ( ( '+' | '-' ) factor )*
+term_expression
+ : factor_expression ( ( '+' | '-' ) factor_expression )*
  ;
  
-factor
- : unary ( ( '*' | '/' | '%' ) unary )*
+factor_expression
+ : unary_expression ( ( '*' | '/' | '%' ) unary_expression )*
  ;
  
-unary
- : primary
- | '++' unary
- | '--' unary
- | ( '+' | '-' | '!' ) unary
+unary_expression
+ : primary_expression
+ | '++' unary_expression
+ | '--' unary_expression
+ | ( '+' | '-' | '!' ) unary_expression
  ;
  
-primary
- : literal                      # literal_expression
- | group                        # group_expression
- | selector                     # selector_expression
- | primary '.' identifier       # member_access
- | function_call                # function_call_expression
- | namespace_access             # identifier_expression
- | primary '[' expression ']'   # indexed_access
- | object_creation              # object_creation_expression
- | array_creation               # array_creation_expression
- | primary '++'                 # post_increment
- | primary '--'                 # post_decrement
+primary_expression
+ : literal                                 # literal_expression
+ | group                                   # group_expression
+ | selector                                # selector_expression
+ | primary_expression '.' identifier       # member_access
+ | function_call                           # function_call_expression
+ | namespace_access                        # identifier_expression
+ | primary_expression '[' expression ']'   # indexed_access
+ | object_creation                         # object_creation_expression
+ | array_creation                          # array_creation_expression
+ | primary_expression '++'                 # post_increment
+ | primary_expression '--'                 # post_decrement
  ;
  
 literal

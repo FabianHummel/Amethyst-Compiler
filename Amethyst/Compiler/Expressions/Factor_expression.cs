@@ -7,43 +7,43 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override AbstractResult VisitFactor(AmethystParser.FactorContext context)
+    public override AbstractResult VisitFactor_expression(AmethystParser.Factor_expressionContext context)
     {
-        if (context.unary() is not { } unaryContexts)
+        if (context.unary_expression() is not { } unaryExpressionContexts)
         {
             throw new UnreachableException();
         }
         
-        if (unaryContexts.Length == 1)
+        if (unaryExpressionContexts.Length == 1)
         {
-            return VisitUnary(unaryContexts[0]);
+            return VisitUnary_expression(unaryExpressionContexts[0]);
         }
         
-        if (VisitUnary(unaryContexts[0]) is not { } previous)
+        if (VisitUnary_expression(unaryExpressionContexts[0]) is not { } previous)
         {
-            throw new SyntaxException("Expected factor expression.", unaryContexts[0]);
+            throw new SyntaxException("Expected factor expression.", unaryExpressionContexts[0]);
         }
 
-        for (var i = 1; i < unaryContexts.Length; i++)
+        for (var i = 1; i < unaryExpressionContexts.Length; i++)
         {
-            if (VisitUnary(unaryContexts[i]) is not { } current)
+            if (VisitUnary_expression(unaryExpressionContexts[i]) is not { } current)
             {
-                throw new SyntaxException("Expected factor expression.", unaryContexts[i]);
+                throw new SyntaxException("Expected factor expression.", unaryExpressionContexts[i]);
             }
 
             var operatorToken = context.GetChild(2 * i - 1).GetText();
 
             if (operatorToken == "*")
             {
-                previous = Visit_multiply(previous, current, unaryContexts[i]);
+                previous = Visit_multiply(previous, current, unaryExpressionContexts[i]);
             }
             else if (operatorToken == "/")
             {
-                previous = Visit_divide(previous, current, unaryContexts[i]);
+                previous = Visit_divide(previous, current, unaryExpressionContexts[i]);
             }
             else if (operatorToken == "%")
             {
-                previous = Visit_modulo(previous, current, unaryContexts[i]);
+                previous = Visit_modulo(previous, current, unaryExpressionContexts[i]);
             }
             else
             {

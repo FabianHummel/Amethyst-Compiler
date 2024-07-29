@@ -7,28 +7,28 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override AbstractResult VisitComparison(AmethystParser.ComparisonContext context)
+    public override AbstractResult VisitComparison_expression(AmethystParser.Comparison_expressionContext context)
     {
-        if (context.term() is not { } termContexts)
+        if (context.term_expression() is not { } termExpressionContexts)
         {
             throw new UnreachableException();
         }
         
-        if (termContexts.Length == 1)
+        if (termExpressionContexts.Length == 1)
         {
-            return VisitTerm(termContexts[0]);
+            return VisitTerm_expression(termExpressionContexts[0]);
         }
         
-        if (VisitTerm(termContexts[0]) is not { DataType.IsScoreboardType: true } previous)
+        if (VisitTerm_expression(termExpressionContexts[0]) is not { DataType.IsScoreboardType: true } previous)
         {
-            throw new SyntaxException("Expected term expression.", termContexts[0]);
+            throw new SyntaxException("Expected term expression.", termExpressionContexts[0]);
         }
         
-        for (int i = 1; i < context.term().Length; i++)
+        for (int i = 1; i < context.term_expression().Length; i++)
         {
-            if (VisitTerm(termContexts[i]).ToNumber is not { DataType.IsScoreboardType: true } current)
+            if (VisitTerm_expression(termExpressionContexts[i]).ToNumber is not { DataType.IsScoreboardType: true } current)
             {
-                throw new SyntaxException("Expected term expression.", termContexts[i]);
+                throw new SyntaxException("Expected term expression.", termExpressionContexts[i]);
             }
             
             var operatorToken = context.GetChild(2 * i - 1).GetText();

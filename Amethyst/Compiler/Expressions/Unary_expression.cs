@@ -5,17 +5,17 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override AbstractResult VisitUnary(AmethystParser.UnaryContext context)
+    public override AbstractResult VisitUnary_expression(AmethystParser.Unary_expressionContext context)
     {
-        if (context.primary() is { } primaryContext)
+        if (context.primary_expression() is { } primaryExpressionContext)
         {
-            return VisitPrimary(primaryContext);
+            return VisitPrimary_expression(primaryExpressionContext);
         }
         
-        var unaryExpression = context.unary();
+        var unaryExpression = context.unary_expression();
         
         var operatorToken = unaryExpression.GetChild(0).GetText();
         
-        return VisitUnary(unaryExpression);
+        return VisitUnary_expression(unaryExpression);
     }
 }

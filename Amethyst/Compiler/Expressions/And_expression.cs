@@ -7,27 +7,27 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override AbstractResult VisitAnd(AmethystParser.AndContext context)
+    public override AbstractResult VisitAnd_expression(AmethystParser.And_expressionContext context)
     {
-        if (context.equality() is not { } equalityContexts)
+        if (context.equality_expression() is not { } equalityExpressionContexts)
         {
             throw new UnreachableException();
         }
         
-        if (equalityContexts.Length == 1)
+        if (equalityExpressionContexts.Length == 1)
         {
-            return VisitEquality(equalityContexts[0]);
+            return VisitEquality_expression(equalityExpressionContexts[0]);
         }
             
         // We create a scope to be able to instantly return from the function (if the first expression is true).
         var scope = EvaluateScoped("_and", () =>
         {
-            foreach (var equalityContext in equalityContexts)
+            foreach (var equalityExpressionContext in equalityExpressionContexts)
             {
                 var previousMemoryLocation = MemoryLocation;
-                if (VisitEquality(equalityContext).ToBool is not { } result)
+                if (VisitEquality_expression(equalityExpressionContext).ToBool is not { } result)
                 {
-                    throw new SyntaxException("Expected boolean expression.", equalityContext);
+                    throw new SyntaxException("Expected boolean expression.", equalityExpressionContext);
                 }
 
                 MemoryLocation = previousMemoryLocation;

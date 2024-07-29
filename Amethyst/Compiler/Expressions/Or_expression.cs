@@ -7,27 +7,27 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override AbstractResult VisitOr(AmethystParser.OrContext context)
+    public override AbstractResult VisitOr_expression(AmethystParser.Or_expressionContext context)
     {
-        if (context.and() is not { } andContexts)
+        if (context.and_expression() is not { } andExpressionContexts)
         {
             throw new UnreachableException();
         }
         
-        if (andContexts.Length == 1)
+        if (andExpressionContexts.Length == 1)
         {
-            return VisitAnd(andContexts[0]);
+            return VisitAnd_expression(andExpressionContexts[0]);
         }
         
         // We create a scope to be able to instantly return from the function (if the first expression is true).
         var scope = EvaluateScoped("_or", () =>
         {
-            foreach (var andContext in andContexts)
+            foreach (var andExpressionContext in andExpressionContexts)
             {
                 var previousMemoryLocation = MemoryLocation;
-                if (VisitAnd(andContext).ToBool is not { } result)
+                if (VisitAnd_expression(andExpressionContext).ToBool is not { } result)
                 {
-                    throw new SyntaxException("Expected boolean expression.", andContext);
+                    throw new SyntaxException("Expected boolean expression.", andExpressionContext);
                 }
 
                 MemoryLocation = previousMemoryLocation;

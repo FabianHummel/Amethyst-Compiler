@@ -7,28 +7,28 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override AbstractResult VisitEquality(AmethystParser.EqualityContext context)
+    public override AbstractResult VisitEquality_expression(AmethystParser.Equality_expressionContext context)
     {
-        if (context.comparison() is not { } comparisonContexts)
+        if (context.comparison_expression() is not { } comparisonExpressionContexts)
         {
             throw new UnreachableException();
         }
         
-        if (comparisonContexts.Length == 1)
+        if (comparisonExpressionContexts.Length == 1)
         {
-            return VisitComparison(comparisonContexts[0]);
+            return VisitComparison_expression(comparisonExpressionContexts[0]);
         }
             
-        if (VisitComparison(comparisonContexts[0]) is not { } previous)
+        if (VisitComparison_expression(comparisonExpressionContexts[0]) is not { } previous)
         {
-            throw new SyntaxException("Expected comparison expression.", comparisonContexts[0]);
+            throw new SyntaxException("Expected comparison expression.", comparisonExpressionContexts[0]);
         }
             
-        for (int i = 1; i < context.comparison().Length; i++)
+        for (int i = 1; i < context.comparison_expression().Length; i++)
         {
-            if (VisitComparison(comparisonContexts[i]) is not { } current)
+            if (VisitComparison_expression(comparisonExpressionContexts[i]) is not { } current)
             {
-                throw new SyntaxException("Expected comparison expression.", comparisonContexts[i]);
+                throw new SyntaxException("Expected comparison expression.", comparisonExpressionContexts[i]);
             }
             
             var operatorToken = context.GetChild(2 * i - 1).GetText();

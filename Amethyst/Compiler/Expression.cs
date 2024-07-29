@@ -8,14 +8,10 @@ public partial class Compiler
 {
     public override AbstractResult VisitExpression(AmethystParser.ExpressionContext context)
     {
-        if (context.conditional() is { } conditionalContext)
+        if (context.conditional_expression() is { } conditionalExpressionContext)
         {
-            return VisitConditional(conditionalContext);
+            return VisitConditional_expression(conditionalExpressionContext);
         }
-        // if (context.assignment() is { } assignmentContext)
-        // {
-        //     return VisitAssignment(assignmentContext);
-        // }
 
         throw new UnreachableException();
     }

@@ -6,7 +6,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override AbstractResult VisitPrimary(AmethystParser.PrimaryContext context)
+    public override AbstractResult VisitPrimary_expression(AmethystParser.Primary_expressionContext context)
     {
         if (context is AmethystParser.Literal_expressionContext literalExpression)
         {
