@@ -1,4 +1,6 @@
-namespace Amethyst.Model.Types;
+using Amethyst.Model;
+
+namespace Amethyst;
 
 public class AnyObjectResult : AbstractResult
 {

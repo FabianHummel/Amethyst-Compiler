@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
-using Amethyst.Model.Types;
 
 namespace Amethyst;
 
@@ -35,11 +34,11 @@ public partial class Compiler
 
             if (operatorToken == "-")
             {
-                previous = Visit_subtract(previous, current, factorExpressionContexts[i]);
+                previous -= current;
             }
             else if (operatorToken == "+")
             {
-                previous = Visit_add(previous, current, factorExpressionContexts[i]);
+                previous += current;
             }
             else
             {

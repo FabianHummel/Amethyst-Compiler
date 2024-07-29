@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using Amethyst.Model.Types;
 using Amethyst.Utility;
 
 namespace Amethyst.Model;

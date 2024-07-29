@@ -11,7 +11,7 @@ public partial class Compiler
         // Todo: prettify result into _out
         
         AddCode("""
-                tellraw @a ["",{"text":"[DEBUG]: ","bold":true,"italic":true,"color":"gray"},{"nbt":"_out","storage":"amethyst","interpret":true}]
+                tellraw @a ["",{"text":"[DEBUG]: ","bold":true,"italic":true,"color":"gray"},{"nbt":"_out","storage":"amethyst:","interpret":true}]
                 """);
 
         return null;

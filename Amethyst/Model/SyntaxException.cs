@@ -15,7 +15,7 @@ public class SyntaxException : Exception
         File = file;
     }
 
-    public SyntaxException(string message, ParserRuleContext context)
+    public SyntaxException(string message, ParserRuleContext context) : base(message)
     {
         Line = context.Start.Line;
         PosInLine = context.Start.Column;

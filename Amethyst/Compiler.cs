@@ -1,9 +1,10 @@
 using Amethyst.Language;
 using Amethyst.Model;
+using Antlr4.Runtime;
 
 namespace Amethyst;
 
-public partial class Compiler : AmethystBaseVisitor<object?>, IArithmeticBase
+public partial class Compiler : AmethystBaseVisitor<object?>
 {
     internal Context Context { get; }
     internal Scope Scope { get; set; } = null!;

@@ -1,4 +1,6 @@
-namespace Amethyst.Model.Types;
+using Amethyst.Model;
+
+namespace Amethyst;
 
 public class AnyArrayResult : AbstractResult
 {
@@ -18,7 +20,8 @@ public class AnyArrayResult : AbstractResult
             return new BoolResult
             {
                 Location = Compiler.MemoryLocation.ToString(),
-                Compiler = Compiler
+                Compiler = Compiler,
+                Context = Context
             };
         }
     }
@@ -31,7 +34,8 @@ public class AnyArrayResult : AbstractResult
             return new IntResult
             {
                 Location = Compiler.MemoryLocation.ToString(),
-                Compiler = Compiler
+                Compiler = Compiler,
+                Context = Context
             };
         }
     }

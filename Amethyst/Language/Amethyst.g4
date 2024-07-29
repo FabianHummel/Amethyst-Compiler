@@ -86,7 +86,7 @@ debug_statement
  ;
  
 comment_statement
- : 'comment' expression ';'
+ : 'comment' String_Literal ';'
  ;
  
 return_statement
@@ -224,7 +224,11 @@ argument_list
   
 object_creation
  : '{}'
- | '{' identifier ':' expression '}'
+ | '{' (object_element (',' object_element)*)? '}'
+ ;
+ 
+object_element
+ : identifier ':' expression
  ;
 
 array_creation

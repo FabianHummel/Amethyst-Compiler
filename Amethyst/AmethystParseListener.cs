@@ -24,10 +24,7 @@ public class AmethystParseListener : AmethystBaseListener
         
         if (Parser.Ns.Functions.ContainsKey(name))
         {
-            throw new SyntaxException($"Function '{name}' is already defined in namespace '{Parser.Ns.Scope.Name}'.",
-                context.identifier().Start.Line,
-                context.identifier().Start.Column,
-                Parser.FilePath);
+            throw new SyntaxException($"Function '{name}' is already defined in namespace '{Parser.Ns.Scope.Name}'.", context);
         }
         
         Parser.Ns.Functions.Add(name, new Function

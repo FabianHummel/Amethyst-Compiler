@@ -1,118 +1,93 @@
 using System.IO;
 using Microsoft.CodeAnalysis;
 
-namespace SourceGenerators
+namespace SourceGenerators;
+
+[Generator]
+public class AbstractResultGenerator : ISourceGenerator
 {
-    [Generator]
-    public class AbstractResultGenerator : ISourceGenerator
+    public void Initialize(GeneratorInitializationContext context)
     {
-        public void Initialize(GeneratorInitializationContext context)
-        {
-            // No initialization required
-        }
+        // No initialization required
+    }
         
-        private readonly string[] _types = new[]
-        {
-            "IntResult",
-            "DecResult",
-            "StringResult",
-            "BoolResult",
-            "ArrayResult",
-            "ObjectResult",
-            "AnyArrayResult",
-            "AnyObjectResult"
-        };
+    private readonly string[] _types = new[]
+    {
+        "IntResult",
+        "DecResult",
+        "StringResult",
+        "BoolResult",
+        "ArrayResult",
+        "ObjectResult",
+        "AnyArrayResult",
+        "AnyObjectResult"
+    };
         
-        private string GetMemberName(string type) => char.ToLower(type[0]) + type.Substring(1);
+    private string GetMemberName(string type) => char.ToLower(type[0]) + type.Substring(1);
 
-        private readonly (string, string)[] _operations = new[]
-        {
-            ("add", "+"),
-            ("subtract", "-"),
-            ("multiply", "*"),
-            ("divide", "/"),
-            ("modulo", "%")
-        };
+    private readonly (string, string)[] _operations = new[]
+    {
+        ("Add", "+"),
+        ("Subtract", "-"),
+        ("Multiply", "*"),
+        ("Divide", "/"),
+        ("Modulo", "%")
+    };
         
-        public void Execute(GeneratorExecutionContext context)
-        {
-            // @formatter:off
-            var writer = new StringWriter();
-            writer.WriteLine("using System.Diagnostics;");
-            writer.WriteLine("using Amethyst.Model;");
-            writer.WriteLine("using Antlr4.Runtime;");
-            writer.WriteLine("using Amethyst.Model.Types;");
-            writer.WriteLine();
+    public void Execute(GeneratorExecutionContext context)
+    {
+        var writer = new StringWriter();
             
-            writer.WriteLine("namespace Amethyst;");
-            writer.WriteLine();
-            writer.WriteLine("public partial class Compiler"); 
-            writer.WriteLine("{");
-            
-            foreach (var (operation, symbol) in _operations)
-            {
-                writer.WriteLine($"    public virtual AbstractResult Visit_{operation}(AbstractResult lhs, AbstractResult rhs, ParserRuleContext context)");
-                writer.WriteLine( "    {");
-                foreach (var lhs in _types)
-                {
-                    writer.WriteLine($"        if (lhs is {lhs} {GetMemberName(lhs)}Lhs)");
-                    writer.WriteLine( "        {");
-                    foreach (var rhs in _types)
-                    {
-                        writer.WriteLine($"            if (rhs is {rhs} {GetMemberName(rhs)}Rhs)");
-                        writer.WriteLine( "            {");
-                        writer.WriteLine($"                return Visit_{operation}({GetMemberName(lhs)}Lhs, {GetMemberName(rhs)}Rhs, context);");
-                        writer.WriteLine( "            }");
-                    }
-                    writer.WriteLine( "        }");
-                }
-                writer.WriteLine();
-                writer.WriteLine("        throw new UnreachableException();");
-                writer.WriteLine("    }");
-                writer.WriteLine();
-            }
-            
-            writer.WriteLine("}");
-            
-            // @formatter:on
-            
-            context.AddSource("ArithmeticCompiler.g.cs", writer.ToString());
-            
-            writer.Close();
-            
-            writer = new StringWriter();
-            
-            writer.WriteLine("using System.Diagnostics;");
-            writer.WriteLine("using Amethyst.Model;");
-            writer.WriteLine("using Antlr4.Runtime;");
-            writer.WriteLine("using Amethyst.Model.Types;");
-            writer.WriteLine();
-            
-            writer.WriteLine("namespace Amethyst;");
-            writer.WriteLine();
-            writer.WriteLine("public interface IArithmeticBase");
-            writer.WriteLine("{");
+        writer.WriteLine("""
+                         using System.Diagnostics;
+                         using Amethyst.Model;
+                         using Antlr4.Runtime;
 
-            foreach (var (operation, symbol) in _operations)
+                         namespace Amethyst;
+
+                         public abstract partial class AbstractResult
+                         {
+                         """);
+
+        foreach (var (operation, symbol) in _operations)
+        {
+            writer.WriteLine($$"""
+                                   public static AbstractResult operator {{symbol}} (AbstractResult lhs, AbstractResult rhs)
+                                   {
+                               """);
+
+            foreach (var rhs in _types)
             {
-                foreach (var lhs in _types)
-                {
-                    foreach (var rhs in _types)
-                    {
-                        writer.WriteLine($"    AbstractResult Visit_{operation}({lhs} lhs, {rhs} rhs, ParserRuleContext context)");
-                        writer.WriteLine( "    {");
-                        writer.WriteLine($"        throw new SyntaxException($\"Operation {{lhs.DataType}} {symbol} {{rhs.DataType}} is not permitted\", context);");
-                        writer.WriteLine( "    }");
-                        writer.WriteLine();
-                    }
-                }
+                writer.WriteLine($$"""
+                                           if (lhs is {{rhs}} {{GetMemberName(rhs)}})
+                                           {
+                                               return lhs.Visit{{operation}}({{GetMemberName(rhs)}});
+                                           }
+                                   """);
             }
-            
-            writer.WriteLine("}");
-            
-            context.AddSource("ArithmeticBase.g.cs", writer.ToString());
-            
-            writer.Close();
+                
+            writer.WriteLine("""
+                                     throw new UnreachableException();
+                                 }
+                                 
+                             """);
+
+            foreach (var rhs in _types)
+            {
+                writer.WriteLine($$"""
+                                       protected virtual AbstractResult Visit{{operation}}({{rhs}} rhs)
+                                       {
+                                           throw new SyntaxException($"Operation {this.DataType} {{symbol}} {rhs.DataType} not permitted", this.Context);
+                                       }
+
+                                   """);
+            }
         }
+
+        writer.WriteLine("}");
+            
+        context.AddSource("AbstractResultOperations.g.cs", writer.ToString());
+            
+        writer.Close();
     }
 }

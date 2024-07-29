@@ -1,10 +1,12 @@
-namespace Amethyst.Model.Types;
+using Amethyst.Model;
 
-public class BoolResult : AbstractResult
+namespace Amethyst;
+
+public class DecResult : AbstractResult
 {
     public override DataType DataType => new()
     {
-        BasicType = BasicType.Bool,
+        BasicType = BasicType.Dec,
         Modifier = null
     };
 

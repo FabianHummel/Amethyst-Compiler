@@ -417,8 +417,8 @@ internal static class Program
                 
                 foreach (var target in FindCompileTargets(directory))
                 {
-                    var content = File.ReadAllText(target);
-                    var tree = Context.Parse(content, target, ns, out var @namespace);
+                    var fileStream = File.OpenRead(target);
+                    var tree = Context.Parse(fileStream, target, ns, out var @namespace);
                     var file = new SourceFile { Context = tree, Path = target };
                     @namespace.Files.Add(file);
                 }
@@ -426,8 +426,8 @@ internal static class Program
 
             foreach (var target in Directory.GetFiles(Context.SourcePath, SOURCE_FILE))
             {
-                var content = File.ReadAllText(target);
-                var tree = Context.Parse(content, target, null, out var @namespace);
+                var fileStream = File.OpenRead(target);
+                var tree = Context.Parse(fileStream, target, null, out var @namespace);
                 var file = new SourceFile { Context = tree, Path = target };
                 @namespace.Files.Add(file);
             }

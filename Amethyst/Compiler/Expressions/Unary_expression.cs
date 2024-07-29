@@ -1,5 +1,4 @@
 using Amethyst.Language;
-using Amethyst.Model.Types;
 
 namespace Amethyst;
 
