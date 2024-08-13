@@ -59,7 +59,7 @@ public class AbstractResultGenerator : ISourceGenerator
             foreach (var rhs in _types)
             {
                 writer.WriteLine($$"""
-                                           if (lhs is {{rhs}} {{GetMemberName(rhs)}})
+                                           if (rhs is {{rhs}} {{GetMemberName(rhs)}})
                                            {
                                                return lhs.Visit{{operation}}({{GetMemberName(rhs)}});
                                            }

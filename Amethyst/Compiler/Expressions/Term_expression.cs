@@ -18,14 +18,14 @@ public partial class Compiler
             return VisitFactor_expression(factorExpressionContexts[0]);
         }
         
-        if (VisitFactor_expression(factorExpressionContexts[0]) is not { DataType.IsScoreboardType: true } previous)
+        if (VisitFactor_expression(factorExpressionContexts[0]) is not { } previous)
         {
             throw new SyntaxException("Expected factor expression.", factorExpressionContexts[0]);
         }
 
         for (var i = 1; i < factorExpressionContexts.Length; i++)
         {
-            if (VisitFactor_expression(factorExpressionContexts[i]) is not { DataType.IsScoreboardType: true } current)
+            if (VisitFactor_expression(factorExpressionContexts[i]) is not { } current)
             {
                 throw new SyntaxException("Expected factor expression.", factorExpressionContexts[i]);
             }

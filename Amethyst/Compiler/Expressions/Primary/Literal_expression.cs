@@ -15,14 +15,13 @@ public partial class Compiler
         
         if (literalContext.String_Literal() is { } stringLiteral)
         {
-            AddCode($"""
-                      data modify storage amethyst: {MemoryLocation} set value "{stringLiteral.Symbol.Text}";
-                      """);
+            AddCode($"data modify storage amethyst: {MemoryLocation} set value {stringLiteral.Symbol.Text}");
             return new StringResult
             {
                 Compiler = this,
                 Location = MemoryLocation++.ToString(),
-                Context = literalContext
+                Context = literalContext,
+                IsTemporary = true
             };
         }
 
@@ -56,7 +55,8 @@ public partial class Compiler
             {
                 Compiler = this,
                 Location = MemoryLocation++.ToString(),
-                Context = literalContext
+                Context = literalContext,
+                IsTemporary = true
             };
         }
         
@@ -73,7 +73,8 @@ public partial class Compiler
             {
                 Compiler = this,
                 Location = MemoryLocation++.ToString(),
-                Context = literalContext
+                Context = literalContext,
+                IsTemporary = true
             };
         }
         

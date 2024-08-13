@@ -25,17 +25,14 @@ public partial class Compiler
         
         for (int i = 1; i < context.term_expression().Length; i++)
         {
-            if (VisitTerm_expression(termExpressionContexts[i]).ToNumber is not { DataType.IsScoreboardType: true } current)
-            {
-                throw new SyntaxException("Expected term expression.", termExpressionContexts[i]);
-            }
+            var current = VisitTerm_expression(termExpressionContexts[i]).ToNumber;
             
             var operatorToken = context.GetChild(2 * i - 1).GetText();
             
             // upscale to a common denominator
 
             MemoryLocation++;
-            AddCode($"scoreboard players operation {MemoryLocation} amethyst = {previous.Location} amethyst");
+            AddCode($"scoreboard players operation {MemoryLocation} amethyst = {previous.Location} amethyst"); // Todo: See #2
 
             if (current.DataType.Scale != 1)
             {
@@ -47,7 +44,7 @@ public partial class Compiler
             if (previous.DataType.Scale != 1)
             {
                 MemoryLocation++;
-                AddCode($"scoreboard players operation {MemoryLocation} amethyst = {current.Location} amethyst");
+                AddCode($"scoreboard players operation {MemoryLocation} amethyst = {current.Location} amethyst"); // Todo: See #2
                 AddCode($"scoreboard players operation {MemoryLocation} amethyst *= .{previous.DataType.Scale} amethyst_const");
                 currentLocation = MemoryLocation.ToString();
                 MemoryLocation--;

@@ -12,7 +12,7 @@ public class AnyArrayResult : AbstractResult
         Modifier = Modifier.Array
     };
     
-    public override AbstractResult ToBool
+    public override BoolResult ToBool
     {
         get
         {
@@ -26,7 +26,7 @@ public class AnyArrayResult : AbstractResult
         }
     }
 
-    public override AbstractResult ToNumber
+    public override IntResult ToNumber
     {
         get
         {

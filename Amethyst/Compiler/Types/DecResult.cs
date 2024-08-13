@@ -2,7 +2,7 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
-public class DecResult : AbstractResult
+public class DecResult : NumericBase
 {
     public override DataType DataType => new()
     {
@@ -10,7 +10,32 @@ public class DecResult : AbstractResult
         Modifier = null
     };
 
-    public override AbstractResult ToBool => this;
+    public override BoolResult ToBool => new()
+    {
+        Compiler = Compiler,
+        Context = Context,
+        Location = Location
+    };
 
-    public override AbstractResult ToNumber => this;
+    public override IntResult ToNumber
+    {
+        get
+        {
+            var location = Location;
+            if (!IsTemporary)
+            {
+                location = MemoryLocation++.ToString();
+                AddCode($"scoreboard players operation {location} amethyst = {Location} amethyst");
+            }
+            
+            AddCode($"scoreboard players operation {location} amethyst *= .{DataType.Scale} amethyst_const");
+            
+            return new IntResult
+            {
+                Compiler = Compiler,
+                Context = Context,
+                Location = location,
+            };
+        }
+    }
 }

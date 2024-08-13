@@ -20,14 +20,14 @@ public partial class Compiler
         
         if (VisitUnary_expression(unaryExpressionContexts[0]) is not { } previous)
         {
-            throw new SyntaxException("Expected factor expression.", unaryExpressionContexts[0]);
+            throw new SyntaxException("Expected unary expression.", unaryExpressionContexts[0]);
         }
 
         for (var i = 1; i < unaryExpressionContexts.Length; i++)
         {
             if (VisitUnary_expression(unaryExpressionContexts[i]) is not { } current)
             {
-                throw new SyntaxException("Expected factor expression.", unaryExpressionContexts[i]);
+                throw new SyntaxException("Expected unary expression.", unaryExpressionContexts[i]);
             }
 
             var operatorToken = context.GetChild(2 * i - 1).GetText();

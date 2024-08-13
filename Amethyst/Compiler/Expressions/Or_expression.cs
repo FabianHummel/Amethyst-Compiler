@@ -24,12 +24,9 @@ public partial class Compiler
             foreach (var andExpressionContext in andExpressionContexts)
             {
                 var previousMemoryLocation = MemoryLocation;
-                if (VisitAnd_expression(andExpressionContext).ToBool is not { } result)
-                {
-                    throw new SyntaxException("Expected boolean expression.", andExpressionContext);
-                }
-
+                var result = VisitAnd_expression(andExpressionContext).ToBool;
                 MemoryLocation = previousMemoryLocation;
+                
                 // Early return if the first expression is true (we don't need to check the rest).
                 AddCode($"execute unless score {result.Location} amethyst matches 0 run return fail");
             }

@@ -2,7 +2,7 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
-public class BoolResult : AbstractResult
+public class BoolResult : NumericBase
 {
     public override DataType DataType => new()
     {
@@ -10,7 +10,12 @@ public class BoolResult : AbstractResult
         Modifier = null
     };
 
-    public override AbstractResult ToBool => this;
+    public override BoolResult ToBool => this;
 
-    public override AbstractResult ToNumber => this;
+    public override IntResult ToNumber => new()
+    {
+        Compiler = Compiler,
+        Context = Context,
+        Location = Location
+    };
 }

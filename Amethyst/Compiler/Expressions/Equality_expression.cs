@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
+using Amethyst.Utility;
 
 namespace Amethyst;
 
@@ -31,51 +32,64 @@ public partial class Compiler
             }
             
             var operatorToken = context.GetChild(2 * i - 1).GetText();
+            
+            if (previous.DataType != current.DataType)
+            {
+                AddCode($"scoreboard players set {MemoryLocation} amethyst {Convert.ToInt32(operatorToken == "!=")}");
 
-            MemoryLocation++;
+                previous = new BoolResult
+                {
+                    Location = MemoryLocation.ToString(),
+                    Compiler = this,
+                    Context = context,
+                    IsTemporary = true
+                };
+                
+                continue;
+            }
             
             if (previous.DataType.IsScoreboardType && current.DataType.IsScoreboardType)
             {
-                AddCode($"scoreboard players operation {MemoryLocation} amethyst = {previous.Location} amethyst");
-
-                if (current.DataType.Scale != 1)
-                {
-                    AddCode($"scoreboard players operation {MemoryLocation} amethyst *= .{current.DataType.Scale} amethyst_const");
-                }
-
-                var currentLocation = current.Location;
+                var previousScaled = previous.ToNumber;
+                var currentScaled = current.ToNumber;
                 
-                if (previous.DataType.Scale != 1)
-                {
-                    MemoryLocation++;
-                    AddCode($"scoreboard players operation {MemoryLocation} amethyst = {current.Location} amethyst");
-                    AddCode($"scoreboard players operation {MemoryLocation} amethyst *= .{previous.DataType.Scale} amethyst_const");
-                    currentLocation = MemoryLocation.ToString();
-                    MemoryLocation--;
-                }
-            
-                AddCode($"execute store result score {MemoryLocation} amethyst run execute if score {MemoryLocation} amethyst = {currentLocation} amethyst");
-            }
-            else if (previous.DataType.IsScoreboardType && current.DataType.IsStorageType)
-            {
-                AddCode($"execute store result storage amethyst: {MemoryLocation} {previous.DataType.StorageModifier} run scoreboard players get {previous.Location} amethyst");
-                AddCode($"execute store success scoreboard {MemoryLocation} amethyst run data modify storage amethyst: {MemoryLocation} set from storage amethyst: {current.Location}");
-            }
-            else if (previous.DataType.IsStorageType && current.DataType.IsScoreboardType)
-            {
-                AddCode($"execute store result storage amethyst: {MemoryLocation} {current.DataType.StorageModifier} run scoreboard players get {current.Location} amethyst");
-                AddCode($"execute store success scoreboard {MemoryLocation} amethyst run data modify storage amethyst: {MemoryLocation} set from storage amethyst: {previous.Location}");
-            }
-            else if (previous.DataType.IsStorageType && current.DataType.IsStorageType)
-            {
-                AddCode($"data modify storage amethyst: {MemoryLocation} set from storage amethyst: {previous.Location}");
-                AddCode($"execute store success score {MemoryLocation} amethyst run data modify storage amethyst: {MemoryLocation} set from storage amethyst: {current.Location}");
-            }
+                var conditionalClause = (operatorToken == "==").ToConditionalClause();
 
-            // we need to invert the result, because store success ... modify set from ... will only yield true if the value is different
-            if ((previous.DataType.IsStorageType || current.DataType.IsStorageType) && operatorToken == "==")
+                var previousLocation = previousScaled.Location;
+                if (!previousScaled.IsTemporary)
+                {
+                    previousLocation = MemoryLocation++.ToString();
+                }
+                
+                AddCode($"execute store result score {previousLocation} amethyst run execute {conditionalClause} score {previousScaled.Location} amethyst = {currentScaled.Location} amethyst");
+                
+                previous = new BoolResult
+                {
+                    Location = previousLocation,
+                    Compiler = this,
+                    Context = context,
+                    IsTemporary = true
+                };
+                
+                continue;
+            }
+            
+            if (previous.DataType.IsStorageType && current.DataType.IsStorageType)
             {
-                AddCode($"execute store success score {MemoryLocation} amethyst if score {MemoryLocation} amethyst matches 0");
+                var previousLocation = previous.Location;
+                if (!previous.IsTemporary)
+                {
+                    previousLocation = MemoryLocation++.ToString();
+                    AddCode($"data modify storage amethyst: {previousLocation} set from storage amethyst: {previous.Location}");
+                }
+                
+                AddCode($"execute store success score {previousLocation} amethyst run data modify storage amethyst: {previousLocation} set from storage amethyst: {current.Location}");
+                
+                // we need to invert the result, because store success ... modify set from ... will yield true if the value is different
+                if (operatorToken == "==")
+                {
+                    AddCode($"execute store success score {MemoryLocation} amethyst if score {MemoryLocation} amethyst matches 0");
+                }
             }
             
             previous = current;
@@ -83,7 +97,7 @@ public partial class Compiler
         
         return new BoolResult
         {
-            Location = MemoryLocation--.ToString(),
+            Location = previous.Location,
             Compiler = this,
             Context = context
         };

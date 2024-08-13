@@ -10,7 +10,7 @@ public class StringResult : AbstractResult
         Modifier = null
     };
     
-    public override AbstractResult ToBool
+    public override BoolResult ToBool
     {
         get
         {
@@ -24,7 +24,7 @@ public class StringResult : AbstractResult
         }
     }
 
-    public override AbstractResult ToNumber
+    public override IntResult ToNumber
     {
         get
         {
@@ -36,5 +36,30 @@ public class StringResult : AbstractResult
                 Context = Context
             };
         }
+    }
+
+    protected override AbstractResult VisitAdd(StringResult rhs)
+    {
+        var previousLocation = Location;
+        if (!IsTemporary)
+        {
+            previousLocation = MemoryLocation++.ToString();
+        }
+        
+        var scope = Compiler.EvaluateScoped("_concat", () =>
+        {
+            // Todo: sanitize string by escaping quotes and other special characters that may mess up the macro expansion
+            Compiler.AddCode($"data modify storage amethyst: {previousLocation} set value \"$({Location})$({rhs.Location})\"");
+        });
+        
+        Compiler.AddCode($"function {scope.McFunctionPath} with storage amethyst:");
+
+        return new StringResult
+        {
+            Compiler = Compiler,
+            Context = Context,
+            Location = previousLocation,
+            IsTemporary = true
+        };
     }
 }
