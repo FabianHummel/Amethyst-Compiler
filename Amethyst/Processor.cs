@@ -227,13 +227,13 @@ public class Processor
     {
         var cts = PrintLongTask("Creating function tags", out var getElapsed);
         {
-            var path = Path.Combine(Context.Datapack!.OutputDir, "data", "minecraft", "tags", "functions", "load.json");
+            var path = Path.Combine(Context.Datapack!.OutputDir, $"data/minecraft/tags/{DATAPACK_FUNCTIONS_DIRECTORY}/load.json");
             var content = File.ReadAllText(path);
             content = content.Replace(SUBSTITUTIONS["loading_functions"], string.Join("", Context.Datapack!.LoadFunctions.Select(f => $",\n    \"{f}\"")));
             File.WriteAllText(path, content);
         }
         {
-            var path = Path.Combine(Context.Datapack!.OutputDir, "data", "minecraft", "tags", "functions", "tick.json");
+            var path = Path.Combine(Context.Datapack!.OutputDir, $"data/minecraft/tags/{DATAPACK_FUNCTIONS_DIRECTORY}/tick.json");
             var content = File.ReadAllText(path);
             content = content.Replace(SUBSTITUTIONS["ticking_functions"], string.Join("", Context.Datapack!.TickFunctions.Select(f => $",\n    \"{f}\"")));
             File.WriteAllText(path, content);
@@ -459,10 +459,5 @@ public class Processor
         {
             PrintError(e.Message);
         }
-    }
-
-    public void QuickCompile(string input)
-    {
-        Context.Namespaces.Clear();
     }
 }

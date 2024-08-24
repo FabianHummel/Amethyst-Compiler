@@ -45,5 +45,5 @@ public static class Constants
         { "amethyst_version", AMETHYST_VERSION }
     };
 
-    public const string DATAPACK_FUNCTIONS_DIRECTORY = "functions";
+    public const string DATAPACK_FUNCTIONS_DIRECTORY = "function";
 }

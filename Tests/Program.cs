@@ -1,49 +1,66 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics;
+using System.IO.Compression;
+using System.Net.Sockets;
+using System.Text;
 using NUnit.Framework;
 using Amethyst;
-using Brigadier.NET.Exceptions;
-using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Configuration;
+using Tests.RCON;
 
 namespace Tests;
 
 public partial class Program
 {
-    private readonly AmethystDispatcher _dispatcher = new();
-    
     private readonly Processor _amethyst = new();
+    private readonly MinecraftServerSettings _settings = new();
+    private readonly Process _process;
+    private readonly MinecraftClient _rcon;
 
-    private Dictionary<string, Dictionary<string, int>> Scoreboard => _dispatcher.Scoreboard;
-
-    private static string GetFunctionPath(string mcFunctionPath)
+    public Program()
     {
-        var paths = mcFunctionPath.Split(":", 2);
-        return Path.Combine(Environment.CurrentDirectory, "output/test/data", paths[0], "functions", paths[1] + ".mcfunction");
-    }
-    
-    [GeneratedRegex("#.*")]
-    private static partial Regex CommentRegex();
-    
-    private void SanitizeAndDispatch(string code)
-    {
-        foreach (var se in code.Split("\n"))
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile("appsettings.Development.json", optional: true)
+            .Build();
+        
+        configuration.GetSection("MinecraftServer").Bind(_settings);
+        
+        var serverProperties = Path.Combine(Environment.CurrentDirectory, "server.properties");
+        File.WriteAllText(serverProperties, File.ReadAllText(serverProperties, Encoding.UTF8)
+            .Replace("{RCON_PASSWORD}", _settings.RconPassword)
+            .Replace("{RCON_PORT}", _settings.RconPort.ToString()));
+        
+        var serverStartInfo = new ProcessStartInfo
         {
-            var line = se.Trim();
-            if (string.IsNullOrWhiteSpace(line))
-            {
-                continue;
-            }
-            if (CommentRegex().IsMatch(line))
-            {
-                continue;
-            }
-            try
-            {
-                _dispatcher.Execute(line, null);
-            }
-            catch (CommandSyntaxException e)
-            {
-                Console.Error.WriteLine(e.Message);
-            }
+            FileName = "java",
+            Arguments = $"-Xmx1024M -Xms1024M -jar \"{_settings.JarPath}\"",
+            WorkingDirectory = Environment.CurrentDirectory,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        _process = new Process { StartInfo = serverStartInfo };
+        _process.Start();
+
+        connect:
+        try
+        {
+            _rcon = new MinecraftClient(_settings.RconHost, _settings.RconPort);
+        }
+        catch (SocketException e)
+        {
+            Console.WriteLine(e);
+            Thread.Sleep(1000);
+            goto connect;
+        }
+
+        if (!_rcon.Authenticate(_settings.RconPassword))
+        {
+            Console.Error.WriteLine("Failed to authenticate with RCON server.");
+            throw new Exception("Failed to authenticate with RCON server.");
         }
     }
     
@@ -53,20 +70,34 @@ public partial class Program
         File.WriteAllText(mainAmyFile, input);
         _amethyst.ReinitializeProject();
         
-        var loadJsonFile = Path.Combine(Environment.CurrentDirectory, "output/test/data/minecraft/tags/functions/load.json");
-        dynamic load = JObject.Parse(File.ReadAllText(loadJsonFile));
-        
-        foreach (string mcFunctionPath in load.values)
+        var sourcePath = Path.Combine(Environment.CurrentDirectory, "output/test");
+        var targetPath = Path.Combine(Environment.CurrentDirectory, "world/datapacks/test.zip");
+
+        using (var writer = new FileStream(targetPath, FileMode.Create))
         {
-            var path = GetFunctionPath(mcFunctionPath);
-            var function = File.ReadAllText(path);
-            SanitizeAndDispatch(function);
+            ZipFile.CreateFromDirectory(sourcePath, writer, CompressionLevel.Fastest, false);
         }
+        
+        _rcon.SendCommand("reload", out _);
     }
 
-    [SetUp]
-    public void Setup()
+    private int GetScoreboardValue(string objective, string target)
     {
-        _dispatcher.Scoreboard.Clear();
+        _rcon.SendCommand($"scoreboard players get {target} {objective}", out var msg);
+        // "<target> has <value> [<objective>]"
+        return int.Parse(msg.Body.Split("has ")[1].Split(" ")[0]);
+    }
+
+    private string GetStorageValue(string @namespace, string path)
+    {
+        _rcon.SendCommand($"data get storage {@namespace} {path}", out var msg);
+        // Storage <namespace> has the following contents: <contents>
+        return msg.Body.Split("contents: ")[1].Trim();
+    }
+    
+    [OneTimeTearDown]
+    public void OneTimeTearDown()
+    {
+        _rcon.SendCommand("stop", out _);
     }
 }
