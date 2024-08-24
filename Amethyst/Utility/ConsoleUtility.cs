@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Amethyst.Model;
 using static Amethyst.Constants;
 using static Crayon.Output;
 
@@ -13,36 +14,6 @@ public static class ConsoleUtility
         Console.Clear();
         Console.Write("\f\u001bc\x1b[3J");
         Console.SetCursorPosition(0, 1);
-    }
-    
-    public static void PrintAmethystLogoAndVersion()
-    {
-        Console.Write(" \x1b[1m");
-        Console.Write($"\x1b[38;5;{98}mA");
-        Console.Write($"\x1b[38;5;{98}mm");
-        Console.Write($"\x1b[38;5;{98}me");
-        Console.Write($"\x1b[38;5;{140}mt");
-        Console.Write($"\x1b[38;5;{140}mh");
-        Console.Write($"\x1b[38;5;{183}my");
-        Console.Write($"\x1b[38;5;{183}ms");
-        Console.Write($"\x1b[38;5;{183}mt");
-        Console.Write("\x1b[22m ");
-        
-        Console.ForegroundColor = ConsoleColor.DarkGray;
-        Console.Write("v" + AMETHYST_VERSION);
-        if (Program.WatchMode)
-        {
-            Console.ForegroundColor = ConsoleColor.DarkCyan;
-            Console.Write(" (watch mode)");
-        }
-        if (Program.DebugMode)
-        {
-            Console.ForegroundColor = ConsoleColor.DarkYellow;
-            Console.Write(" (debug mode)");
-        }
-        Console.WriteLine();
-        Console.ResetColor();
-        Console.WriteLine();
     }
 
     public static CancellationTokenSource PrintLongTask(string executionText, out Func<long> getElapsed)
@@ -76,7 +47,6 @@ public static class ConsoleUtility
     
     public static void PrintDebugMessageWithTime(string s, long elapsed)
     {
-        if (!Program.DebugMode) return;
         Console.WriteLine($"\r {Dim("\u279c")} {Dim(s)} {Dim($"({elapsed}ms)")}".PadRight(Console.WindowWidth));
         Console.ResetColor();
     }
@@ -96,8 +66,40 @@ public static class ConsoleUtility
     
     public static void PrintDebug(string s)
     {
-        if (!Program.DebugMode) return;
         Console.WriteLine($"\r {Dim("\u279c")} {Dim(s)}".PadRight(Console.WindowWidth));
         Console.ResetColor();
+    }
+}
+
+public static class AmethystExtensions
+{
+    public static void PrintAmethystLogoAndVersion(this Processor amethyst)
+    {
+        Console.Write(" \x1b[1m");
+        Console.Write($"\x1b[38;5;{98}mA");
+        Console.Write($"\x1b[38;5;{98}mm");
+        Console.Write($"\x1b[38;5;{98}me");
+        Console.Write($"\x1b[38;5;{140}mt");
+        Console.Write($"\x1b[38;5;{140}mh");
+        Console.Write($"\x1b[38;5;{183}my");
+        Console.Write($"\x1b[38;5;{183}ms");
+        Console.Write($"\x1b[38;5;{183}mt");
+        Console.Write("\x1b[22m ");
+        
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("v" + AMETHYST_VERSION);
+        if (amethyst.Context.Flags.HasFlag(Flags.Watch))
+        {
+            Console.ForegroundColor = ConsoleColor.DarkCyan;
+            Console.Write(" (watch mode)");
+        }
+        if (amethyst.Context.Flags.HasFlag(Flags.Debug))
+        {
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.Write(" (debug mode)");
+        }
+        Console.WriteLine();
+        Console.ResetColor();
+        Console.WriteLine();
     }
 }

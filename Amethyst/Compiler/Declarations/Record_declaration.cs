@@ -69,7 +69,7 @@ public partial class Compiler
         {
             AddInitCode($"scoreboard objectives add {name} dummy");
 
-            if (Program.DebugMode)
+            if (Context.Flags.HasFlag(Flags.Debug))
             {
                 AddInitCode($$"""scoreboard objectives modify {{name}} displayname ["",{"text":"Record ","bold":true},{"text":"{{name}}","color":"dark_purple"},{"text":" @ "},{"text":"{{Scope.McFunctionPath}}/","color":"gray"},{"text":"{{recordName}}","color":"light_purple"}]""");
             }

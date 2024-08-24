@@ -42,12 +42,12 @@ public partial class Compiler
 
         if (literalContext.Decimal_Literal() is { } decimalLiteral)
         {
-            if (!double.TryParse(decimalLiteral.Symbol.ToString(), out var result))
+            if (!double.TryParse(decimalLiteral.Symbol.Text, out var result))
             {
                 throw new SyntaxException("Invalid decimal literal", literalContext);
             }
             
-            var rounded = Math.Round(result, 2);
+            var rounded = (int) Math.Round(result * 100);
             
             AddCode($"scoreboard players set {MemoryLocation} amethyst {rounded}");
 

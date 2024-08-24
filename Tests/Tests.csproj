@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Brigadier.NET" Version="1.2.13" />
+      <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+      <PackageReference Include="NUnit" Version="4.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Amethyst\Amethyst.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="Project/**" />
+    </ItemGroup>
+
+    <Target Name="CopyTemplateProject" AfterTargets="AfterBuild">
+        <RemoveDir Directories="$(OutputPath)/src" />
+        
+        <CreateItem Include="Project/**">
+            <Output TaskParameter="Include" ItemName="TemplateProject" />
+        </CreateItem>
+        
+        <Copy SourceFiles="@(TemplateProject)" DestinationFolder="$(OutputPath)/%(RecursiveDir)" />
+    </Target>
+</Project>

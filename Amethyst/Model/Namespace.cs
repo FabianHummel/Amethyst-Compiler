@@ -9,7 +9,7 @@ public class Namespace
 
     public string GetFunctionName(string debugName)
     {
-        if (Program.DebugMode)
+        if (Context.Flags.HasFlag(Flags.Debug))
         {
             return debugName;
         }
