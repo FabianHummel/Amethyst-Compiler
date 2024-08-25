@@ -21,6 +21,12 @@ public partial class Compiler
         if (context.expression() is { } expression)
         {
             result = VisitExpression(expression);
+            
+            if (result.ConstantValue != null)
+            {
+                result = result.CreateConstantValue();
+                MemoryLocation++;
+            }
         }
 
         var name = result?.Location ?? MemoryLocation.ToString();

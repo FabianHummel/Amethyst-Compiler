@@ -39,4 +39,8 @@
     <ItemGroup>
       <None Remove="Amethyst.csproj.DotSettings" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Playground\output\test\data\test\" />
+    </ItemGroup>
 </Project>

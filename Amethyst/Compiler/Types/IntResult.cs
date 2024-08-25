@@ -18,4 +18,17 @@ public class IntResult : NumericBase
     };
 
     public override IntResult ToNumber => this;
+    
+    public override AbstractResult CreateConstantValue()
+    {
+        AddCode($"scoreboard players set {MemoryLocation} amethyst {(int)ConstantValue! * DataType.Scale}");
+        
+        return new IntResult
+        {
+            Compiler = Compiler,
+            Context = Context,
+            Location = MemoryLocation.ToString(),
+            IsTemporary = true,
+        };
+    }
 }

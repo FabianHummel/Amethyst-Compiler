@@ -164,7 +164,7 @@ primary_expression
  ;
  
 literal
- : boolean_literal
+ : Boolean_literal
  | Integer_Literal
  | Decimal_Literal
  | String_Literal
@@ -172,7 +172,7 @@ literal
  | array_creation
  ;
  
-boolean_literal
+Boolean_literal
  : 'true'
  | 'false'
  ;

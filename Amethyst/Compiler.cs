@@ -10,6 +10,7 @@ public partial class Compiler : AmethystBaseVisitor<object?>
     internal Scope Scope { get; set; } = null!;
     internal int TotalRecordCount { get; set; } = 0;
     internal int MemoryLocation { get; set; } = 0;
+    internal int ConstantLocation { get; set; } = 0;
     internal Namespace Namespace { get; set; } = null!;
     internal SourceFile SourceFile { get; set; } = null!;
     

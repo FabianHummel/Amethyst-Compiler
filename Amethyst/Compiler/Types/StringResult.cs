@@ -62,4 +62,17 @@ public class StringResult : AbstractResult
             IsTemporary = true
         };
     }
+    
+    public override AbstractResult CreateConstantValue()
+    {
+        AddCode($"data modify storage amethyst: {MemoryLocation} set value {ConstantValue}");
+        
+        return new StringResult
+        {
+            Compiler = Compiler,
+            Context = Context,
+            Location = MemoryLocation.ToString(),
+            IsTemporary = true,
+        };
+    }
 }

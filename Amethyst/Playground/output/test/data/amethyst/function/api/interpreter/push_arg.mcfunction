@@ -1,0 +1,1 @@
+$data modify storage amethyst: _argv append value {_:$(_out)}

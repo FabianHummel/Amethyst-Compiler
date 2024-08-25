@@ -33,7 +33,7 @@ public partial class Compiler
             }
         }
         
-        return new ObjectResult
+        return new DynObjectResult
         {
             Compiler = this,
             Location = MemoryLocation++.ToString(),

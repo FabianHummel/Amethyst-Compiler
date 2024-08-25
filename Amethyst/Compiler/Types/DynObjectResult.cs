@@ -2,14 +2,12 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
-public class ObjectResult : AbstractResult
+public class DynObjectResult : AbstractResult
 {
-    public required BasicType BasicType { get; init; }
-    
     public override DataType DataType => new()
     {
-        BasicType = BasicType,
-        Modifier = Modifier.Object
+        BasicType = BasicType.Object,
+        Modifier = null
     };
 
     public override AbstractResult CreateConstantValue()

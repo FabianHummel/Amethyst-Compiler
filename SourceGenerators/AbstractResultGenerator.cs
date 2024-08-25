@@ -19,8 +19,8 @@ public class AbstractResultGenerator : ISourceGenerator
         "BoolResult",
         "ArrayResult",
         "ObjectResult",
-        "AnyArrayResult",
-        "AnyObjectResult"
+        "DynArrayResult",
+        "DynObjectResult"
     };
         
     private string GetMemberName(string type) => char.ToLower(type[0]) + type.Substring(1);

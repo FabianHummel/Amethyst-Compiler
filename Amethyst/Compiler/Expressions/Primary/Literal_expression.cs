@@ -15,48 +15,26 @@ public partial class Compiler
         
         if (literalContext.String_Literal() is { } stringLiteral)
         {
-            AddCode($"data modify storage amethyst: {MemoryLocation} set value {stringLiteral.Symbol.Text}");
             return new StringResult
             {
                 Compiler = this,
-                Location = MemoryLocation++.ToString(),
                 Context = literalContext,
-                IsTemporary = true
+                ConstantValue = stringLiteral.Symbol.Text
             };
         }
-
-        if (literalContext.array_creation() is { } arrayCreation)
-        {
-            return VisitArray_creation(arrayCreation);
-        }
         
-        if (literalContext.boolean_literal() is { } booleanLiteral)
-        {
-            return VisitBoolean_literal(booleanLiteral);
-        }
-        
-        if (literalContext.object_creation() is { } objectCreation)
-        {
-            return VisitObject_creation(objectCreation);
-        }
-
         if (literalContext.Decimal_Literal() is { } decimalLiteral)
         {
             if (!double.TryParse(decimalLiteral.Symbol.Text, out var result))
             {
                 throw new SyntaxException("Invalid decimal literal", literalContext);
             }
-            
-            var rounded = (int) Math.Round(result * 100);
-            
-            AddCode($"scoreboard players set {MemoryLocation} amethyst {rounded}");
 
             return new DecResult
             {
                 Compiler = this,
-                Location = MemoryLocation++.ToString(),
                 Context = literalContext,
-                IsTemporary = true
+                ConstantValue = result
             };
         }
         
@@ -67,15 +45,34 @@ public partial class Compiler
                 throw new SyntaxException("Invalid integer literal", literalContext);
             }
             
-            AddCode($"scoreboard players set {MemoryLocation} amethyst {result}");
-
             return new IntResult
             {
                 Compiler = this,
-                Location = MemoryLocation++.ToString(),
                 Context = literalContext,
-                IsTemporary = true
+                ConstantValue = result
             };
+        }
+
+        if (literalContext.Boolean_literal() is { } booleanLiteral)
+        {
+            var value = booleanLiteral.GetText() == "true" ? true : false;
+        
+            return new BoolResult
+            {
+                Compiler = this,
+                Context = literalContext,
+                ConstantValue = value
+            };
+        }
+        
+        if (literalContext.array_creation() is { } arrayCreation)
+        {
+            return VisitArray_creation(arrayCreation);
+        }
+        
+        if (literalContext.object_creation() is { } objectCreation)
+        {
+            return VisitObject_creation(objectCreation);
         }
         
         throw new UnreachableException();

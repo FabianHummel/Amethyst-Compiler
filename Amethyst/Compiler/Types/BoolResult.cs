@@ -18,4 +18,18 @@ public class BoolResult : NumericBase
         Context = Context,
         Location = Location
     };
+    
+    
+    public override AbstractResult CreateConstantValue()
+    {
+        AddCode($"scoreboard players set {MemoryLocation} amethyst {ConstantValue}");
+        
+        return new BoolResult
+        {
+            Compiler = Compiler,
+            Context = Context,
+            Location = MemoryLocation.ToString(),
+            IsTemporary = true,
+        };
+    }
 }

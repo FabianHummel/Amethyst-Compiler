@@ -1,0 +1,4 @@
+[datapack]
+name = "test"
+description = "Unit Tests"
+output = "./output"

@@ -17,17 +17,22 @@ public class ScaleAttribute : Attribute
 public enum BasicType
 {
     [Description("int")]
+    [DefaultValue("0")]
     [Scale(1)]
     Int,
     [Description("dec")]
+    [DefaultValue("0.0")]
     [Scale(100)]
     Dec,
     [Description("string")]
+    [DefaultValue("\"\"")]
     String,
     [Description("bool")]
+    [DefaultValue("false")]
     [Scale(1)]
     Bool,
     [Description("array")]
+    [DefaultValue("{_:0}")]
     Array,
     [Description("object")]
     Object,
@@ -36,8 +41,10 @@ public enum BasicType
 public enum Modifier
 {
     [Description("[]")]
+    [DefaultValue("[]")]
     Array,
     [Description("{}")]
+    [DefaultValue("{}")]
     Object
 }
 
@@ -104,27 +111,38 @@ public class DataType
     {
         get
         {
+            if (!IsScoreboardType)
             {
-                if (!IsScoreboardType)
-                {
-                    return null;
-                }
-        
-                if (BasicType == BasicType.Bool)
-                {
-                    return $"byte {1 / Scale}";
-                }
-                if (BasicType == BasicType.Int)
-                {
-                    return $"int {1 / Scale}";
-                }
-                if (BasicType == BasicType.Dec)
-                {
-                    return $"double {1 / Scale}";
-                }
-        
                 return null;
             }
+        
+            if (BasicType == BasicType.Bool)
+            {
+                return $"byte {1 / Scale}";
+            }
+            if (BasicType == BasicType.Int)
+            {
+                return $"int {1 / Scale}";
+            }
+            if (BasicType == BasicType.Dec)
+            {
+                return $"double {1 / Scale}";
+            }
+        
+            return null;
+        }
+    }
+
+    public string DefaultValue
+    {
+        get
+        {
+            if (Modifier is { } modifier)
+            {
+                return modifier.GetDefaultValue();
+            }
+            
+            return BasicType.GetDefaultValue();
         }
     }
 }

@@ -34,7 +34,7 @@ public partial class Program
         var serverStartInfo = new ProcessStartInfo
         {
             FileName = "java",
-            Arguments = $"-Xmx1024M -Xms1024M -jar \"{_settings.JarPath}\"",
+            Arguments = $"-Xmx1024M -Xms1024M -jar \"{_settings.JarPath}\" nogui",
             WorkingDirectory = Environment.CurrentDirectory,
             RedirectStandardOutput = true,
             RedirectStandardError = true,

@@ -38,4 +38,17 @@ public class DecResult : NumericBase
             };
         }
     }
+    
+    public override AbstractResult CreateConstantValue()
+    {
+        AddCode($"scoreboard players set {MemoryLocation} amethyst {(double)ConstantValue! * DataType.Scale}");
+        
+        return new BoolResult
+        {
+            Compiler = Compiler,
+            Context = Context,
+            Location = MemoryLocation.ToString(),
+            IsTemporary = true,
+        };
+    }
 }
