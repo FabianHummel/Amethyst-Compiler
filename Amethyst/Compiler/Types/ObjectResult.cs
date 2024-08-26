@@ -12,8 +12,8 @@ public class ObjectResult : AbstractResult
         Modifier = Modifier.Object
     };
 
-    public override AbstractResult CreateConstantValue()
+    protected override string GetSubstitutionModifier(object index)
     {
-        return this;
+        return $".{index}";
     }
 }

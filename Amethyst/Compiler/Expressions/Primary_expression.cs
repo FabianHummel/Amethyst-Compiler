@@ -35,14 +35,6 @@ public partial class Compiler
         {
             return VisitIndexed_access(indexedAccess);
         }
-        if (context is AmethystParser.Object_creation_expressionContext objectCreationExpression)
-        {
-            return VisitObject_creation_expression(objectCreationExpression);
-        }
-        if (context is AmethystParser.Array_creation_expressionContext arrayCreationExpression)
-        {
-            return VisitArray_creation_expression(arrayCreationExpression);
-        }
         if (context is AmethystParser.Post_incrementContext postIncrement)
         {
             return VisitPost_increment(postIncrement);

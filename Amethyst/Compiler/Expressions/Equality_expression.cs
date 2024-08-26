@@ -37,7 +37,7 @@ public partial class Compiler
             {
                 AddCode($"scoreboard players set {MemoryLocation} amethyst {Convert.ToInt32(operatorToken == "!=")}");
 
-                previous = new BoolResult
+                previous = new BooleanResult
                 {
                     Location = MemoryLocation.ToString(),
                     Compiler = this,
@@ -50,8 +50,8 @@ public partial class Compiler
             
             if (previous.DataType.IsScoreboardType && current.DataType.IsScoreboardType)
             {
-                var previousScaled = previous.ToNumber;
-                var currentScaled = current.ToNumber;
+                var previousScaled = previous.MakeNumber();
+                var currentScaled = current.MakeNumber();
                 
                 var conditionalClause = (operatorToken == "==").ToConditionalClause();
 
@@ -63,7 +63,7 @@ public partial class Compiler
                 
                 AddCode($"execute store result score {previousLocation} amethyst run execute {conditionalClause} score {previousScaled.Location} amethyst = {currentScaled.Location} amethyst");
                 
-                previous = new BoolResult
+                previous = new BooleanResult
                 {
                     Location = previousLocation,
                     Compiler = this,
@@ -95,7 +95,7 @@ public partial class Compiler
             previous = current;
         }
         
-        return new BoolResult
+        return new BooleanResult
         {
             Location = previous.Location,
             Compiler = this,

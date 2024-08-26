@@ -15,9 +15,9 @@ public abstract class NumericBase : AbstractResult
             AddCode($"scoreboard players operation {MemoryLocation} amethyst *= .{rhs.DataType.Scale} amethyst_const");
         }
         
-        AddCode($"scoreboard players operation {MemoryLocation} amethyst {op.ToSymbol()}= {rhs.ToNumber.Location} amethyst");
+        AddCode($"scoreboard players operation {MemoryLocation} amethyst {op.ToSymbol()}= {rhs.MakeNumber().Location} amethyst");
 
-        return new IntResult
+        return new IntegerResult
         {
             Compiler = Compiler,
             Context = Context,
@@ -25,77 +25,77 @@ public abstract class NumericBase : AbstractResult
         };
     }
 
-    protected override AbstractResult VisitAdd(IntResult rhs)
+    protected override AbstractResult VisitAdd(IntegerResult rhs)
     {
         return Calculate(rhs, Operator.ADD);
     }
 
-    protected override AbstractResult VisitAdd(DecResult rhs)
+    protected override AbstractResult VisitAdd(DecimalResult rhs)
     {
         return Calculate(rhs, Operator.ADD);
     }
 
-    protected override AbstractResult VisitAdd(BoolResult rhs)
+    protected override AbstractResult VisitAdd(BooleanResult rhs)
     {
         return Calculate(rhs, Operator.ADD);
     }
 
-    protected override AbstractResult VisitSubtract(IntResult rhs)
+    protected override AbstractResult VisitSubtract(IntegerResult rhs)
     {
         return Calculate(rhs, Operator.SUBTRACT);
     }
 
-    protected override AbstractResult VisitSubtract(DecResult rhs)
+    protected override AbstractResult VisitSubtract(DecimalResult rhs)
     {
         return Calculate(rhs, Operator.SUBTRACT);
     }
 
-    protected override AbstractResult VisitSubtract(BoolResult rhs)
+    protected override AbstractResult VisitSubtract(BooleanResult rhs)
     {
         return Calculate(rhs, Operator.SUBTRACT);
     }
 
-    protected override AbstractResult VisitMultiply(IntResult rhs)
+    protected override AbstractResult VisitMultiply(IntegerResult rhs)
     {
         return Calculate(rhs, Operator.MULTIPLY);
     }
 
-    protected override AbstractResult VisitMultiply(DecResult rhs)
+    protected override AbstractResult VisitMultiply(DecimalResult rhs)
     {
         return Calculate(rhs, Operator.MULTIPLY);
     }
 
-    protected override AbstractResult VisitMultiply(BoolResult rhs)
+    protected override AbstractResult VisitMultiply(BooleanResult rhs)
     {
         return Calculate(rhs, Operator.MULTIPLY);
     }
 
-    protected override AbstractResult VisitDivide(IntResult rhs)
+    protected override AbstractResult VisitDivide(IntegerResult rhs)
     {
         return Calculate(rhs, Operator.DIVIDE);
     }
 
-    protected override AbstractResult VisitDivide(DecResult rhs)
+    protected override AbstractResult VisitDivide(DecimalResult rhs)
     {
         return Calculate(rhs, Operator.DIVIDE);
     }
 
-    protected override AbstractResult VisitDivide(BoolResult rhs)
+    protected override AbstractResult VisitDivide(BooleanResult rhs)
     {
         return Calculate(rhs, Operator.DIVIDE);
     }
 
-    protected override AbstractResult VisitModulo(IntResult rhs)
+    protected override AbstractResult VisitModulo(IntegerResult rhs)
     {
         return Calculate(rhs, Operator.MODULO);
     }
 
-    protected override AbstractResult VisitModulo(DecResult rhs)
+    protected override AbstractResult VisitModulo(DecimalResult rhs)
     {
         return Calculate(rhs, Operator.MODULO);
     }
 
-    protected override AbstractResult VisitModulo(BoolResult rhs)
+    protected override AbstractResult VisitModulo(BooleanResult rhs)
     {
         return Calculate(rhs, Operator.MODULO);
     }

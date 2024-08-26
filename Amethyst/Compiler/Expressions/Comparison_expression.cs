@@ -25,7 +25,7 @@ public partial class Compiler
         
         for (int i = 1; i < context.term_expression().Length; i++)
         {
-            var current = VisitTerm_expression(termExpressionContexts[i]).ToNumber;
+            var current = VisitTerm_expression(termExpressionContexts[i]).MakeNumber();
             
             var operatorToken = context.GetChild(2 * i - 1).GetText();
             
@@ -55,7 +55,7 @@ public partial class Compiler
             previous = current;
         }
         
-        return new BoolResult
+        return new BooleanResult
         {
             Location = MemoryLocation--.ToString(),
             Compiler = this,

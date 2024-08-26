@@ -11,10 +11,10 @@ public static class EnumDescriptionExtension
         return attribute?.Description ?? value.ToString();
     }
     
-    public static string GetDefaultValue<T>(this T value) where T : Enum
+    public static object GetDefaultValue<T>(this T value) where T : Enum
     {
         var field = value.GetType().GetField(value.ToString());
         var attribute = Attribute.GetCustomAttribute(field!, typeof(DefaultValueAttribute)) as DefaultValueAttribute;
-        return attribute?.Value?.ToString() ?? value.ToString();
+        return attribute?.Value ?? value;
     }
 }

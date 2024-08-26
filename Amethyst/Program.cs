@@ -22,7 +22,7 @@ public static class Program
                 {
                     _amethyst.Context.Flags &= Flags.Debug;
                 }
-
+    
                 if (o.Watch)
                 {
                     _amethyst.Context.Flags = Flags.Watch;
@@ -70,7 +70,7 @@ public static class Program
                         _configWatcher.EnableRaisingEvents = true;
                     });
                     thread.Start();
-
+    
                     while (Console.ReadLine() != "exit")
                     {
                         
@@ -85,7 +85,7 @@ public static class Program
                 }
             });
     }
-
+    
     private static void OnChangedSource(object sender, FileSystemEventArgs e)
     {
         _onChangedSourceTokenSource?.Cancel();

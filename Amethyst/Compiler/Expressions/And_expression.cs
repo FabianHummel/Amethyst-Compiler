@@ -24,7 +24,7 @@ public partial class Compiler
             foreach (var equalityExpressionContext in equalityExpressionContexts)
             {
                 var previousMemoryLocation = MemoryLocation;
-                var result = VisitEquality_expression(equalityExpressionContext).ToBool;
+                var result = VisitEquality_expression(equalityExpressionContext).MakeBoolean();
                 MemoryLocation = previousMemoryLocation;
                 
                 // Early return if the first expression is false (we don't need to check the rest).
@@ -34,7 +34,7 @@ public partial class Compiler
             
         AddCode($"function {scope.McFunctionPath}");
 
-        return new BoolResult
+        return new BooleanResult
         {
             Location = MemoryLocation.ToString(),
             Compiler = this,

@@ -24,8 +24,7 @@ public partial class Compiler
             
             if (result.ConstantValue != null)
             {
-                result = result.CreateConstantValue();
-                MemoryLocation++;
+                result = result.MakeVariable();
             }
         }
 

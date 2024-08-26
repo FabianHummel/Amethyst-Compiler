@@ -13,10 +13,10 @@ public class AbstractResultGenerator : ISourceGenerator
         
     private readonly string[] _types = new[]
     {
-        "IntResult",
-        "DecResult",
+        "IntegerResult",
+        "DecimalResult",
         "StringResult",
-        "BoolResult",
+        "BooleanResult",
         "ArrayResult",
         "ObjectResult",
         "DynArrayResult",

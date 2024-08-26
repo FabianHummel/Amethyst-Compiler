@@ -56,44 +56,41 @@ public partial class Compiler
     public ArrayResult CreateStaticArray(AmethystParser.Array_creationContext context, DataType dataType, List<AbstractResult> elements)
     {
         var parts = new List<string>();
-        
-        var scope = EvaluateScoped("_array", () =>
+
+        var substitutions = new List<KeyValuePair<object, AbstractResult>>();
+
+        for (var i = 0; i < elements.Count; i++)
         {
-            foreach (var element in elements)
+            var element = elements[i];
+            
+            if (element.ConstantValue is { } constantValue)
             {
-                if (element.ConstantValue is { } constantValue)
+                parts.Add($"{constantValue}");
+
+                if (element.Substitutions != null)
                 {
-                    parts.Add(constantValue.ToString()!);
-                }
-                else if (element.Location is { } location)
-                {
-                    if (element.DataType.IsStorageType)
-                    {
-                        AddCode($"data modify storage amethyst: {MemoryLocation}[{parts.Count}] set from storage amethyst: {location}");
-                    }
-                    else if (element.DataType.IsScoreboardType)
-                    {
-                        AddCode($"execute store result storage amethyst: {MemoryLocation}[{parts.Count}] {dataType.StorageModifier} run scoreboard players get {location} amethyst");
-                    }
-                    
-                    parts.Add(element.DataType.DefaultValue);
-                }
-                else
-                {
-                    throw new UnreachableException();
+                    substitutions.Add(new KeyValuePair<object, AbstractResult>(i, element));
                 }
             }
-        });
-        
-        AddCode($"data modify storage amethyst: {MemoryLocation} set value [{string.Join(',', parts)}]");
-        AddCode($"function {scope.McFunctionPath}");
-        
-        return new()
+            else if (element.Location is not null)
+            {
+                parts.Add($"{element.DataType.DefaultValue}");
+
+                substitutions.Add(new KeyValuePair<object, AbstractResult>(i, element));
+            }
+            else
+            {
+                throw new UnreachableException();
+            }
+        }
+
+        return new ArrayResult
         {
             Compiler = this,
             BasicType = dataType.BasicType,
-            Location = MemoryLocation++.ToString(),
-            Context = context
+            Context = context,
+            ConstantValue = $"[{string.Join(',', parts)}]",
+            Substitutions = substitutions
         };
     }
     
@@ -101,42 +98,39 @@ public partial class Compiler
     {
         var parts = new List<string>();
         
-        var scope = EvaluateScoped("_array", () =>
+        var substitutions = new List<KeyValuePair<object, AbstractResult>>();
+
+        for (var i = 0; i < elements.Count; i++)
         {
-            foreach (var element in elements)
+            var element = elements[i];
+            
+            if (element.ConstantValue is { } constantValue)
             {
-                if (element.ConstantValue is { } constantValue)
+                parts.Add($"{{_:{constantValue}}}");
+
+                if (element.Substitutions != null)
                 {
-                    parts.Add($"{{_:{constantValue}}}");
-                }
-                else if (element.Location is { } location)
-                {
-                    if (element.DataType.IsStorageType)
-                    {
-                        AddCode($"data modify storage amethyst: {MemoryLocation}[{parts.Count}]._ set from storage amethyst: {location}");
-                    }
-                    else if (element.DataType.IsScoreboardType)
-                    {
-                        AddCode($"execute store result storage amethyst: {MemoryLocation}[{parts.Count}]._ {element.DataType.StorageModifier} run scoreboard players get {location} amethyst");
-                    }
-                    
-                    parts.Add(BasicType.Array.GetDefaultValue());
-                }
-                else
-                {
-                    throw new UnreachableException();
+                    substitutions.Add(new KeyValuePair<object, AbstractResult>(i, element));
                 }
             }
-        });
-        
-        AddCode($"data modify storage amethyst: {MemoryLocation} set value [{string.Join(',', parts)}]");
-        AddCode($"function {scope.McFunctionPath}");
-        
-        return new()
+            else if (element.Location is not null)
+            {
+                parts.Add($"{BasicType.Array.GetDefaultValue()}");
+
+                substitutions.Add(new KeyValuePair<object, AbstractResult>(i, element));
+            }
+            else
+            {
+                throw new UnreachableException();
+            }
+        }
+
+        return new DynArrayResult
         {
             Compiler = this,
-            Location = MemoryLocation++.ToString(),
-            Context = context
+            Context = context,
+            ConstantValue = $"[{string.Join(',', parts)}]",
+            Substitutions = substitutions
         };
     }
 }

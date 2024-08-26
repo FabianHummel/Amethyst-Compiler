@@ -9,9 +9,4 @@ public class DynObjectResult : AbstractResult
         BasicType = BasicType.Object,
         Modifier = null
     };
-
-    public override AbstractResult CreateConstantValue()
-    {
-        return this;
-    }
 }

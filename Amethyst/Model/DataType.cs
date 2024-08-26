@@ -17,18 +17,18 @@ public class ScaleAttribute : Attribute
 public enum BasicType
 {
     [Description("int")]
-    [DefaultValue("0")]
+    [DefaultValue(0)]
     [Scale(1)]
     Int,
     [Description("dec")]
-    [DefaultValue("0.0")]
+    [DefaultValue(0.0)]
     [Scale(100)]
     Dec,
     [Description("string")]
-    [DefaultValue("\"\"")]
+    [DefaultValue("")]
     String,
     [Description("bool")]
-    [DefaultValue("false")]
+    [DefaultValue(false)]
     [Scale(1)]
     Bool,
     [Description("array")]
@@ -133,7 +133,7 @@ public class DataType
         }
     }
 
-    public string DefaultValue
+    public object DefaultValue
     {
         get
         {

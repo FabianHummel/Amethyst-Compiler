@@ -24,7 +24,7 @@ public partial class Compiler
             foreach (var andExpressionContext in andExpressionContexts)
             {
                 var previousMemoryLocation = MemoryLocation;
-                var result = VisitAnd_expression(andExpressionContext).ToBool;
+                var result = VisitAnd_expression(andExpressionContext).MakeBoolean();
                 MemoryLocation = previousMemoryLocation;
                 
                 // Early return if the first expression is true (we don't need to check the rest).
@@ -34,7 +34,7 @@ public partial class Compiler
             
         AddCode($"function {scope.McFunctionPath}");
 
-        return new BoolResult
+        return new BooleanResult
         {
             Location = MemoryLocation.ToString(),
             Compiler = this,

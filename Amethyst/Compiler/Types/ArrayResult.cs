@@ -11,37 +11,47 @@ public class ArrayResult : AbstractResult
         BasicType = BasicType,
         Modifier = Modifier.Array
     };
-    
-    public override BoolResult ToBool
+
+    public override BooleanResult MakeBoolean()
     {
-        get
+        Compiler.AddCode($"execute store success score {++Compiler.MemoryLocation} amethyst run data get storage amethyst: {Location}");
+        
+        return new BooleanResult
         {
-            Compiler.AddCode($"execute store success score {++Compiler.MemoryLocation} amethyst run data get storage amethyst: {Location}");
-            return new BoolResult
-            {
-                Location = Compiler.MemoryLocation.ToString(),
-                Compiler = Compiler,
-                Context = Context
-            };
-        }
+            Location = Compiler.MemoryLocation.ToString(),
+            Compiler = Compiler,
+            Context = Context
+        };
     }
 
-    public override IntResult ToNumber
+    public override IntegerResult MakeNumber()
     {
-        get
+        Compiler.AddCode($"execute store result score {++Compiler.MemoryLocation} amethyst run data get storage amethyst: {Location}");
+        
+        return new IntegerResult
         {
-            Compiler.AddCode($"execute store result score {++Compiler.MemoryLocation} amethyst run data get storage amethyst: {Location}");
-            return new IntResult
-            {
-                Location = Compiler.MemoryLocation.ToString(),
-                Compiler = Compiler,
-                Context = Context
-            };
-        }
+            Location = Compiler.MemoryLocation.ToString(),
+            Compiler = Compiler,
+            Context = Context
+        };
     }
 
-    public override AbstractResult CreateConstantValue()
+    protected override string GetSubstitutionModifier(object index)
     {
-        return this;
+        return $"[{index}]";
+    }
+
+    public override AbstractResult MakeVariable()
+    {
+        AddCode($"data modify storage amethyst: {MemoryLocation} set value {ConstantValue}");
+
+        SubstituteRecursively(MemoryLocation.ToString());
+
+        return new DynArrayResult
+        {
+            Compiler = Compiler,
+            Location = MemoryLocation++.ToString(),
+            Context = Context
+        };
     }
 }

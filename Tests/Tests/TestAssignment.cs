@@ -38,9 +38,9 @@ public partial class Program
     public void TestAssignArray()
     {
         Run("""
-            var x = [20, 30, 4, "Hello, World!"];
+            var x = [19, "nice", 8.43, [1, "cool", true]];
             """);
      
-        Assert.That(GetStorageValue("amethyst:", "0"), Is.EqualTo("[{_: 20}, {_: 30}, {_: 4}, {_: \"Hello, World!\"}]"));
+        Assert.That(GetStorageValue("amethyst:", "0"), Is.EqualTo("[{_: 19}, {_: \"nice\"}, {_: 8.43d}, {_: [{_: 1}, {_: \"cool\"}, {_: 1b}]}]"));
     }
 }

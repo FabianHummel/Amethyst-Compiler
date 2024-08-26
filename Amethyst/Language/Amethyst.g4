@@ -157,14 +157,12 @@ primary_expression
  | function_call                           # function_call_expression
  | namespace_access                        # identifier_expression
  | primary_expression '[' expression ']'   # indexed_access
- | object_creation                         # object_creation_expression
- | array_creation                          # array_creation_expression
  | primary_expression '++'                 # post_increment
  | primary_expression '--'                 # post_decrement
  ;
  
 literal
- : Boolean_literal
+ : boolean_literal
  | Integer_Literal
  | Decimal_Literal
  | String_Literal
@@ -172,7 +170,7 @@ literal
  | array_creation
  ;
  
-Boolean_literal
+boolean_literal
  : 'true'
  | 'false'
  ;

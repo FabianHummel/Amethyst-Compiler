@@ -10,8 +10,22 @@ public class DynArrayResult : AbstractResult
         Modifier = null
     };
 
-    public override AbstractResult CreateConstantValue()
+    protected override string GetSubstitutionModifier(object index)
     {
-        return this;
+        return $"[{index}]._";
+    }
+
+    public override AbstractResult MakeVariable()
+    {
+        AddCode($"data modify storage amethyst: {MemoryLocation} set value {ConstantValue}");
+
+        SubstituteRecursively(MemoryLocation.ToString());
+
+        return new DynArrayResult
+        {
+            Compiler = Compiler,
+            Location = MemoryLocation++.ToString(),
+            Context = Context
+        };
     }
 }

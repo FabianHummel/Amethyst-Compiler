@@ -30,7 +30,7 @@ public partial class Compiler
                 throw new SyntaxException("Invalid decimal literal", literalContext);
             }
 
-            return new DecResult
+            return new DecimalResult
             {
                 Compiler = this,
                 Context = literalContext,
@@ -45,7 +45,7 @@ public partial class Compiler
                 throw new SyntaxException("Invalid integer literal", literalContext);
             }
             
-            return new IntResult
+            return new IntegerResult
             {
                 Compiler = this,
                 Context = literalContext,
@@ -53,11 +53,11 @@ public partial class Compiler
             };
         }
 
-        if (literalContext.Boolean_literal() is { } booleanLiteral)
+        if (literalContext.boolean_literal() is { } booleanLiteral)
         {
-            var value = booleanLiteral.GetText() == "true" ? true : false;
-        
-            return new BoolResult
+            var value = booleanLiteral.GetText() == "true";
+
+            return new BooleanResult
             {
                 Compiler = this,
                 Context = literalContext,
