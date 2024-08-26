@@ -1,18 +1,7 @@
-using System.ComponentModel;
+using Amethyst.Attributes;
 using Amethyst.Utility;
 
 namespace Amethyst.Model;
-
-[AttributeUsage(AttributeTargets.Field)]
-public class ScaleAttribute : Attribute
-{
-    public int Scale { get; }
-    
-    public ScaleAttribute(int scale)
-    {
-        Scale = scale;
-    }
-}
 
 public enum BasicType
 {
@@ -33,6 +22,7 @@ public enum BasicType
     Bool,
     [Description("array")]
     [DefaultValue("{_:0}")]
+    [SubstitutionModifier("[{0}]._")]
     Array,
     [Description("object")]
     Object,
@@ -42,9 +32,11 @@ public enum Modifier
 {
     [Description("[]")]
     [DefaultValue("[]")]
+    [SubstitutionModifier("[{0}]")]
     Array,
     [Description("{}")]
     [DefaultValue("{}")]
+    [SubstitutionModifier(".{0}")]
     Object
 }
 
@@ -144,5 +136,23 @@ public class DataType
             
             return BasicType.GetDefaultValue();
         }
+    }
+    
+    public string SubstitutionModifier
+    {
+        get
+        {
+            if (Modifier is { } modifier)
+            {
+                return modifier.GetSubstitutionModifier();
+            }
+            
+            return string.Empty;
+        }
+    }
+    
+    public string GetSubstitutionModifier(object index)
+    {
+        return string.Format(SubstitutionModifier, index);
     }
 }

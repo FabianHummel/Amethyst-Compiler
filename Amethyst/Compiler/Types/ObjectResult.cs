@@ -11,9 +11,4 @@ public class ObjectResult : AbstractResult
         BasicType = BasicType,
         Modifier = Modifier.Object
     };
-
-    protected override string GetSubstitutionModifier(object index)
-    {
-        return $".{index}";
-    }
 }

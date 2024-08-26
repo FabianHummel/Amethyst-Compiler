@@ -1,4 +1,5 @@
 using Amethyst.Model;
+using Amethyst.Utility;
 
 namespace Amethyst;
 
@@ -15,7 +16,7 @@ public abstract class NumericBase : AbstractResult
             AddCode($"scoreboard players operation {MemoryLocation} amethyst *= .{rhs.DataType.Scale} amethyst_const");
         }
         
-        AddCode($"scoreboard players operation {MemoryLocation} amethyst {op.ToSymbol()}= {rhs.MakeNumber().Location} amethyst");
+        AddCode($"scoreboard players operation {MemoryLocation} amethyst {op.GetMcfOperatorSymbol()}= {rhs.MakeNumber().Location} amethyst");
 
         return new IntegerResult
         {

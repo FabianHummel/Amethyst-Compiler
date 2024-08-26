@@ -1,27 +1,18 @@
-using System.ComponentModel;
+
+using Amethyst.Attributes;
 
 namespace Amethyst.Model;
 
 public enum Operator
 {
-    [Description("+")]
+    [McfOperator("+")]
     ADD,
-    [Description("-")]
+    [McfOperator("-")]
     SUBTRACT,
-    [Description("*")]
+    [McfOperator("*")]
     MULTIPLY,
-    [Description("/")]
+    [McfOperator("/")]
     DIVIDE,
-    [Description("%")]
+    [McfOperator("%")]
     MODULO
-}
-
-public static class OperatorExtensions
-{
-    public static string ToSymbol(this Operator op)
-    {
-        var field = op.GetType().GetField(op.ToString());
-        var attribute = (DescriptionAttribute)Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
-        return attribute!.Description;
-    }
 }

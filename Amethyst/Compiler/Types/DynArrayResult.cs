@@ -10,11 +10,6 @@ public class DynArrayResult : AbstractResult
         Modifier = null
     };
 
-    protected override string GetSubstitutionModifier(object index)
-    {
-        return $"[{index}]._";
-    }
-
     public override AbstractResult MakeVariable()
     {
         AddCode($"data modify storage amethyst: {MemoryLocation} set value {ConstantValue}");

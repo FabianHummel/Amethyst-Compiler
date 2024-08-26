@@ -36,11 +36,6 @@ public class ArrayResult : AbstractResult
         };
     }
 
-    protected override string GetSubstitutionModifier(object index)
-    {
-        return $"[{index}]";
-    }
-
     public override AbstractResult MakeVariable()
     {
         AddCode($"data modify storage amethyst: {MemoryLocation} set value {ConstantValue}");
