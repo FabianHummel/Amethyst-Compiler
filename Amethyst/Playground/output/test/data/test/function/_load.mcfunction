@@ -1,2 +1,6 @@
-# Created using Amethyst v1.0.1.0 on 2024-08-26.
-data modify storage amethyst: 0 set value [{_:19},{_:6},{_:10},{_:"nice"},{_:8.43},{_:10},{_:[{_:1},{_:"cool"},{_:True}]}]
+# Created using Amethyst v1.0.1.0 on 2024-08-27.
+scoreboard players set 0 amethyst 3
+scoreboard players set 1 amethyst 2
+scoreboard players operation 1 amethyst += 0 amethyst
+scoreboard players set 2 amethyst 10
+scoreboard players operation 2 amethyst *= 1 amethyst

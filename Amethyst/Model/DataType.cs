@@ -83,15 +83,7 @@ public class DataType
         return !left.Equals(right);
     }
     
-    public int? Scale
-    {
-        get
-        {
-            var field = BasicType.GetType().GetField(BasicType.ToString());
-            var attribute = field?.GetCustomAttributes(typeof(ScaleAttribute), false).FirstOrDefault() as ScaleAttribute;
-            return attribute?.Scale;
-        }
-    }
+    public int? Scale => BasicType.GetScale();
 
     public bool IsScoreboardType => Modifier == null && BasicType is BasicType.Bool or BasicType.Int or BasicType.Dec;
     

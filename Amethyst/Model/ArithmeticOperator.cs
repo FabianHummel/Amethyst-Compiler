@@ -3,7 +3,7 @@ using Amethyst.Attributes;
 
 namespace Amethyst.Model;
 
-public enum Operator
+public enum ArithmeticOperator
 {
     [McfOperator("+")]
     ADD,

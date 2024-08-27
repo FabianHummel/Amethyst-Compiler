@@ -67,7 +67,7 @@ public abstract partial class AbstractResult
     {
         if (ConstantValue == null)
         {
-            throw new SyntaxException("This value is already a variable.", Context);
+            return this;
         }
 
         throw new SyntaxException($"Cannot make {DataType} a constant value.", Context);

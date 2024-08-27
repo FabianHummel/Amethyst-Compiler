@@ -10,6 +10,8 @@ public class BooleanResult : NumericBase
         Modifier = null
     };
 
+    protected override double ConstantValueAsDecimal => (bool)ConstantValue! ? 1 : 0;
+
     public override BooleanResult MakeBoolean()
     {
         return this;
@@ -21,13 +23,21 @@ public class BooleanResult : NumericBase
         {
             Compiler = Compiler,
             Context = Context,
-            Location = Location
+            Location = Location,
+            IsTemporary = IsTemporary,
+            ConstantValue = ConstantValue,
+            Substitutions = Substitutions
         };
     }
 
     public override AbstractResult MakeVariable()
     {
-        AddCode($"scoreboard players set {MemoryLocation} amethyst {((bool)ConstantValue! ? "1" : "0")}");
+        if (ConstantValue == null)
+        {
+            return this;
+        }
+        
+        AddCode($"scoreboard players set {MemoryLocation} amethyst {ConstantValueAsDecimal}");
         
         return new BooleanResult
         {

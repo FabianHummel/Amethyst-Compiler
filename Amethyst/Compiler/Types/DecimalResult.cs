@@ -10,6 +10,8 @@ public class DecimalResult : NumericBase
         Modifier = null
     };
 
+    protected override double ConstantValueAsDecimal => (double)ConstantValue!;
+
     public override BooleanResult MakeBoolean() => new()
     {
         Compiler = Compiler,
@@ -38,9 +40,15 @@ public class DecimalResult : NumericBase
 
     public override AbstractResult MakeVariable()
     {
-        AddCode($"scoreboard players set {MemoryLocation} amethyst {(int)((double)ConstantValue! * DataType.Scale!)}");
+        if (ConstantValue == null)
+        {
+            return this;
+        }
         
-        return new BooleanResult
+        var value = Math.Round((double)(ConstantValueAsDecimal * DataType.Scale!));
+        AddCode($"scoreboard players set {MemoryLocation} amethyst {value}");
+        
+        return new DecimalResult
         {
             Compiler = Compiler,
             Context = Context,
