@@ -1,6 +1,5 @@
-# Created using Amethyst v1.0.1.0 on 2024-08-27.
-scoreboard players set 0 amethyst 3
-scoreboard players set 1 amethyst 2
+# Created using Amethyst v1.0.1.0 on 2024-08-28.
+scoreboard players set 0 amethyst 24
+scoreboard players set 1 amethyst 1030
+scoreboard players operation 0 amethyst *= .100 amethyst_const
 scoreboard players operation 1 amethyst += 0 amethyst
-scoreboard players set 2 amethyst 10
-scoreboard players operation 2 amethyst *= 1 amethyst

@@ -10,7 +10,7 @@ public class BooleanResult : NumericBase
         Modifier = null
     };
 
-    protected override double ConstantValueAsDecimal => (bool)ConstantValue! ? 1 : 0;
+    protected override double AsDecimal => (bool)ConstantValue! ? 1 : 0;
 
     public override BooleanResult MakeBoolean()
     {
@@ -30,14 +30,9 @@ public class BooleanResult : NumericBase
         };
     }
 
-    public override AbstractResult MakeVariable()
+    protected override AbstractResult MakeVariable()
     {
-        if (ConstantValue == null)
-        {
-            return this;
-        }
-        
-        AddCode($"scoreboard players set {MemoryLocation} amethyst {ConstantValueAsDecimal}");
+        AddCode($"scoreboard players set {MemoryLocation} amethyst {AsDecimal}");
         
         return new BooleanResult
         {

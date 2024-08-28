@@ -10,7 +10,7 @@ public class IntegerResult : NumericBase
         Modifier = null
     };
 
-    protected override double ConstantValueAsDecimal => (int)ConstantValue!;
+    protected override double AsDecimal => (int)ConstantValue!;
 
     public override BooleanResult MakeBoolean() => new()
     {
@@ -24,13 +24,8 @@ public class IntegerResult : NumericBase
         return this;
     }
 
-    public override AbstractResult MakeVariable()
+    protected override AbstractResult MakeVariable()
     {
-        if (ConstantValue == null)
-        {
-            return this;
-        }
-        
         AddCode($"scoreboard players set {MemoryLocation} amethyst {(int)ConstantValue! * DataType.Scale}");
         
         return new IntegerResult

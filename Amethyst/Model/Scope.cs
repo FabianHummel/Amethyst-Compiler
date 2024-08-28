@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text;
 using static Amethyst.Constants;
@@ -52,7 +53,7 @@ public class Scope
     }
 
     /// <summary>
-    /// Gets the data subpath for the given location. Path structure is 'data/{root_namespace}/{location}/...
+    /// Gets the data subpath for the given location. Path structure is 'data/{root_namespace}/{location}/...'
     /// </summary>
     /// <param name="location">The location to get the data subpath for. (functions, predicates, etc...)</param>
     /// <returns>The data subpath for the given location.</returns>
@@ -96,5 +97,35 @@ public class Scope
         }
         
         File.AppendAllText(FilePath, code);
+    }
+
+    public bool TryGetVariable(string identifier, [NotNullWhen(true)] out Variable? variable)
+    {
+        if (Variables.TryGetValue(identifier, out variable))
+        {
+            return true;
+        }
+        
+        if (Parent is not null)
+        {
+            return Parent.TryGetVariable(identifier, out variable);
+        }
+        
+        return false;
+    }
+
+    public bool TryGetRecord(string identifier, [NotNullWhen(true)] out Record? record)
+    {
+        if (Records.TryGetValue(identifier, out record))
+        {
+            return true;
+        }
+        
+        if (Parent is not null)
+        {
+            return Parent.TryGetRecord(identifier, out record);
+        }
+        
+        return false;
     }
 }

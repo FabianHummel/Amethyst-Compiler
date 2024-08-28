@@ -21,10 +21,10 @@ public partial class Compiler
         if (context.expression() is { } expression)
         {
             result = VisitExpression(expression);
-            
-            if (result.ConstantValue != null)
+
+            if (result.ConstantValue != null && result.TryMakeVariable(out var variable))
             {
-                result = result.MakeVariable();
+                result = variable;
             }
         }
 

@@ -1,3 +1,1 @@
-var factor = 3;
-
-var sum = 10 * (2+factor);
+var x = 24; var sum = 10.3 + x;

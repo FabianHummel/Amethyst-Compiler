@@ -196,7 +196,7 @@ function_call
  ;
  
 namespace_access
- : identifier ('::' identifier)*
+ : identifier ('::' identifier)?
  ;
  
 selector

@@ -56,8 +56,8 @@ public class StringResult : AbstractResult
             IsTemporary = true
         };
     }
-    
-    public override AbstractResult MakeVariable()
+
+    protected override AbstractResult MakeVariable()
     {
         AddCode($"data modify storage amethyst: {MemoryLocation} set value {ConstantValue}");
         

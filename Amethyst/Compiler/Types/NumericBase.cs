@@ -4,11 +4,12 @@ using Amethyst.Utility;
 
 namespace Amethyst;
 
+
 public abstract class NumericBase : AbstractResult
 {
     public abstract override DataType DataType { get; }
     
-    protected abstract double ConstantValueAsDecimal { get; }
+    protected abstract double AsDecimal { get; }
     
     private bool TryCalculateConstants(NumericBase rhs, ArithmeticOperator op, [NotNullWhen(true)] out AbstractResult? result)
     {
@@ -19,8 +20,8 @@ public abstract class NumericBase : AbstractResult
             return false;
         }
         
-        var leftValue = ConstantValueAsDecimal;
-        var rightValue = rhs.ConstantValueAsDecimal;
+        var leftValue = AsDecimal;
+        var rightValue = rhs.AsDecimal;
         
         var resultValue = op switch
         {
@@ -39,7 +40,7 @@ public abstract class NumericBase : AbstractResult
             {
                 Compiler = Compiler,
                 Context = Context,
-                ConstantValue = (double)resultValue
+                ConstantValue = resultValue
             };
             
             return true;
@@ -50,7 +51,7 @@ public abstract class NumericBase : AbstractResult
         {
             Compiler = Compiler,
             Context = Context,
-            ConstantValue = (int)resultValue
+            ConstantValue = (int)Math.Round(resultValue)
         };
         
         return true;
@@ -58,13 +59,17 @@ public abstract class NumericBase : AbstractResult
     
     private AbstractResult Calculate(NumericBase rhs, ArithmeticOperator op)
     {
+        // First, try to resolve constant operations like 1 + 2
         if (TryCalculateConstants(rhs, op, out var result))
         {
             return result;
         }
 
-        var lhsValue = MakeVariable();
-        var rhsValue = rhs.MakeVariable();
+        // If this does not work, make sure both sides are actual variables that can be worked with in-game
+        if (!TryMakeVariable(out var lhsValue) || !rhs.TryMakeVariable(out var rhsValue))
+        {
+            throw new SyntaxException("Cannot perform arithmetic operations on non-variables.", Context);
+        }
         
         var isDecimal = this is DecimalResult || rhs is DecimalResult;
 

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Amethyst.Model;
 using Antlr4.Runtime;
 
@@ -63,14 +64,25 @@ public abstract partial class AbstractResult
     /// </summary>
     /// <returns>The result with a place in memory.</returns>
     /// <exception cref="SyntaxException">If the value is already a variable or cannot be converted to a variable.</exception>
-    public virtual AbstractResult MakeVariable()
+    protected virtual AbstractResult MakeVariable()
     {
-        if (ConstantValue == null)
+        throw new SyntaxException($"Cannot make {DataType} a constant value.", Context);
+    }
+
+    /// <summary>
+    /// Tries to convert this result to a variable. If it is already a variable, it will be returned as is.
+    /// </summary>
+    /// <returns></returns>
+    public bool TryMakeVariable([NotNullWhen(true)] out AbstractResult? result)
+    {
+        if (Location is not null)
         {
-            return this;
+            result = this;
+            return true;
         }
 
-        throw new SyntaxException($"Cannot make {DataType} a constant value.", Context);
+        result = MakeVariable();
+        return true;
     }
     
     protected int MemoryLocation
