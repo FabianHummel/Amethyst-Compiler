@@ -14,39 +14,47 @@ public class ArrayResult : AbstractResult
 
     public override BooleanResult MakeBoolean()
     {
-        Compiler.AddCode($"execute store success score {++Compiler.MemoryLocation} amethyst run data get storage amethyst: {Location}");
+        Compiler.AddCode($"execute store success score {MemoryLocation} amethyst run data get storage amethyst: {Location}");
         
         return new BooleanResult
         {
-            Location = Compiler.MemoryLocation.ToString(),
+            Location = MemoryLocation.ToString(),
             Compiler = Compiler,
-            Context = Context
+            Context = Context,
+            IsTemporary = true
         };
     }
 
     public override IntegerResult MakeNumber()
     {
-        Compiler.AddCode($"execute store result score {++Compiler.MemoryLocation} amethyst run data get storage amethyst: {Location}");
+        Compiler.AddCode($"execute store result score {MemoryLocation} amethyst run data get storage amethyst: {Location}");
         
         return new IntegerResult
         {
-            Location = Compiler.MemoryLocation.ToString(),
+            Location = MemoryLocation.ToString(),
             Compiler = Compiler,
-            Context = Context
+            Context = Context,
+            IsTemporary = true
         };
     }
 
-    protected override AbstractResult MakeVariable()
+    public override AbstractResult MakeVariable()
     {
+        if (Location != null)
+        {
+            return this;
+        }
+        
         AddCode($"data modify storage amethyst: {MemoryLocation} set value {ConstantValue}");
 
         SubstituteRecursively(MemoryLocation.ToString());
 
         return new DynArrayResult
         {
-            Compiler = Compiler,
             Location = MemoryLocation++.ToString(),
-            Context = Context
+            Compiler = Compiler,
+            Context = Context,
+            IsTemporary = true,
         };
     }
 }

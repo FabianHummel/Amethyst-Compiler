@@ -57,8 +57,13 @@ public class StringResult : AbstractResult
         };
     }
 
-    protected override AbstractResult MakeVariable()
+    public override AbstractResult MakeVariable()
     {
+        if (Location != null)
+        {
+            return this;
+        }
+        
         AddCode($"data modify storage amethyst: {MemoryLocation} set value {ConstantValue}");
         
         return new StringResult

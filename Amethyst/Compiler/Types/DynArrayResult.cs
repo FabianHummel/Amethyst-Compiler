@@ -10,8 +10,13 @@ public class DynArrayResult : AbstractResult
         Modifier = null
     };
 
-    protected override AbstractResult MakeVariable()
+    public override AbstractResult MakeVariable()
     {
+        if (Location != null)
+        {
+            return this;
+        }
+        
         AddCode($"data modify storage amethyst: {MemoryLocation} set value {ConstantValue}");
 
         SubstituteRecursively(MemoryLocation.ToString());
@@ -20,7 +25,8 @@ public class DynArrayResult : AbstractResult
         {
             Compiler = Compiler,
             Location = MemoryLocation++.ToString(),
-            Context = Context
+            Context = Context,
+            IsTemporary = true,
         };
     }
 }

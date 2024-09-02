@@ -10,14 +10,7 @@ public class DecimalResult : NumericBase
         Modifier = null
     };
 
-    protected override double AsDecimal => (double)ConstantValue;
-
-    public override BooleanResult MakeBoolean() => new()
-    {
-        Compiler = Compiler,
-        Context = Context,
-        Location = Location
-    };
+    protected override double AsDecimal => (double)ConstantValue!;
 
     public override IntegerResult MakeNumber()
     {
@@ -38,8 +31,13 @@ public class DecimalResult : NumericBase
         };
     }
 
-    protected override AbstractResult MakeVariable()
+    public override AbstractResult MakeVariable()
     {
+        if (Location != null)
+        {
+            return this;
+        }
+        
         var value = Math.Round((double)(AsDecimal * DataType.Scale!));
         AddCode($"scoreboard players set {MemoryLocation} amethyst {value}");
         

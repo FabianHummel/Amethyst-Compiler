@@ -64,25 +64,9 @@ public abstract partial class AbstractResult
     /// </summary>
     /// <returns>The result with a place in memory.</returns>
     /// <exception cref="SyntaxException">If the value is already a variable or cannot be converted to a variable.</exception>
-    protected virtual AbstractResult MakeVariable()
+    public virtual AbstractResult MakeVariable()
     {
         throw new SyntaxException($"Cannot make {DataType} a constant value.", Context);
-    }
-
-    /// <summary>
-    /// Tries to convert this result to a variable. If it is already a variable, it will be returned as is.
-    /// </summary>
-    /// <returns></returns>
-    public bool TryMakeVariable([NotNullWhen(true)] out AbstractResult? result)
-    {
-        if (Location is not null)
-        {
-            result = this;
-            return true;
-        }
-
-        result = MakeVariable();
-        return true;
     }
     
     protected int MemoryLocation

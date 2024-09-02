@@ -15,6 +15,7 @@ public partial class Program
     private readonly MinecraftServerSettings _settings = new();
     private readonly Process _process;
     private readonly MinecraftClient _rcon;
+    private readonly Random _random = new();
 
     public Program()
     {

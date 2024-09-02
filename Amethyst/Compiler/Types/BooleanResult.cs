@@ -30,8 +30,13 @@ public class BooleanResult : NumericBase
         };
     }
 
-    protected override AbstractResult MakeVariable()
+    public override AbstractResult MakeVariable()
     {
+        if (Location != null)
+        {
+            return this;
+        }
+        
         AddCode($"scoreboard players set {MemoryLocation} amethyst {AsDecimal}");
         
         return new BooleanResult

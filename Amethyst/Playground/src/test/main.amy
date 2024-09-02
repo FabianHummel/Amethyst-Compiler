@@ -1,1 +1,1 @@
-var x = 24; var sum = 10.3 + x;
+var result = 76 && true || false && 0;

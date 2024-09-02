@@ -22,10 +22,7 @@ public partial class Compiler
         {
             result = VisitExpression(expression);
 
-            if (result.ConstantValue != null && result.TryMakeVariable(out var variable))
-            {
-                result = variable;
-            }
+            result = result.MakeVariable();
         }
 
         var name = result?.Location ?? MemoryLocation.ToString();

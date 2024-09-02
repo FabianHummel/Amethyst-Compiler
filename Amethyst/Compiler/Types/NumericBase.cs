@@ -66,10 +66,8 @@ public abstract class NumericBase : AbstractResult
         }
 
         // If this does not work, make sure both sides are actual variables that can be worked with in-game
-        if (!TryMakeVariable(out var lhsValue) || !rhs.TryMakeVariable(out var rhsValue))
-        {
-            throw new SyntaxException("Cannot perform arithmetic operations on non-variables.", Context);
-        }
+        var lhsValue = MakeVariable();
+        var rhsValue = rhs.MakeVariable();
         
         var isDecimal = this is DecimalResult || rhs is DecimalResult;
 
@@ -104,6 +102,22 @@ public abstract class NumericBase : AbstractResult
             IsTemporary = true
         };
     }
+    
+    public override BooleanResult MakeBoolean() => new()
+    {
+        Compiler = Compiler,
+        Context = Context,
+        Location = Location,
+        IsTemporary = IsTemporary,
+        ConstantValue = ConstantValue switch
+        {
+            null => null,
+            false => false,
+            true => true,
+            0 => false,
+            _ => true
+        }
+    };
 
     protected override AbstractResult VisitAdd(IntegerResult rhs)
     {

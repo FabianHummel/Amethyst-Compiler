@@ -12,20 +12,18 @@ public class IntegerResult : NumericBase
 
     protected override double AsDecimal => (int)ConstantValue!;
 
-    public override BooleanResult MakeBoolean() => new()
-    {
-        Compiler = Compiler,
-        Context = Context,
-        Location = Location
-    };
-
     public override IntegerResult MakeNumber()
     {
         return this;
     }
 
-    protected override AbstractResult MakeVariable()
+    public override AbstractResult MakeVariable()
     {
+        if (Location != null)
+        {
+            return this;
+        }
+        
         AddCode($"scoreboard players set {MemoryLocation} amethyst {(int)ConstantValue! * DataType.Scale}");
         
         return new IntegerResult
