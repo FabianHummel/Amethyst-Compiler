@@ -1,33 +1,58 @@
+using Amethyst.Utility;
 using NUnit.Framework;
+using static Tests.TestMain;
 
 namespace Tests;
 
-public partial class Program
+public class TestArithmetic
 {
     [Test]
-    public void TestIntegerPlusInteger()
+    [Repeat(5)]
+    public void TestAdd()
     {
-        var augend = _random.Next(0, 100);
-        var addend = _random.Next(0, 100);
-        Run($"var sum = {augend} + {addend};");
-        Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(augend + addend));
+        var left = NbtUtility.RandomNbtValue(_random);
+        var right = NbtUtility.RandomNbtValue(_random);
+        Run($"var result = {left.ToNbtString()} + {right.ToNbtString()};");
+        Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(left.ToNbtNumber() + right.ToNbtNumber()));
     }
     
     [Test]
-    public void TestIntegerPlusDecimal()
+    [Repeat(5)]
+    public void TestSubtract()
     {
-        var augend = _random.Next(0, 100);
-        var addend = Math.Truncate(_random.NextDouble() * 100) / 100;
-        Run($"var sum = {augend} + {addend};");
-        Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(Math.Truncate((augend + addend) * 100)));
+        var left = NbtUtility.RandomNbtValue(_random);
+        var right = NbtUtility.RandomNbtValue(_random);
+        Run($"var result = {left.ToNbtString()} - {right.ToNbtString()};");
+        Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(left.ToNbtNumber() - right.ToNbtNumber()));
     }
     
     [Test]
-    public void TestIntegerMinusBoolean()
+    [Repeat(5)]
+    public void TestMultiply()
     {
-        var minuend = _random.Next(0, 100);
-        var subtrahend = _random.Next(0, 2);
-        Run($"var difference = {minuend} - {(subtrahend == 1 ? "true" : "false")};");
-        Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(minuend - subtrahend));
+        var left = NbtUtility.RandomNbtValue(_random);
+        var right = NbtUtility.RandomNbtValue(_random);
+        Run($"var result = {left.ToNbtString()} * {right.ToNbtString()};");
+        Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(left.ToNbtNumber() * right.ToNbtNumber()));
+    }
+    
+    [Test]
+    [Repeat(5)]
+    public void TestDivide()
+    {
+        var left = NbtUtility.RandomNbtValue(_random);
+        var right = NbtUtility.RandomNbtValue(_random);
+        Run($"var result = {left.ToNbtString()} / {right.ToNbtString()};");
+        Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(left.ToNbtNumber() / right.ToNbtNumber()));
+    }
+    
+    [Test]
+    [Repeat(5)]
+    public void TestModulo()
+    {
+        var left = NbtUtility.RandomNbtValue(_random);
+        var right = NbtUtility.RandomNbtValue(_random);
+        Run($"var result = {left.ToNbtString()} % {right.ToNbtString()};");
+        Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(left.ToNbtNumber() % right.ToNbtNumber()));
     }
 }
