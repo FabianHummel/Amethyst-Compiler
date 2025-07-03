@@ -14,13 +14,13 @@ public partial class Compiler
             throw new UnreachableException();
         }
 
+        if (comparisonExpressionContexts.Length == 1)
+        {
+            return VisitComparison_expression(comparisonExpressionContexts[0]);
+        }
+        
         throw new NotImplementedException();
-
-        // if (comparisonExpressionContexts.Length == 1)
-        // {
-        //     return VisitComparison_expression(comparisonExpressionContexts[0]);
-        // }
-        //     
+        
         // if (VisitComparison_expression(comparisonExpressionContexts[0]) is not { } previous)
         // {
         //     throw new SyntaxException("Expected comparison expression.", comparisonExpressionContexts[0]);

@@ -36,6 +36,6 @@ public class StaticObjectConstant : ConstantValue<Dictionary<string, ConstantVal
     public override string ToNbtString()
     {
         return $"{{keys:[{string.Join(",", Value.Keys.Select(key => key.ToNbtString()))}]," +
-               $"data:[{string.Join(",", Value.Values.Select(value => value.ToNbtString()))}]}}";
+               $"data:{{{string.Join(',', Value.Select(kvp => $"{kvp.Key.ToNbtString()}:{kvp.Value.ToNbtString()}"))}}}}}";
     }
 }

@@ -116,7 +116,7 @@ public partial class Compiler
             };
         }
         
-        obj.SubstituteRecursively(location.ToString());
+        obj.SubstituteRecursively($"{location}.data");
 
         return obj;
     }

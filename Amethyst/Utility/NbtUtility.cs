@@ -7,7 +7,7 @@ public static class NbtUtility
         return obj switch
         {
             string value => $"\"{value}\"", // TODO: Escape quotes and other special characters in the string that need escaping in Minecraft
-            bool value => value ? "true" : "false",
+            bool value => value ? "1b" : "0b",
             object[] value => $"[{string.Join(',', value.Select(o => $"{{_:{o.ToNbtString()}}}"))}]",
             _ => $"{obj}"
         };
