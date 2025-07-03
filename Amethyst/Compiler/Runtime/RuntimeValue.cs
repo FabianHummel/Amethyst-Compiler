@@ -1,79 +1,38 @@
-using System.Diagnostics.CodeAnalysis;
 using Amethyst.Model;
-using Antlr4.Runtime;
 
 namespace Amethyst;
 
-public abstract partial class AbstractResult
+public abstract partial class RuntimeValue : AbstractResult
 {
-    /// <summary>
-    /// The data type of the result.
-    /// </summary>
-    public abstract DataType DataType { get; }
-    
     /// <summary>
     /// The memory location where the result is stored at.
     /// Corresponds to a player name inside a scoreboard for numeric values and a path to data storage for complex types.
     /// </summary>
-    public string? Location { get; init; }
+    public required string Location { get; set; }
     
     /// <summary>
     /// Marks the assigned variable as temporary, meaning it can be overwritten by another variable.
     /// Useful for intermediate results that are not needed after the current operation, e.g. within a calculation.
     /// </summary>
-    public bool IsTemporary { get; init; }
-    
-    /// <summary>
-    /// The constant value of the result that can be directly incorporated into another result without storing it in a variable.
-    /// Literals are always stored as constants first and only turn into variables if they are assigned to a variable. 
-    /// </summary>
-    public object? ConstantValue { get; init; }
+    public bool IsTemporary { get; set; }
     
     /// <summary>
     /// List of substitutions that need to be made in order to validate the result.
     /// Especially used for array or object based results where a variable's value needs to be copied to an indexed location.
     /// </summary>
-    public List<KeyValuePair<object, AbstractResult>>? Substitutions { get; init; }
-    
-    public required Compiler Compiler { get; init; }
-    
-    public required ParserRuleContext Context { get; init; }
+    public List<KeyValuePair<object, RuntimeValue>>? Substitutions { get; init; }
 
     /// <summary>
     /// Turns this result into a boolean result by logically converting it to its boolean equivalent.
     /// </summary>
     /// <returns>The boolean result (numeric value of 0 or 1).</returns>
-    /// <exception cref="SyntaxException">If the conversion is not possible.</exception>
-    public virtual BooleanResult MakeBoolean()
-    {
-        throw new SyntaxException($"Conversion of {DataType} to {BasicType.Bool} not permitted.", Context);
-    }
+    public abstract BooleanResult MakeBoolean();
 
     /// <summary>
     /// Turns this result into a number result by converting it to its numeric equivalent.
     /// </summary>
     /// <returns>The number result.</returns>
-    /// <exception cref="SyntaxException">If the conversion is not possible.</exception>
-    public virtual IntegerResult MakeNumber()
-    {
-        throw new SyntaxException($"Conversion of {DataType} to {BasicType.Int} not permitted.", Context);
-    }
-
-    /// <summary>
-    /// Converts this constant value to a variable by assigning it a memory location.
-    /// </summary>
-    /// <returns>The result with a place in memory.</returns>
-    /// <exception cref="SyntaxException">If the value is already a variable or cannot be converted to a variable.</exception>
-    public virtual AbstractResult MakeVariable()
-    {
-        throw new SyntaxException($"Cannot make {DataType} a constant value.", Context);
-    }
-    
-    protected int MemoryLocation
-    {
-        get => Compiler.MemoryLocation;
-        set => Compiler.MemoryLocation = value;
-    }
+    public abstract IntegerResult MakeInteger();
 
     protected void AddCode(string code)
     {
@@ -85,7 +44,7 @@ public abstract partial class AbstractResult
         Compiler.AddInitCode(code);
     }
 
-    protected void SubstituteRecursively(string substitutionModifierPrefix = "")
+    public void SubstituteRecursively(string substitutionModifierPrefix = "")
     {
         if (Substitutions != null)
         {
@@ -109,5 +68,37 @@ public abstract partial class AbstractResult
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Ensures that the current value is backed up in a temporary variable, so it can be freely modified.
+    /// </summary>
+    /// <returns>A backup of the current value.</returns>
+    public RuntimeValue EnsureBackedUp()
+    {
+        if (IsTemporary)
+        {
+            return this;
+        }
+        
+        var location = (++Compiler.StackPointer).ToString();
+        
+        if (DataType.IsStorageType)
+        {
+            AddCode($"data modify storage amethyst: {location} set from storage amethyst: {Location}");
+        }
+        else if (DataType.IsScoreboardType)
+        {
+            AddCode($"scoreboard players operation {location} amethyst = {Location} amethyst");
+        }
+        else
+        {
+            throw new SyntaxException($"Cannot back up {DataType.BasicType} type.", Context);
+        }
+
+        var clone = (RuntimeValue)MemberwiseClone();
+        clone.Location = location;
+        clone.IsTemporary = true;
+        return clone;
     }
 }

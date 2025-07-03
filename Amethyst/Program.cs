@@ -20,15 +20,15 @@ public static class Program
             {
                 if (o.Debug)
                 {
-                    _amethyst.Context.Flags &= Flags.Debug;
+                    _amethyst.Context.CompilerFlags |= CompilerFlags.Debug;
                 }
     
                 if (o.Watch)
                 {
-                    _amethyst.Context.Flags = Flags.Watch;
+                    _amethyst.Context.CompilerFlags |= CompilerFlags.Watch;
+                    ClearConsole();
                 }
                 
-                ClearConsole();
                 _amethyst.PrintAmethystLogoAndVersion();
                 _amethyst.ReinitializeProject();
                 

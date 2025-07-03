@@ -6,25 +6,24 @@ namespace Amethyst.Model;
 public enum BasicType
 {
     [Description("int")]
-    [DefaultValue(0)]
-    [Scale(1)]
+    [DefaultValue("0")]
     Int,
     [Description("dec")]
-    [DefaultValue(0.0)]
-    [Scale(100)]
+    [DefaultValue("0d")]
     Dec,
     [Description("string")]
-    [DefaultValue("")]
+    [DefaultValue("\"\"")]
     String,
     [Description("bool")]
-    [DefaultValue(false)]
-    [Scale(1)]
+    [DefaultValue("0b")]
     Bool,
     [Description("array")]
-    [DefaultValue("{_:0}")]
+    [DefaultValue("[]")]
     [SubstitutionModifier("[{0}]._")]
     Array,
     [Description("object")]
+    [DefaultValue("{}")]
+    [SubstitutionModifier(".data.{0}")]
     Object,
 }
 
@@ -83,8 +82,6 @@ public class DataType
         return !left.Equals(right);
     }
     
-    public int? Scale => BasicType.GetScale();
-
     public bool IsScoreboardType => Modifier == null && BasicType is BasicType.Bool or BasicType.Int or BasicType.Dec;
     
     public bool IsStorageType => !IsScoreboardType;
@@ -102,15 +99,15 @@ public class DataType
         
             if (BasicType == BasicType.Bool)
             {
-                return $"byte {1 / Scale}";
+                return "byte 1";
             }
             if (BasicType == BasicType.Int)
             {
-                return $"int {1 / Scale}";
+                return "int 1";
             }
             if (BasicType == BasicType.Dec)
             {
-                return $"double {1 / Scale}";
+                return "double 1";
             }
         
             return null;

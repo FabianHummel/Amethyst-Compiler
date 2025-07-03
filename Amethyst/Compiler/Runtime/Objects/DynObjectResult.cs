@@ -2,7 +2,7 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
-public class DynObjectResult : AbstractResult
+public class DynObjectResult : ObjectBase
 {
     public override DataType DataType => new()
     {

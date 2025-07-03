@@ -39,11 +39,4 @@ public static class EnumExtension
         var attribute = (AmethystOperatorAttribute)Attribute.GetCustomAttribute(field, typeof(AmethystOperatorAttribute));
         return attribute!.Operator;
     }
-    
-    public static int GetScale<T>(this T value) where T : Enum
-    {
-        var field = value.GetType().GetField(value.ToString());
-        var attribute = Attribute.GetCustomAttribute(field!, typeof(ScaleAttribute)) as ScaleAttribute;
-        return attribute?.Scale ?? 1;
-    }
 }

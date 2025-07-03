@@ -239,5 +239,9 @@ identifier
  ;
  
 type
- : ('int' | 'dec' | 'string' | 'bool' | 'array' | 'object') ('[]' | '{}')?
+ : ('int' | decimal | 'string' | 'bool' | 'array' | 'object') ('[]' | '{}')?
+ ;
+ 
+decimal
+ : 'dec' ('(' Integer_Literal ')')?
  ;

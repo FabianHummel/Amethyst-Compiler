@@ -1,6 +1,7 @@
 using Amethyst.Model;
 using Amethyst.Utility;
 using NUnit.Framework;
+using Tests.Utility;
 using static Tests.TestMain;
 
 namespace Tests;
@@ -20,7 +21,8 @@ public class TestComparison
         var left = NbtUtility.RandomNbtValue(_random);
         var right = NbtUtility.RandomNbtValue(_random);
         
-        Run($"var result = {left.ToNbtString()} {op.GetAmethystOperatorSymbol()} {right.ToNbtString()};");
+        var ctx = Run($"var result = {left.ToNbtString()} {op.GetAmethystOperatorSymbol()} {right.ToNbtString()};");
+        var result = ctx.GetResult();
         
         var expected = op switch
         {
@@ -33,7 +35,7 @@ public class TestComparison
             _ => throw new ArgumentOutOfRangeException() 
         };
         
-        Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(expected ? 1 : 0));
+        Assert.That(GetAmethystScoreboardValue(result), Is.EqualTo(expected ? 1 : 0));
     }
     
     [Test]
@@ -49,11 +51,12 @@ public class TestComparison
         var left = NbtUtility.RandomNbtValue(_random);
         var right = NbtUtility.RandomNbtValue(_random);
         
-        Run($"""
-             var left = {left.ToNbtString()};
-             var right = {right.ToNbtString()};
-             var result = left || right;
-             """);
+        var ctx = Run($"""
+                       var left = {left.ToNbtString()};
+                       var right = {right.ToNbtString()};
+                       var result = left || right;
+                       """);
+        var result = ctx.GetResult();
         
         var expected = op switch
         {
@@ -66,7 +69,7 @@ public class TestComparison
             _ => throw new ArgumentOutOfRangeException() 
         };
         
-        Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(expected ? 1 : 0));
+        Assert.That(GetAmethystScoreboardValue(result), Is.EqualTo(expected ? 1 : 0));
     }
 
     [Test]
@@ -75,7 +78,8 @@ public class TestComparison
     {
         var nbtValues = values.Select(NbtUtility.ToNbtNumber).ToArray();
         
-        Run($"var result = {string.Join($" {op.GetAmethystOperatorSymbol()} ", nbtValues.Select(value => value.ToNbtString()))};");
+        var ctx = Run($"var result = {string.Join($" {op.GetAmethystOperatorSymbol()} ", nbtValues.Select(value => value.ToNbtString()))};");
+        var result = ctx.GetResult();
         
         var expected = op switch
         {
@@ -88,6 +92,6 @@ public class TestComparison
             _ => throw new ArgumentOutOfRangeException() 
         };
         
-        Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(expected ? 1 : 0));
+        Assert.That(GetAmethystScoreboardValue(result), Is.EqualTo(expected ? 1 : 0));
     }
 }

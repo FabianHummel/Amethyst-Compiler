@@ -6,6 +6,6 @@ public partial class Compiler
 {
     public override AbstractResult VisitPost_increment(AmethystParser.Post_incrementContext context)
     {
-        return null!;
+        throw new NotImplementedException();
     }
 }

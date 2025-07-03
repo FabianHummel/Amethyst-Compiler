@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
+using Amethyst.Utility;
 
 namespace Amethyst;
 
@@ -18,48 +19,42 @@ public partial class Compiler
             return VisitTerm_expression(termExpressionContexts[0]);
         }
         
-        if (VisitTerm_expression(termExpressionContexts[0]) is not { DataType.IsScoreboardType: true } previous)
+        if (VisitTerm_expression(termExpressionContexts[0]) is not { } previous)
         {
             throw new SyntaxException("Expected term expression.", termExpressionContexts[0]);
         }
         
-        for (int i = 1; i < context.term_expression().Length; i++)
+        for (var i = 1; i < context.term_expression().Length; i++)
         {
-            var current = VisitTerm_expression(termExpressionContexts[i]).MakeNumber();
+            if (VisitTerm_expression(termExpressionContexts[i]) is not { } current)
+            {
+                throw new SyntaxException("Expected term expression.", termExpressionContexts[i]);
+            }
             
             var operatorToken = context.GetChild(2 * i - 1).GetText();
             
-            // upscale to a common denominator
-
-            MemoryLocation++;
-            AddCode($"scoreboard players operation {MemoryLocation} amethyst = {previous.Location} amethyst"); // Todo: See #2
-
-            if (current.DataType.Scale != 1)
+            if (Enum.GetValues<ComparisonOperator>().First(op => op.GetAmethystOperatorSymbol() == operatorToken) is var op)
             {
-                AddCode($"scoreboard players operation {MemoryLocation} amethyst *= .{current.DataType.Scale} amethyst_const");
-            }
-            
-            var currentLocation = current.Location;
+                if (previous.TryCalculateConstants(current, op, out var result))
+                {
+                    previous = result;
+                    continue;
+                }
+                
+                var lhs = previous.ToRuntimeValue();
+                var rhs = current.ToRuntimeValue();
 
-            if (previous.DataType.Scale != 1)
-            {
-                MemoryLocation++;
-                AddCode($"scoreboard players operation {MemoryLocation} amethyst = {current.Location} amethyst"); // Todo: See #2
-                AddCode($"scoreboard players operation {MemoryLocation} amethyst *= .{previous.DataType.Scale} amethyst_const");
-                currentLocation = MemoryLocation.ToString();
-                MemoryLocation--;
+                previous = op switch
+                {
+                    ComparisonOperator.LESS_THAN => lhs < rhs,
+                    ComparisonOperator.LESS_THAN_OR_EQUAL => lhs <= rhs,
+                    ComparisonOperator.GREATER_THAN => lhs > rhs,
+                    ComparisonOperator.GREATER_THAN_OR_EQUAL => lhs >= rhs,
+                    _ => throw new SyntaxException("Expected operator.", context)
+                };
             }
-            
-            AddCode($"execute store result score {MemoryLocation} amethyst run execute if score {MemoryLocation} amethyst {operatorToken} {currentLocation} amethyst");
-            
-            previous = current;
         }
-        
-        return new BooleanResult
-        {
-            Location = MemoryLocation--.ToString(),
-            Compiler = this,
-            Context = context
-        };
+
+        return previous;
     }
 }

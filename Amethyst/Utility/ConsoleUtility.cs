@@ -88,12 +88,12 @@ public static class AmethystExtensions
         
         Console.ForegroundColor = ConsoleColor.DarkGray;
         Console.Write("v" + AMETHYST_VERSION);
-        if (amethyst.Context.Flags.HasFlag(Flags.Watch))
+        if (amethyst.Context.CompilerFlags.HasFlag(CompilerFlags.Watch))
         {
             Console.ForegroundColor = ConsoleColor.DarkCyan;
             Console.Write(" (watch mode)");
         }
-        if (amethyst.Context.Flags.HasFlag(Flags.Debug))
+        if (amethyst.Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
             Console.ForegroundColor = ConsoleColor.DarkYellow;
             Console.Write(" (debug mode)");

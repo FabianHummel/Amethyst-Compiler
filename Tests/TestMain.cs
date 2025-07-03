@@ -2,6 +2,7 @@
 using System.IO.Compression;
 using System.Net.Sockets;
 using System.Text;
+using Amethyst.Model;
 using NUnit.Framework;
 using Microsoft.Extensions.Configuration;
 using Tests.RCON;
@@ -73,8 +74,10 @@ public static class TestMain
         _rcon.SendCommand("stop", out _);
     }
     
-    public static void Run(string input)
+    public static Context Run(string input)
     {
+        _rcon.SendCommand("scoreboard players reset *", out _);
+        
         Console.WriteLine(input);
         
         var mainAmyFile = Path.Combine(Environment.CurrentDirectory, "src/test/main.amy");
@@ -90,6 +93,13 @@ public static class TestMain
         }
         
         _rcon.SendCommand("reload", out _);
+
+        return _amethyst.Context;
+    }
+    
+    public static int GetAmethystScoreboardValue(Variable variable)
+    {
+        return GetScoreboardValue("amethyst", variable.Location);
     }
 
     public static int GetScoreboardValue(string objective, string target)
@@ -97,6 +107,11 @@ public static class TestMain
         _rcon.SendCommand($"scoreboard players get {target} {objective}", out var msg);
         // "<target> has <value> [<objective>]"
         return int.Parse(msg.Body.Split("has ")[1].Split(" ")[0]);
+    }
+    
+    public static string GetAmethystStorageValue(Variable variable)
+    {
+        return GetStorageValue("amethyst:", variable.Location);
     }
 
     public static string GetStorageValue(string @namespace, string path)

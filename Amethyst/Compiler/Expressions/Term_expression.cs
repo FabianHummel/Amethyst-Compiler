@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
+using Amethyst.Utility;
 
 namespace Amethyst;
 
@@ -32,17 +33,23 @@ public partial class Compiler
 
             var operatorToken = context.GetChild(2 * i - 1).GetText();
 
-            if (operatorToken == "-")
+            if (Enum.GetValues<ArithmeticOperator>().First(op => op.GetAmethystOperatorSymbol() == operatorToken) is var op)
             {
-                previous -= current;
-            }
-            else if (operatorToken == "+")
-            {
-                previous += current;
-            }
-            else
-            {
-                throw new SyntaxException("Expected operator.", context);
+                if (previous.TryCalculateConstants(current, op, out var result))
+                {
+                    previous = result;
+                    continue;
+                }
+                
+                var lhs = previous.ToRuntimeValue();
+                var rhs = current.ToRuntimeValue();
+
+                previous = op switch
+                {
+                    ArithmeticOperator.ADD => lhs + rhs,
+                    ArithmeticOperator.SUBTRACT => lhs - rhs,
+                    _ => throw new SyntaxException("Expected operator.", context)
+                };
             }
         }
 

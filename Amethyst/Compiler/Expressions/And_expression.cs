@@ -18,50 +18,53 @@ public partial class Compiler
             return VisitEquality_expression(equalityExpressionContexts[0]);
         }
         
-        // We create a scope to be able to instantly return from the function (if the first expression is true).
+        // We create a scope to be able to early return from the function.
         var scope = EvaluateScoped("_and", () =>
         {
             foreach (var equalityExpressionContext in equalityExpressionContexts)
             {
-                var previousMemoryLocation = MemoryLocation;
+                var previousMemoryLocation = StackPointer;
                 
                 if (VisitEquality_expression(equalityExpressionContext) is not { } equalityExpression)
                 {
                     throw new SyntaxException("Expected equality expression.", equalityExpressionContext);
                 }
                 
-                if (equalityExpression.MakeBoolean() is not { } booleanResult)
+                if (equalityExpression.ToBoolean() is not { } booleanResult)
                 {
                     throw new SyntaxException("Expected boolean result.", equalityExpressionContext);
                 }
-                
-                if (booleanResult.ConstantValue is bool constantValue)
+
+                if (booleanResult is BooleanConstant booleanConstant)
                 {
-                    if (!constantValue)
+                    if (!booleanConstant.AsBoolean)
                     {
                         AddCode("return fail");
                     }
                     
                     continue;
                 }
-
-                var current = booleanResult.MakeVariable();
+                
+                var current = booleanResult.ToRuntimeValue();
                 
                 // Early return if the current expression is false (we don't need to check the rest).
                 AddCode($"execute if score {current.Location} amethyst matches 0 run return fail");
                 
                 // Reset the memory location to the one before evaluating the current expression, as we don't need the allocated variables anymore.
-                MemoryLocation = previousMemoryLocation;
+                StackPointer = previousMemoryLocation;
             }
             
             AddCode("return 1");
         });
+
+        var location = ++StackPointer;
         
-        AddCode($"execute store success score {MemoryLocation} amethyst run function {scope.McFunctionPath}");
+        // run the actual expression
+        AddCode($"execute store success score {location} amethyst run function {scope.McFunctionPath}");
 
         return new BooleanResult
         {
-            Location = MemoryLocation.ToString(),
+            Location = location.ToString(),
             Compiler = this,
             Context = context,
             IsTemporary = true

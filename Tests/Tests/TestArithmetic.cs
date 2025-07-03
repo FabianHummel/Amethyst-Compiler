@@ -1,5 +1,6 @@
 using Amethyst.Utility;
 using NUnit.Framework;
+using Tests.Utility;
 using static Tests.TestMain;
 
 namespace Tests;
@@ -12,8 +13,10 @@ public class TestArithmetic
     {
         var left = NbtUtility.RandomNbtValue(_random);
         var right = NbtUtility.RandomNbtValue(_random);
-        Run($"var result = {left.ToNbtString()} + {right.ToNbtString()};");
-        Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(left.ToNbtNumber() + right.ToNbtNumber()));
+        var ctx = Run($"var result = {left.ToNbtString()} + {right.ToNbtString()};");
+        var result = ctx.GetResult();
+        
+        Assert.That(GetAmethystScoreboardValue(result), Is.EqualTo(left.ToNbtNumber() + right.ToNbtNumber()));
     }
     
     [Test]
@@ -22,8 +25,10 @@ public class TestArithmetic
     {
         var left = NbtUtility.RandomNbtValue(_random);
         var right = NbtUtility.RandomNbtValue(_random);
-        Run($"var result = {left.ToNbtString()} - {right.ToNbtString()};");
-        Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(left.ToNbtNumber() - right.ToNbtNumber()));
+        var ctx = Run($"var result = {left.ToNbtString()} - {right.ToNbtString()};");
+        var result = ctx.GetResult();
+        
+        Assert.That(GetAmethystScoreboardValue(result), Is.EqualTo(left.ToNbtNumber() - right.ToNbtNumber()));
     }
     
     [Test]
@@ -32,8 +37,10 @@ public class TestArithmetic
     {
         var left = NbtUtility.RandomNbtValue(_random);
         var right = NbtUtility.RandomNbtValue(_random);
-        Run($"var result = {left.ToNbtString()} * {right.ToNbtString()};");
-        Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(left.ToNbtNumber() * right.ToNbtNumber()));
+        var ctx = Run($"var result = {left.ToNbtString()} * {right.ToNbtString()};");
+        var result = ctx.GetResult();
+        
+        Assert.That(GetAmethystScoreboardValue(result), Is.EqualTo(left.ToNbtNumber() * right.ToNbtNumber()));
     }
     
     [Test]
@@ -42,8 +49,10 @@ public class TestArithmetic
     {
         var left = NbtUtility.RandomNbtValue(_random);
         var right = NbtUtility.RandomNbtValue(_random);
-        Run($"var result = {left.ToNbtString()} / {right.ToNbtString()};");
-        Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(left.ToNbtNumber() / right.ToNbtNumber()));
+        var ctx = Run($"var result = {left.ToNbtString()} / {right.ToNbtString()};");
+        var result = ctx.GetResult();
+        
+        Assert.That(GetAmethystScoreboardValue(result), Is.EqualTo(left.ToNbtNumber() / right.ToNbtNumber()));
     }
     
     [Test]
@@ -52,7 +61,9 @@ public class TestArithmetic
     {
         var left = NbtUtility.RandomNbtValue(_random);
         var right = NbtUtility.RandomNbtValue(_random);
-        Run($"var result = {left.ToNbtString()} % {right.ToNbtString()};");
-        Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(left.ToNbtNumber() % right.ToNbtNumber()));
+        var ctx = Run($"var result = {left.ToNbtString()} % {right.ToNbtString()};");
+        var result = ctx.GetResult();
+        
+        Assert.That(GetAmethystScoreboardValue(result), Is.EqualTo(left.ToNbtNumber() % right.ToNbtNumber()));
     }
 }

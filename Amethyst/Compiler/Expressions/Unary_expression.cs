@@ -14,6 +14,8 @@ public partial class Compiler
         var unaryExpression = context.unary_expression();
         
         var operatorToken = unaryExpression.GetChild(0).GetText();
+
+        throw new NotImplementedException();
         
         return VisitUnary_expression(unaryExpression);
     }

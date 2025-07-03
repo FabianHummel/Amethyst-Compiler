@@ -1,0 +1,34 @@
+namespace Amethyst;
+
+public abstract class ArrayBase : RuntimeValue
+{
+    public override BooleanResult MakeBoolean()
+    {
+        var location = ++Compiler.StackPointer;
+        
+        Compiler.AddCode($"execute store success score {location} amethyst run data get storage amethyst: {Location}[0]");
+        
+        return new BooleanResult
+        {
+            Location = location.ToString(),
+            Compiler = Compiler,
+            Context = Context,
+            IsTemporary = true
+        };
+    }
+
+    public override IntegerResult MakeInteger()
+    {
+        var location = ++Compiler.StackPointer;
+        
+        Compiler.AddCode($"execute store result score {location} amethyst run data get storage amethyst: {Location}");
+        
+        return new IntegerResult
+        {
+            Location = location.ToString(),
+            Compiler = Compiler,
+            Context = Context,
+            IsTemporary = true
+        };
+    }
+}

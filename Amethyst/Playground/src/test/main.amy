@@ -1,1 +1,3 @@
-var result = 76 && true || false && 0;
+function main() {
+    debug "Hello, World!";
+}

@@ -1,6 +1,5 @@
 using Amethyst.Language;
 using Amethyst.Model;
-using Antlr4.Runtime;
 
 namespace Amethyst;
 
@@ -9,7 +8,7 @@ public partial class Compiler : AmethystBaseVisitor<object?>
     internal Context Context { get; }
     internal Scope Scope { get; set; } = null!;
     internal int TotalRecordCount { get; set; } = 0;
-    internal int MemoryLocation { get; set; } = 0;
+    internal int StackPointer { get; set; } = 0;
     internal Namespace Namespace { get; set; } = null!;
     internal SourceFile SourceFile { get; set; } = null!;
     
@@ -23,13 +22,8 @@ public partial class Compiler : AmethystBaseVisitor<object?>
         foreach (var ns in Context.Namespaces)
         {
             Namespace = ns;
-            
-            Scope = new Scope
-            {
-                Name = ns.Functions["_load"].Scope.Name,
-                Parent = ns.Scope,
-                Context = Context
-            };
+
+            Scope = ns.Functions["_load"].Scope;
             
             Scope.CreateFunctionFile();
             

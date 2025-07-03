@@ -23,20 +23,63 @@ public partial class Compiler
             {
                 return modifier switch
                 {
-                    Modifier.Array => new ArrayResult { Compiler = this, Context = identifierContext, Location = variable.Location, BasicType = variable.DataType.BasicType },
-                    Modifier.Object => new ObjectResult { Compiler = this, Context = identifierContext, Location = variable.Location, BasicType = variable.DataType.BasicType },
+                    Modifier.Array => new StaticArrayResult
+                    {
+                        Compiler = this, 
+                        Context = identifierContext, 
+                        Location = variable.Location, 
+                        BasicType = variable.DataType.BasicType
+                    },
+                    Modifier.Object => new StaticObjectResult
+                    { 
+                        Compiler = this, 
+                        Context = identifierContext, 
+                        Location = variable.Location, 
+                        BasicType = variable.DataType.BasicType
+                    },
                     _ => throw new UnreachableException()
                 };
             }
 
             return variable.DataType.BasicType switch
             {
-                BasicType.Int => new IntegerResult { Compiler = this, Context = identifierContext, Location = variable.Location },
-                BasicType.Dec => new DecimalResult { Compiler = this, Context = identifierContext, Location = variable.Location },
-                BasicType.Bool => new BooleanResult { Compiler = this, Context = identifierContext, Location = variable.Location },
-                BasicType.String => new StringResult { Compiler = this, Context = identifierContext, Location = variable.Location },
-                BasicType.Array => new DynArrayResult { Compiler = this, Context = identifierContext, Location = variable.Location, },
-                BasicType.Object => new DynObjectResult { Compiler = this, Context = identifierContext, Location = variable.Location },
+                BasicType.Int => new IntegerResult
+                { 
+                    Compiler = this, 
+                    Context = identifierContext, 
+                    Location = variable.Location
+                },
+                BasicType.Dec => new DecimalResult
+                { 
+                    Compiler = this, 
+                    Context = identifierContext, 
+                    Location = variable.Location,
+                    DecimalPlaces = (variable.DataType as DecimalDataType)!.DecimalPlaces
+                },
+                BasicType.Bool => new BooleanResult
+                { 
+                    Compiler = this, 
+                    Context = identifierContext, 
+                    Location = variable.Location
+                },
+                BasicType.String => new StringResult
+                { 
+                    Compiler = this, 
+                    Context = identifierContext, 
+                    Location = variable.Location
+                },
+                BasicType.Array => new DynArrayResult
+                { 
+                    Compiler = this, 
+                    Context = identifierContext, 
+                    Location = variable.Location
+                },
+                BasicType.Object => new DynObjectResult
+                { 
+                    Compiler = this, 
+                    Context = identifierContext, 
+                    Location = variable.Location
+                },
                 _ => throw new UnreachableException()
             };
         }

@@ -2,14 +2,14 @@ namespace Amethyst.Utility;
 
 public static class NbtUtility
 {
-    public static object ToNbtString(this object obj)
+    public static string ToNbtString(this object obj)
     {
         return obj switch
         {
-            string value => $"\"{value}\"",
+            string value => $"\"{value}\"", // TODO: Escape quotes and other special characters in the string that need escaping in Minecraft
             bool value => value ? "true" : "false",
             object[] value => $"[{string.Join(',', value.Select(o => $"{{_:{o.ToNbtString()}}}"))}]",
-            _ => obj
+            _ => $"{obj}"
         };
     }
     

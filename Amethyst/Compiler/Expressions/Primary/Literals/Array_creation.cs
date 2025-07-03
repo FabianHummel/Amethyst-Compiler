@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
-using Amethyst.Utility;
 
 namespace Amethyst;
 
@@ -14,123 +13,107 @@ public partial class Compiler
             throw new UnreachableException();
         }
         
-        if (expressionContexts.Length == 0)
-        {
-            AddCode($"data modify storage amethyst: {MemoryLocation} set value [];");
-        }
-        
         DataType? dataType = null;
         
         var dynamic = false;
 
-        var elements = new List<AbstractResult>(expressionContexts.Select(expressionContext =>
+        var elements = new List<AbstractResult>();
+        
+        foreach (var expressionContext in expressionContexts)
         {
             var result = VisitExpression(expressionContext);
             
+            // if the initial data type differs from the current data type, we need to make the array dynamic
             if (!dynamic && dataType != null && dataType != result.DataType)
             {
                 dynamic = true;
             }
 
+            // set the initial data type if it is not set yet
             if (!dynamic)
             {
                 dataType ??= result.DataType;
             }
             
-            return result;
-        }));
+            elements.Add(result);
+        }
+
+        var isDynamic = dynamic || dataType == null;
         
-        if (dataType == null)
+        if (elements.All(element => element is ConstantValue))
         {
-            return CreateDynamicArray(context, elements);
+            var value = elements.Cast<ConstantValue>().ToArray();
+            
+            if (isDynamic)
+            {
+                return new DynArrayConstant
+                {
+                    Compiler = this,
+                    Context = context,
+                    Value = value,
+                };
+            }
+
+            return new StaticArrayConstant
+            {
+                Compiler = this,
+                Context = context,
+                Value = value,
+                BasicType = dataType!.BasicType
+            };
         }
 
-        if (!dynamic)
-        {
-            return CreateStaticArray(context, dataType, elements);
-        }
-
-        return CreateDynamicArray(context, elements);
-    }
-    
-    public ArrayResult CreateStaticArray(AmethystParser.Array_creationContext context, DataType dataType, List<AbstractResult> elements)
-    {
         var parts = new List<string>();
-
-        var substitutions = new List<KeyValuePair<object, AbstractResult>>();
+        var substitutions = new List<KeyValuePair<object, RuntimeValue>>();
 
         for (var i = 0; i < elements.Count; i++)
         {
             var element = elements[i];
             
-            if (element.ConstantValue is { } constantValue)
+            if (element is ConstantValue constantValue)
             {
-                parts.Add($"{constantValue}");
-
-                if (element.Substitutions != null)
-                {
-                    substitutions.Add(new KeyValuePair<object, AbstractResult>(i, element));
-                }
+                parts.Add(constantValue.ToNbtString());
             }
-            else if (element.Location is not null)
+            if (element is RuntimeValue runtimeValue)
             {
-                parts.Add($"{element.DataType.DefaultValue}");
+                parts.Add($"{runtimeValue.DataType.DefaultValue}");
 
-                substitutions.Add(new KeyValuePair<object, AbstractResult>(i, element));
-            }
-            else
-            {
-                throw new UnreachableException();
+                substitutions.Add(new KeyValuePair<object, RuntimeValue>(i, runtimeValue));
             }
         }
 
-        return new ArrayResult
-        {
-            Compiler = this,
-            BasicType = dataType.BasicType,
-            Context = context,
-            ConstantValue = $"[{string.Join(',', parts)}]",
-            Substitutions = substitutions
-        };
-    }
-    
-    public DynArrayResult CreateDynamicArray(AmethystParser.Array_creationContext context, List<AbstractResult> elements)
-    {
-        var parts = new List<string>();
-        
-        var substitutions = new List<KeyValuePair<object, AbstractResult>>();
-
-        for (var i = 0; i < elements.Count; i++)
-        {
-            var element = elements[i];
+        var location = ++StackPointer;
             
-            if (element.ConstantValue is { } constantValue)
+        ArrayBase array;
+            
+        if (isDynamic)
+        {
+            AddCode($"data modify storage amethyst: {location} set value [{string.Join(',', $"{{_:{parts}}}")}]");
+                
+            array = new DynArrayResult
             {
-                parts.Add($"{{_:{constantValue}}}");
-
-                if (element.Substitutions != null)
-                {
-                    substitutions.Add(new KeyValuePair<object, AbstractResult>(i, element));
-                }
-            }
-            else if (element.Location is not null)
+                Compiler = this,
+                Context = context,
+                Location = location.ToString(),
+                Substitutions = substitutions
+            };
+        }
+        else
+        {
+            AddCode($"data modify storage amethyst: {location} set value [{string.Join(',', parts)}]");
+            
+            array = new StaticArrayResult
             {
-                parts.Add($"{BasicType.Array.GetDefaultValue()}");
-
-                substitutions.Add(new KeyValuePair<object, AbstractResult>(i, element));
-            }
-            else
-            {
-                throw new UnreachableException();
-            }
+                Compiler = this,
+                Context = context,
+                Location = location.ToString(),
+                Substitutions = substitutions,
+                BasicType = dataType!.BasicType
+            };
         }
 
-        return new DynArrayResult
-        {
-            Compiler = this,
-            Context = context,
-            ConstantValue = $"[{string.Join(',', parts)}]",
-            Substitutions = substitutions
-        };
+        array.SubstituteRecursively(location.ToString());
+
+        return array;
     }
 }

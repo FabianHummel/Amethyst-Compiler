@@ -15,17 +15,17 @@ public partial class Compiler
             throw new SyntaxException($"The variable '{variableName}' has already been declared.", context);
         }
         
-        AbstractResult? result = null;
+        RuntimeValue? result = null;
         DataType? type = null;
         
         if (context.expression() is { } expression)
         {
-            result = VisitExpression(expression);
+            result = VisitExpression(expression).ToRuntimeValue();
 
-            result = result.MakeVariable();
+            result = result.ToRuntimeValue();
         }
 
-        var name = result?.Location ?? MemoryLocation.ToString();
+        var name = result?.Location ?? StackPointer.ToString();
         
         // if a type is defined, set the type to the defined type
         if (context.type() is { } typeContext)

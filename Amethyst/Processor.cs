@@ -70,7 +70,7 @@ public class Processor
     {
         Context.Datapack!.Name = Table["datapack"]["name"].AsString ?? DEFAULT_DATAPACK_NAME;
 
-        if (Context.Flags.HasFlag(Flags.Debug))
+        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
             PrintDebug($"Datapack name = '{Context.Datapack.Name}'.");
         }
@@ -80,7 +80,7 @@ public class Processor
     {
         Context.Resourcepack!.Name = Table["resourcepack"]["name"].AsString ?? DEFAULT_RESOURCEPACK_NAME;
 
-        if (Context.Flags.HasFlag(Flags.Debug))
+        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
             PrintDebug($"Resourcepack name = '{Context.Resourcepack.Name}'.");
         }
@@ -117,7 +117,7 @@ public class Processor
             Context.Datapack!.OutputDir = Path.Combine(Context.MinecraftRoot, "saves", outDir, "datapacks", Context.Datapack!.Name);
         }
 
-        if (Context.Flags.HasFlag(Flags.Debug))
+        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
             PrintDebug($"Datapack output directory: '{Context.Datapack.OutputDir}'.");
         }
@@ -144,7 +144,7 @@ public class Processor
             Context.Resourcepack!.OutputDir = Path.Combine(Context.MinecraftRoot, "resourcepacks", Context.Resourcepack!.Name);
         }
 
-        if (Context.Flags.HasFlag(Flags.Debug))
+        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
             PrintDebug($"Resourcepack output directory: '{Context.Resourcepack.OutputDir}'.");
         }
@@ -191,7 +191,7 @@ public class Processor
         
         cts.Cancel();
 
-        if (Context.Flags.HasFlag(Flags.Debug))
+        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
             PrintDebugMessageWithTime($"Datapack meta file created at '{mcMeta}'.", getElapsed());
         }
@@ -217,7 +217,7 @@ public class Processor
         }
         
         cts.Cancel();
-        if (Context.Flags.HasFlag(Flags.Debug))
+        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
             PrintDebugMessageWithTime($"Resourcepack meta file created at '{mcMeta}'.", getElapsed());
         }
@@ -241,7 +241,7 @@ public class Processor
         
         cts.Cancel();
 
-        if (Context.Flags.HasFlag(Flags.Debug))
+        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
             PrintDebugMessageWithTime("Function tags created.", getElapsed());
         }
@@ -273,7 +273,7 @@ public class Processor
         
         cts.Cancel();
 
-        if (Context.Flags.HasFlag(Flags.Debug))
+        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
             PrintDebugMessageWithTime("Datapack template copied.", getElapsed());
         }
@@ -305,7 +305,7 @@ public class Processor
         
         cts.Cancel();
 
-        if (Context.Flags.HasFlag(Flags.Debug))
+        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
             PrintDebugMessageWithTime("Resourcepack template copied.", getElapsed());
         }
@@ -333,7 +333,7 @@ public class Processor
         
         cts.Cancel();
 
-        if (Context.Flags.HasFlag(Flags.Debug))
+        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
             PrintDebugMessageWithTime($"Found {count} {SOURCE_FILE} files.", getElapsed());
         }
@@ -349,7 +349,7 @@ public class Processor
                 if (Directory.GetFiles(directory, SOURCE_FILE).Length == 0)
                 {
                     var relativeFile = Path.GetRelativePath(Context.SourcePath, directory);
-                    if (Context.Flags.HasFlag(Flags.Debug))
+                    if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
                     {
                         PrintDebug($"Skipping empty namespace '/{relativeFile}'.");
                     }

@@ -6,6 +6,6 @@ public partial class Compiler
 {
     public override AbstractResult VisitMember_access(AmethystParser.Member_accessContext context)
     {
-        return null!;
+        throw new NotImplementedException();
     }
 }

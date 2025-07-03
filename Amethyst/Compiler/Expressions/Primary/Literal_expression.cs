@@ -15,11 +15,11 @@ public partial class Compiler
         
         if (literalContext.String_Literal() is { } stringLiteral)
         {
-            return new StringResult
+            return new StringConstant
             {
                 Compiler = this,
                 Context = literalContext,
-                ConstantValue = stringLiteral.Symbol.Text
+                Value = stringLiteral.Symbol.Text
             };
         }
         
@@ -29,12 +29,15 @@ public partial class Compiler
             {
                 throw new SyntaxException("Invalid decimal literal", literalContext);
             }
+            
+            var decimalPlaces = decimalLiteral.Symbol.Text.Split('.').LastOrDefault()?.Length ?? 0;
 
-            return new DecimalResult
+            return new DecimalConstant
             {
                 Compiler = this,
                 Context = literalContext,
-                ConstantValue = result
+                Value = result,
+                DecimalPlaces = decimalPlaces
             };
         }
         
@@ -45,11 +48,11 @@ public partial class Compiler
                 throw new SyntaxException("Invalid integer literal", literalContext);
             }
             
-            return new IntegerResult
+            return new IntegerConstant
             {
                 Compiler = this,
                 Context = literalContext,
-                ConstantValue = result
+                Value = result
             };
         }
 
@@ -57,11 +60,11 @@ public partial class Compiler
         {
             var value = booleanLiteral.GetText() == "true";
 
-            return new BooleanResult
+            return new BooleanConstant
             {
                 Compiler = this,
                 Context = literalContext,
-                ConstantValue = value
+                Value = value
             };
         }
         

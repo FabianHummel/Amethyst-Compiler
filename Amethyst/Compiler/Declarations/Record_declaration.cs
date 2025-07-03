@@ -24,12 +24,12 @@ public partial class Compiler
         
         var name = GetRecordName();
         
-        AbstractResult? result = null;
+        RuntimeValue? result = null;
         DataType? type = null;
         
         if (context.expression() is { } expression)
         {
-            result = VisitExpression(expression);
+            result = VisitExpression(expression).ToRuntimeValue();
         }
         
         // if a type is defined, set the type to the defined type
@@ -69,7 +69,7 @@ public partial class Compiler
         {
             AddInitCode($"scoreboard objectives add {name} dummy");
 
-            if (Context.Flags.HasFlag(Flags.Debug))
+            if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
             {
                 AddInitCode($$"""scoreboard objectives modify {{name}} displayname ["",{"text":"Record ","bold":true},{"text":"{{name}}","color":"dark_purple"},{"text":" @ "},{"text":"{{Scope.McFunctionPath}}/","color":"gray"},{"text":"{{recordName}}","color":"light_purple"}]""");
             }

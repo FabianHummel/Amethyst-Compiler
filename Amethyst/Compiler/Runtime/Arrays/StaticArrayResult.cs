@@ -2,13 +2,13 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
-public class ObjectResult : AbstractResult
+public class StaticArrayResult : ArrayBase
 {
     public required BasicType BasicType { get; init; }
     
     public override DataType DataType => new()
     {
         BasicType = BasicType,
-        Modifier = Modifier.Object
+        Modifier = Modifier.Array
     };
 }
