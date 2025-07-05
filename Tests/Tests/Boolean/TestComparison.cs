@@ -21,7 +21,7 @@ public class TestComparison
         var left = NbtUtility.RandomNbtValue(_random);
         var right = NbtUtility.RandomNbtValue(_random);
         
-        var ctx = Run($"var result = {left.ToNbtString()} {op.GetAmethystOperatorSymbol()} {right.ToNbtString()};");
+        var ctx = Run($"var result = {left.ToAmethystString()} {op.GetAmethystOperatorSymbol()} {right.ToAmethystString()};");
         var result = ctx.GetResult();
         
         var expected = op switch
@@ -52,8 +52,8 @@ public class TestComparison
         var right = NbtUtility.RandomNbtValue(_random);
         
         var ctx = Run($"""
-                       var left = {left.ToNbtString()};
-                       var right = {right.ToNbtString()};
+                       var left = {left.ToAmethystString()};
+                       var right = {right.ToAmethystString()};
                        var result = left || right;
                        """);
         var result = ctx.GetResult();
@@ -78,7 +78,7 @@ public class TestComparison
     {
         var nbtValues = values.Select(NbtUtility.ToNbtNumber).ToArray();
         
-        var ctx = Run($"var result = {string.Join($" {op.GetAmethystOperatorSymbol()} ", nbtValues.Select(value => value.ToNbtString()))};");
+        var ctx = Run($"var result = {string.Join($" {op.GetAmethystOperatorSymbol()} ", nbtValues.Select(value => value.ToAmethystString()))};");
         var result = ctx.GetResult();
         
         var expected = op switch

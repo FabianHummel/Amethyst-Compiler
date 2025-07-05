@@ -5,7 +5,7 @@ using static Amethyst.Constants;
 
 namespace Amethyst.Model;
 
-public class Scope
+public class Scope : IDisposable
 {
     public required string Name { get; init; }
     public required Scope? Parent { get; init; }
@@ -13,6 +13,8 @@ public class Scope
     public Dictionary<string, int> Scopes { get; } = new();
     public Dictionary<string, Variable> Variables { get; } = new();
     public Dictionary<string, Record> Records { get; } = new();
+
+    private TextWriter _writer = new StringWriter();
     
     public string FilePath => Path.Combine(Context.Datapack!.OutputDir, GetDataSubpath(DATAPACK_FUNCTIONS_DIRECTORY) + MCFUNCTION_FILE_EXTENSION);
     
@@ -24,10 +26,7 @@ public class Scope
             var current = this;
             while (current.Parent is not null)
             {
-                if (current.Name is not null)
-                {
-                    sb.Insert(0, $"/{current.Name}");
-                }
+                sb.Insert(0, $"/{current.Name}");
                 current = current.Parent;
             }
             return $"{current.Name}:{sb.ToString()[1..]}";
@@ -42,10 +41,7 @@ public class Scope
             var current = this;
             while (current.Parent is not null)
             {
-                if (current.Name is not null)
-                {
-                    sb.Insert(0, $".{current.Name}");
-                }
+                sb.Insert(0, $".{current.Name}");
                 current = current.Parent;
             }
             return $"{current.Name}_{sb.ToString()[1..]}";
@@ -63,10 +59,7 @@ public class Scope
         var current = this;
         while (current.Parent is not null)
         {
-            if (current.Name is not null)
-            {
-                path = Path.Combine(current.Name, path);
-            }
+            path = Path.Combine(current.Name, path);
             current = current.Parent;
         }
         return Path.Combine("data", current.Name, location, path);
@@ -89,14 +82,7 @@ public class Scope
     
     public void AddCode(string code)
     {
-        code = code.TrimEnd() + "\n";
-        
-        if (!File.Exists(FilePath))
-        {
-            CreateFunctionFile();
-        }
-        
-        File.AppendAllText(FilePath, code);
+        _writer.WriteLine(code);
     }
 
     public bool TryGetVariable(string identifier, [NotNullWhen(true)] out Variable? variable)
@@ -127,5 +113,17 @@ public class Scope
         }
         
         return false;
+    }
+
+    public void Dispose()
+    {
+        if (!File.Exists(FilePath))
+        {
+            CreateFunctionFile();
+        }
+        
+        File.AppendAllText(FilePath, _writer.ToString());
+        
+        _writer.Dispose();
     }
 }

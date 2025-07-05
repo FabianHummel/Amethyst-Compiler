@@ -66,6 +66,8 @@ public static class TestMain
             Console.Error.WriteLine("Failed to authenticate with RCON server.");
             throw new Exception("Failed to authenticate with RCON server.");
         }
+
+        Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "world/datapacks"));
     }
     
     [OneTimeTearDown]
@@ -84,8 +86,8 @@ public static class TestMain
         File.WriteAllText(mainAmyFile, input);
         _amethyst.ReinitializeProject();
         
-        var sourcePath = Path.Combine(Environment.CurrentDirectory, "output/test");
-        var targetPath = Path.Combine(Environment.CurrentDirectory, "world/datapacks/test.zip");
+        var sourcePath = Path.Combine(Environment.CurrentDirectory, "output/Unit Tests");
+        var targetPath = Path.Combine(Environment.CurrentDirectory, "world/datapacks/Unit Tests.zip");
 
         using (var writer = new FileStream(targetPath, FileMode.Create))
         {

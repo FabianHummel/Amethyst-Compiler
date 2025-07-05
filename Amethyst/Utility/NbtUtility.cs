@@ -12,6 +12,17 @@ public static class NbtUtility
             _ => $"{obj}"
         };
     }
+
+    public static string ToAmethystString(this object obj)
+    {
+        return obj switch
+        {
+            string value => $"\"{value}\"", // TODO: Escape quotes and other special characters in the string that need escaping in Amethyst
+            bool value => value ? "true" : "false",
+            object[] value => $"[{string.Join(',', value.Select(o => o.ToAmethystString()))}]",
+            _ => $"{obj}"
+        };
+    }
     
     public static int ToNbtNumber(this object obj)
     {
@@ -30,10 +41,11 @@ public static class NbtUtility
     {
         return random.Next(4) switch
         {
-            0 => random.NextDouble() * 10 - 5,
+            0 => Math.Floor((random.NextDouble() * 10 - 5) * 100) / 100.0,
             1 => random.Next(2) == 0,
             2 => random.Next(10) - 5,
-            3 => string.Join("", Enumerable.Range(0, new Random().Next(10)).Select(_ => "A")),
+            3 => string.Join("", Enumerable.Range(0, new Random().Next(10))
+                .Select(_ => (char) random.Next(32, 127))),
             _ => throw new InvalidOperationException()
         };
     }

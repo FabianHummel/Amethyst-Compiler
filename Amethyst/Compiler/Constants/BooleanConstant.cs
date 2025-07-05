@@ -17,13 +17,15 @@ public class BooleanConstant : ConstantValue<bool>
 
     public override RuntimeValue ToRuntimeValue()
     {
-        Compiler.AddCode($"scoreboard players set {Compiler.StackPointer} amethyst {AsInteger}");
+        var location = ++Compiler.StackPointer;
+        
+        Compiler.AddCode($"scoreboard players set {location} amethyst {AsInteger}");
         
         return new BooleanResult
         {
             Compiler = Compiler,
             Context = Context,
-            Location = Compiler.StackPointer++.ToString(),
+            Location = location.ToString(),
             IsTemporary = true,
         };
     }

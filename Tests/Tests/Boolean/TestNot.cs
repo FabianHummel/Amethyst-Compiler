@@ -18,7 +18,7 @@ public class TestNot
     [TestCase(new object[] { 1 }, false)]
     public void TestNotConstant(object value, bool expected)
     {
-        Run($"var result = !{value.ToNbtString()};");
+        Run($"var result = !{value.ToAmethystString()};");
         Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(expected ? 1 : 0));
     }
     
@@ -34,7 +34,7 @@ public class TestNot
     public void TestNotVariable(object value, bool expected)
     {
         var ctx = Run($"""
-                       var value = {value.ToNbtString()};
+                       var value = {value.ToAmethystString()};
                        var result = !value;
                        """);
         var result = ctx.GetResult();
@@ -52,7 +52,7 @@ public class TestNot
     [TestCase(new object[] { 1 }, true)]
     public void TestNotMultiple(object value, bool expected)
     {
-        var ctx = Run($"var result = !!{value.ToNbtString()};");
+        var ctx = Run($"var result = !!{value.ToAmethystString()};");
         var result = ctx.GetResult();
         Assert.That(GetAmethystScoreboardValue(result), Is.EqualTo(expected ? 1 : 0));
     }

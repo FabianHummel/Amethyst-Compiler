@@ -41,7 +41,7 @@ public class StringResult : RuntimeValue
             lhsLocation = (++Compiler.StackPointer).ToString();
         }
         
-        var scope = Compiler.EvaluateScoped("_concat", () =>
+        var scope = Compiler.EvaluateScoped("_concat", _ =>
         {
             // Todo: sanitize string by escaping quotes and other special characters that may mess up the macro expansion
             Compiler.AddCode($"$data modify storage amethyst: {lhsLocation} set value \"$({Location})$({rhs.Location})\"");

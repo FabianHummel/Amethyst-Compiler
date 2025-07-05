@@ -13,7 +13,7 @@ public class TestArithmetic
     {
         var left = NbtUtility.RandomNbtValue(_random);
         var right = NbtUtility.RandomNbtValue(_random);
-        var ctx = Run($"var result = {left.ToNbtString()} + {right.ToNbtString()};");
+        var ctx = Run($"var result = {left.ToAmethystString()} + {right.ToAmethystString()};");
         var result = ctx.GetResult();
         
         Assert.That(GetAmethystScoreboardValue(result), Is.EqualTo(left.ToNbtNumber() + right.ToNbtNumber()));
@@ -25,7 +25,7 @@ public class TestArithmetic
     {
         var left = NbtUtility.RandomNbtValue(_random);
         var right = NbtUtility.RandomNbtValue(_random);
-        var ctx = Run($"var result = {left.ToNbtString()} - {right.ToNbtString()};");
+        var ctx = Run($"var result = {left.ToAmethystString()} - {right.ToAmethystString()};");
         var result = ctx.GetResult();
         
         Assert.That(GetAmethystScoreboardValue(result), Is.EqualTo(left.ToNbtNumber() - right.ToNbtNumber()));
@@ -37,7 +37,7 @@ public class TestArithmetic
     {
         var left = NbtUtility.RandomNbtValue(_random);
         var right = NbtUtility.RandomNbtValue(_random);
-        var ctx = Run($"var result = {left.ToNbtString()} * {right.ToNbtString()};");
+        var ctx = Run($"var result = {left.ToAmethystString()} * {right.ToAmethystString()};");
         var result = ctx.GetResult();
         
         Assert.That(GetAmethystScoreboardValue(result), Is.EqualTo(left.ToNbtNumber() * right.ToNbtNumber()));
@@ -49,7 +49,7 @@ public class TestArithmetic
     {
         var left = NbtUtility.RandomNbtValue(_random);
         var right = NbtUtility.RandomNbtValue(_random);
-        var ctx = Run($"var result = {left.ToNbtString()} / {right.ToNbtString()};");
+        var ctx = Run($"var result = {left.ToAmethystString()} / {right.ToAmethystString()};");
         var result = ctx.GetResult();
         
         Assert.That(GetAmethystScoreboardValue(result), Is.EqualTo(left.ToNbtNumber() / right.ToNbtNumber()));
@@ -61,7 +61,7 @@ public class TestArithmetic
     {
         var left = NbtUtility.RandomNbtValue(_random);
         var right = NbtUtility.RandomNbtValue(_random);
-        var ctx = Run($"var result = {left.ToNbtString()} % {right.ToNbtString()};");
+        var ctx = Run($"var result = {left.ToAmethystString()} % {right.ToAmethystString()};");
         var result = ctx.GetResult();
         
         Assert.That(GetAmethystScoreboardValue(result), Is.EqualTo(left.ToNbtNumber() % right.ToNbtNumber()));

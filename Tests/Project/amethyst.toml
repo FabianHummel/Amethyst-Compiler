@@ -1,4 +1,6 @@
+id = "test"
+
 [datapack]
-name = "test"
-description = "Unit Tests"
+name = "Unit Tests"
+description = "Unit Tests for the Amethyst Language"
 output = "./output"

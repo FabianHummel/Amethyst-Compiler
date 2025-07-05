@@ -23,14 +23,15 @@ public partial class Compiler : AmethystBaseVisitor<object?>
         {
             Namespace = ns;
 
-            Scope = ns.Functions["_load"].Scope;
-            
-            Scope.CreateFunctionFile();
-            
-            foreach (var file in ns.Files)
+            using (Scope = ns.Functions["_load"].Scope)
             {
-                SourceFile = file;
-                VisitFile(file.Context);
+                Scope.CreateFunctionFile();
+            
+                foreach (var file in ns.Files)
+                {
+                    SourceFile = file;
+                    VisitFile(file.Context);
+                }
             }
         }
     }
@@ -45,7 +46,7 @@ public partial class Compiler : AmethystBaseVisitor<object?>
         Namespace.AddInitCode(code);
     }
     
-    internal Scope EvaluateScoped(string name, Action action)
+    internal Scope EvaluateScoped(string name, Action<Action> action)
     {
         if (!Scope.Scopes.TryAdd(name, 0))
         {
@@ -60,7 +61,14 @@ public partial class Compiler : AmethystBaseVisitor<object?>
             Context = Context
         };
         
-        action();
+        var isCancelled = false;
+        
+        action(() => isCancelled = true);
+
+        if (!isCancelled)
+        {
+            Scope.Dispose();
+        }
         
         Scope = previousScope;
         

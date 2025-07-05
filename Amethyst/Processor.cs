@@ -69,7 +69,7 @@ public class Processor
 
     private void SetProjectId()
     {
-        var projectId = Table["id"];
+        var projectId = Table["id"].AsString;
 
         if (projectId == null)
         {

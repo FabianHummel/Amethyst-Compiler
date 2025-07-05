@@ -14,7 +14,7 @@ public class TestOr
     [TestCase(true, true)]
     public void TestOrConstant(bool left, bool right)
     {
-        var ctx = Run($"var result = {left.ToNbtString()} || {right.ToNbtString()};");
+        var ctx = Run($"var result = {left.ToAmethystString()} || {right.ToAmethystString()};");
         var result = ctx.GetResult();
         
         Assert.That(GetAmethystScoreboardValue(result), Is.EqualTo(left || right ? 1 : 0));
@@ -28,8 +28,8 @@ public class TestOr
     public void TestOrVariable(bool left, bool right)
     {
         var ctx = Run($"""
-             var left = {left.ToNbtString()};
-             var right = {right.ToNbtString()};
+             var left = {left.ToAmethystString()};
+             var right = {right.ToAmethystString()};
              var result = left || right;
              """);
         var result = ctx.GetResult();
@@ -42,7 +42,7 @@ public class TestOr
     public void TestOrMultiple()
     {
         var conjuncts = Enumerable.Range(0, 5).Select(_ => _random.Next(2) == 0).ToArray();
-        var ctx = Run($"var result = {string.Join(" || ", conjuncts.Select(x => x ? "true" : "false"))};");
+        var ctx = Run($"var result = {string.Join(" || ", conjuncts.Select(x => x.ToAmethystString()))};");
         var result = ctx.GetResult();
         
         Assert.That(GetAmethystScoreboardValue(result), Is.EqualTo(conjuncts.Any(x => x) ? 1 : 0));

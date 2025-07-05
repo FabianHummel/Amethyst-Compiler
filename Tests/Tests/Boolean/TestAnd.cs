@@ -14,7 +14,7 @@ public class TestAnd
     [TestCase(true, true)]
     public void TestAndConstant(bool left, bool right)
     {
-        var ctx = Run($"var result = {left.ToNbtString()} && {right.ToNbtString()};");
+        var ctx = Run($"var result = {left.ToAmethystString()} && {right.ToAmethystString()};");
         var result = ctx.GetResult();
         Assert.That(GetAmethystScoreboardValue(result), Is.EqualTo(left && right ? 1 : 0));
     }
@@ -27,8 +27,8 @@ public class TestAnd
     public void TestAndVariable(bool left, bool right)
     {
         var ctx = Run($"""
-             var left = {left.ToNbtString()};
-             var right = {right.ToNbtString()};
+             var left = {left.ToAmethystString()};
+             var right = {right.ToAmethystString()};
              var result = left && right;
              """);
         var result = ctx.GetResult();

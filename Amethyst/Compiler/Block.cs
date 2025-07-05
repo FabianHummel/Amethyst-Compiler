@@ -14,7 +14,7 @@ public partial class Compiler
 
     private Scope VisitBlockNamed(AmethystParser.BlockContext context, string name)
     {
-        return EvaluateScoped(name, () =>
+        return EvaluateScoped(name, _ =>
         {
             foreach (var statementContext in context.statement())
             {

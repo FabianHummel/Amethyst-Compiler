@@ -19,7 +19,7 @@ public partial class Compiler
         }
         
         // We create a scope to be able to early return from the function.
-        var scope = EvaluateScoped("_and", () =>
+        var scope = EvaluateScoped("_and", _ =>
         {
             foreach (var equalityExpressionContext in equalityExpressionContexts)
             {

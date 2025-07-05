@@ -1,6 +1,3 @@
-var cool = 0.123;
-
-[ticking, export]
-function nice() {
-    var nice = [cool];
-}
+var nice = true;
+var result = nice || false;
+var cool = 123;
