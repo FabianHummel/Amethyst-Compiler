@@ -3,12 +3,8 @@ using Amethyst.Utility;
 
 namespace Amethyst;
 
-public class DynArrayConstant : ConstantValue<ConstantValue[]>
+public class DynArrayConstant : ArrayConstantBase
 {
-    public override int AsInteger => Value.Length;
-    
-    public override bool AsBoolean => AsInteger > 0;
-
     public override DataType DataType => new()
     {
         BasicType = BasicType.Array,
@@ -20,6 +16,8 @@ public class DynArrayConstant : ConstantValue<ConstantValue[]>
         var location = ++Compiler.StackPointer;
         
         Compiler.AddCode($"data modify storage amethyst: {location} set value {ToNbtString()}");
+        
+        SubstituteRecursively(Compiler, location.ToString());
         
         return new DynArrayResult
         {

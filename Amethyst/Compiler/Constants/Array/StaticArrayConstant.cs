@@ -2,14 +2,10 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
-public class StaticArrayConstant : ConstantValue<ConstantValue[]>
+public class StaticArrayConstant : ArrayConstantBase
 {
     public required BasicType BasicType { get; init; }
     
-    public override int AsInteger => Value.Length;
-    
-    public override bool AsBoolean => AsInteger > 0;
-
     public override DataType DataType => new()
     {
         BasicType = BasicType,
@@ -21,6 +17,8 @@ public class StaticArrayConstant : ConstantValue<ConstantValue[]>
         var location = ++Compiler.StackPointer;
         
         Compiler.AddCode($"data modify storage amethyst: {location} set value {ToNbtString()}");
+        
+        SubstituteRecursively(Compiler, location.ToString());
         
         return new StaticArrayResult
         {

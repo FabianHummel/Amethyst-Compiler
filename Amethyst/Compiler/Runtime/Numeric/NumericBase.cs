@@ -10,7 +10,7 @@ public abstract partial class NumericBase : RuntimeValue
 
     private (string, string, int) ApplyScaling(NumericBase lhs, NumericBase rhs)
     {
-        var lhsLocation = Location;
+        var lhsLocation = lhs.Location;
         var rhsLocation = rhs.Location;
         int highestDecimalPlaces = 0;
 
@@ -54,9 +54,11 @@ public abstract partial class NumericBase : RuntimeValue
     
     private NumericBase Calculate(NumericBase rhs, ArithmeticOperator op)
     {
+        var lhs = (NumericBase)EnsureBackedUp();
+        
         var isDecimal = this is DecimalResult || rhs is DecimalResult;
         
-        var (lhsLocation, rhsLocation, highestDecimalPlaces) = ApplyScaling(this, rhs);
+        var (lhsLocation, rhsLocation, highestDecimalPlaces) = ApplyScaling(lhs, rhs);
         
         AddCode($"scoreboard players operation {lhsLocation} amethyst {op.GetMcfOperatorSymbol()}= {rhsLocation} amethyst");
 

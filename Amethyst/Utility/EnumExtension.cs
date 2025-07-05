@@ -1,5 +1,4 @@
-
-using Amethyst.Attributes;
+using Amethyst.Model.Attributes;
 
 namespace Amethyst.Utility;
 
@@ -12,11 +11,11 @@ public static class EnumExtension
         return attribute?.Description ?? value.ToString();
     }
 
-    public static object GetDefaultValue<T>(this T value) where T : Enum
+    public static string GetDefaultValue<T>(this T value) where T : Enum
     {
         var field = value.GetType().GetField(value.ToString());
         var attribute = Attribute.GetCustomAttribute(field!, typeof(DefaultValueAttribute)) as DefaultValueAttribute;
-        return attribute?.DefaultValue ?? value;
+        return attribute?.DefaultValue ?? value.ToString();
     }
     
     public static string GetSubstitutionModifier<T>(this T value) where T : Enum

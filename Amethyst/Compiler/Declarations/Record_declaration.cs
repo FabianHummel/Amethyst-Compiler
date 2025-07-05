@@ -81,7 +81,7 @@ public partial class Compiler
             {
                 AddCode($"scoreboard players operation {name} amethyst_record_initializers = {result.Location} amethyst");
             }
-            else if (result.DataType.IsStorageType)
+            else
             {
                 AddCode($"data modify storage amethyst:record_initializers {name} set from storage amethyst:stack {result.Location}");
             }

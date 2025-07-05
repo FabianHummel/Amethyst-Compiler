@@ -1,11 +1,11 @@
-namespace Amethyst.Attributes;
+namespace Amethyst.Model.Attributes;
 
 [AttributeUsage(AttributeTargets.Field)]
 public class DefaultValueAttribute : Attribute
 {
-    public object DefaultValue { get; }
+    public string DefaultValue { get; }
 
-    public DefaultValueAttribute(object defaultValue)
+    public DefaultValueAttribute(string defaultValue)
     {
         DefaultValue = defaultValue;
     }

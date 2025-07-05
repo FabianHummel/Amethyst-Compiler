@@ -1,5 +1,4 @@
-
-using Amethyst.Attributes;
+using Amethyst.Model.Attributes;
 
 namespace Amethyst.Model;
 

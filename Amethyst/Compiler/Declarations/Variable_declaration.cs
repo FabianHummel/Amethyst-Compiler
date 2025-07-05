@@ -21,8 +21,6 @@ public partial class Compiler
         if (context.expression() is { } expression)
         {
             result = VisitExpression(expression).ToRuntimeValue();
-
-            result = result.ToRuntimeValue();
         }
 
         var name = result?.Location ?? StackPointer.ToString();

@@ -3,12 +3,8 @@ using Amethyst.Utility;
 
 namespace Amethyst;
 
-public class DynObjectConstant : ConstantValue<Dictionary<string, ConstantValue>>
+public class DynObjectConstant : ObjectConstantBase
 {
-    public override int AsInteger => Value.Count;
-    
-    public override bool AsBoolean => AsInteger > 0;
-
     public override DataType DataType => new()
     {
         BasicType = BasicType.Object,
@@ -20,6 +16,8 @@ public class DynObjectConstant : ConstantValue<Dictionary<string, ConstantValue>
         var location = ++Compiler.StackPointer;
         
         Compiler.AddCode($"data modify storage amethyst: {location} set value {ToNbtString()}");
+        
+        SubstituteRecursively(Compiler, location.ToString());
         
         return new DynObjectResult
         {

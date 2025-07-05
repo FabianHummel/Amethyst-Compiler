@@ -63,7 +63,7 @@ public partial class Compiler
             };
         }
 
-        var parts = new List<string>();
+        var parts = new List<ConstantValue>();
         var substitutions = new List<KeyValuePair<object, RuntimeValue>>();
 
         for (var i = 0; i < elements.Count; i++)
@@ -72,48 +72,34 @@ public partial class Compiler
             
             if (element is ConstantValue constantValue)
             {
-                parts.Add(constantValue.ToNbtString());
+                parts.Add(constantValue);
             }
             if (element is RuntimeValue runtimeValue)
             {
-                parts.Add($"{runtimeValue.DataType.DefaultValue}");
+                parts.Add(runtimeValue.ToConstantSubstitute());
 
                 substitutions.Add(new KeyValuePair<object, RuntimeValue>(i, runtimeValue));
             }
         }
-
-        var location = ++StackPointer;
-            
-        ArrayBase array;
-            
+        
         if (isDynamic)
         {
-            AddCode($"data modify storage amethyst: {location} set value [{string.Join(',', $"{{_:{parts}}}")}]");
-                
-            array = new DynArrayResult
+            return new DynArrayConstant
             {
                 Compiler = this,
                 Context = context,
-                Location = location.ToString(),
+                Value = parts.ToArray(),
                 Substitutions = substitutions
             };
         }
-        else
+
+        return new StaticArrayConstant
         {
-            AddCode($"data modify storage amethyst: {location} set value [{string.Join(',', parts)}]");
-            
-            array = new StaticArrayResult
-            {
-                Compiler = this,
-                Context = context,
-                Location = location.ToString(),
-                Substitutions = substitutions,
-                BasicType = dataType!.BasicType
-            };
-        }
-
-        array.SubstituteRecursively(location.ToString());
-
-        return array;
+            Compiler = this,
+            Context = context,
+            Value = parts.ToArray(),
+            Substitutions = substitutions,
+            BasicType = dataType!.BasicType
+        };
     }
 }

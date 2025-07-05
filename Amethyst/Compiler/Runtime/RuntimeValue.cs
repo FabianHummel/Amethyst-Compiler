@@ -1,5 +1,3 @@
-using Amethyst.Model;
-
 namespace Amethyst;
 
 public abstract partial class RuntimeValue : AbstractResult
@@ -16,12 +14,6 @@ public abstract partial class RuntimeValue : AbstractResult
     /// </summary>
     public bool IsTemporary { get; set; }
     
-    /// <summary>
-    /// List of substitutions that need to be made in order to validate the result.
-    /// Especially used for array or object based results where a variable's value needs to be copied to an indexed location.
-    /// </summary>
-    public List<KeyValuePair<object, RuntimeValue>>? Substitutions { get; init; }
-
     /// <summary>
     /// Turns this result into a boolean result by logically converting it to its boolean equivalent.
     /// </summary>
@@ -44,32 +36,6 @@ public abstract partial class RuntimeValue : AbstractResult
         Compiler.AddInitCode(code);
     }
 
-    public void SubstituteRecursively(string substitutionModifierPrefix = "")
-    {
-        if (Substitutions != null)
-        {
-            foreach (var (i, element) in Substitutions)
-            {
-                var substitutionModifier = substitutionModifierPrefix + DataType.GetSubstitutionModifier(i);
-                
-                if (element.Substitutions != null)
-                {
-                    element.SubstituteRecursively(substitutionModifier);
-                    continue;
-                }
-                
-                if (element.DataType.IsStorageType)
-                {
-                    AddCode($"data modify storage amethyst: {substitutionModifier} set from storage amethyst: {element.Location}");
-                }
-                else if (element.DataType.IsScoreboardType)
-                {
-                    AddCode($"execute store result storage amethyst: {substitutionModifier} {element.DataType.StorageModifier} run scoreboard players get {element.Location} amethyst");
-                }
-            }
-        }
-    }
-
     /// <summary>
     /// Ensures that the current value is backed up in a temporary variable, so it can be freely modified.
     /// </summary>
@@ -83,22 +49,28 @@ public abstract partial class RuntimeValue : AbstractResult
         
         var location = (++Compiler.StackPointer).ToString();
         
-        if (DataType.IsStorageType)
-        {
-            AddCode($"data modify storage amethyst: {location} set from storage amethyst: {Location}");
-        }
-        else if (DataType.IsScoreboardType)
+        if (DataType.IsScoreboardType)
         {
             AddCode($"scoreboard players operation {location} amethyst = {Location} amethyst");
         }
-        else
+        else 
         {
-            throw new SyntaxException($"Cannot back up {DataType.BasicType} type.", Context);
+            AddCode($"data modify storage amethyst: {location} set from storage amethyst: {Location}");
         }
 
         var clone = (RuntimeValue)MemberwiseClone();
         clone.Location = location;
         clone.IsTemporary = true;
         return clone;
+    }
+
+    public ConstantSubstitute ToConstantSubstitute()
+    {
+        return new ConstantSubstitute
+        {
+            Compiler = Compiler,
+            Context = Context,
+            Value = this 
+        };
     }
 }

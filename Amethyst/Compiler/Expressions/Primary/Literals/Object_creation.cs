@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
-using Amethyst.Utility;
 
 namespace Amethyst;
 
@@ -69,55 +68,41 @@ public partial class Compiler
             };
         }
         
-        var parts = new Dictionary<string, string>();
+        var parts = new Dictionary<string, ConstantValue>();
         var substitutions = new List<KeyValuePair<object, RuntimeValue>>();
 
         foreach (var kvp in map)
         {
             if (kvp.Value is ConstantValue constantValue)
             {
-                parts.Add(kvp.Key, constantValue.ToNbtString());
+                parts.Add(kvp.Key, constantValue);
             }
             if (kvp.Value is RuntimeValue runtimeValue)
             {
-                parts.Add(kvp.Key, $"{runtimeValue.DataType.DefaultValue}");
+                parts.Add(kvp.Key, runtimeValue.ToConstantSubstitute());
 
                 substitutions.Add(new KeyValuePair<object, RuntimeValue>(kvp.Key, runtimeValue));
             }
         }
         
-        var location = ++StackPointer;
-            
-        AddCode($"data modify storage amethyst: {location} set value {{" +
-                $"keys:[{string.Join(",", parts.Keys.Select(key => key.ToNbtString()))}]," +
-                $"data:{{{string.Join(',', parts.Select(kvp => $"{kvp.Key.ToNbtString()}:{kvp.Value}"))}}}}}");
-        
-        ObjectBase obj;
-        
         if (isDynamic)
         {
-            obj = new DynObjectResult
+            return new DynObjectConstant
             {
                 Compiler = this,
                 Context = context,
-                Location = location.ToString(),
+                Value = parts,
                 Substitutions = substitutions
             };
         }
-        else
-        {
-            obj = new StaticObjectResult
-            {
-                Compiler = this,
-                Context = context,
-                Location = location.ToString(),
-                Substitutions = substitutions,
-                BasicType = dataType!.BasicType
-            };
-        }
-        
-        obj.SubstituteRecursively($"{location}.data");
 
-        return obj;
+        return new StaticObjectConstant
+        {
+            Compiler = this,
+            Context = context,
+            Value = parts,
+            Substitutions = substitutions,
+            BasicType = dataType!.BasicType
+        };
     }
 }

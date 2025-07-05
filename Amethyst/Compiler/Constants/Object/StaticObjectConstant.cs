@@ -3,13 +3,9 @@ using Amethyst.Utility;
 
 namespace Amethyst;
 
-public class StaticObjectConstant : ConstantValue<Dictionary<string, ConstantValue>>
+public class StaticObjectConstant : ObjectConstantBase
 {
     public required BasicType BasicType { get; init; }
-
-    public override int AsInteger => Value.Count;
-    
-    public override bool AsBoolean => AsInteger > 0;
 
     public override DataType DataType => new()
     {
@@ -22,6 +18,8 @@ public class StaticObjectConstant : ConstantValue<Dictionary<string, ConstantVal
         var location = ++Compiler.StackPointer;
         
         Compiler.AddCode($"data modify storage amethyst: {location} set value {ToNbtString()}");
+        
+        SubstituteRecursively(Compiler, location.ToString());
         
         return new StaticObjectResult
         {

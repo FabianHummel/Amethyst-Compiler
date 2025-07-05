@@ -25,9 +25,9 @@ public partial class Compiler
                 {
                     Modifier.Array => new StaticArrayResult
                     {
-                        Compiler = this, 
-                        Context = identifierContext, 
-                        Location = variable.Location, 
+                        Compiler = this,
+                        Context = identifierContext,
+                        Location = variable.Location,
                         BasicType = variable.DataType.BasicType
                     },
                     Modifier.Object => new StaticObjectResult

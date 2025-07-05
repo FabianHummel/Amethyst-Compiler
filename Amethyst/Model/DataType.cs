@@ -1,4 +1,4 @@
-using Amethyst.Attributes;
+using Amethyst.Model.Attributes;
 using Amethyst.Utility;
 
 namespace Amethyst.Model;
@@ -35,7 +35,7 @@ public enum Modifier
     Array,
     [Description("{}")]
     [DefaultValue("{}")]
-    [SubstitutionModifier(".{0}")]
+    [SubstitutionModifier(".data.{0}")]
     Object
 }
 
@@ -84,10 +84,6 @@ public class DataType
     
     public bool IsScoreboardType => Modifier == null && BasicType is BasicType.Bool or BasicType.Int or BasicType.Dec;
     
-    public bool IsStorageType => !IsScoreboardType;
-    
-    public bool IsBoolean => Modifier == null && BasicType == BasicType.Bool;
-
     public string? StorageModifier
     {
         get
@@ -107,14 +103,14 @@ public class DataType
             }
             if (BasicType == BasicType.Dec)
             {
-                return "double 1";
+                return "double 1"; // TODO: handle decimal places
             }
         
             return null;
         }
     }
 
-    public object DefaultValue
+    public string DefaultValue
     {
         get
         {
@@ -135,8 +131,8 @@ public class DataType
             {
                 return modifier.GetSubstitutionModifier();
             }
-            
-            return string.Empty;
+
+            return BasicType.GetSubstitutionModifier();
         }
     }
     
