@@ -101,9 +101,9 @@ public class DataType
             {
                 return "int 1";
             }
-            if (BasicType == BasicType.Dec)
+            if (this is DecimalDataType decimalDataType)
             {
-                return "double 1"; // TODO: handle decimal places
+                return $"double {1.0 / decimalDataType.Scale}";
             }
         
             return null;

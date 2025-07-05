@@ -6,25 +6,24 @@ public class DecimalConstant : ConstantValue<double>
 {
     public required int DecimalPlaces { get; init; }
     
-    public int Scale => (int) Math.Pow(10, DecimalPlaces);
-    
     public double AsDouble => Value;
 
     public override int AsInteger => (int)AsDouble;
     
     public override bool AsBoolean => AsDouble != 0;
     
-    public override DataType DataType => new()
+    public override DecimalDataType DataType => new()
     {
         BasicType = BasicType.Dec,
-        Modifier = null
+        Modifier = null,
+        DecimalPlaces = DecimalPlaces
     };
 
     public override RuntimeValue ToRuntimeValue()
     {
         var location = ++Compiler.StackPointer;
         
-        var value = (int)Math.Round(Value * Scale);
+        var value = (int)Math.Round(Value * DataType.Scale);
         
         Compiler.AddCode($"scoreboard players set {location} amethyst {value}");
         

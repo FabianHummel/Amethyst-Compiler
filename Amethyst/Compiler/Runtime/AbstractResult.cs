@@ -16,6 +16,12 @@ public abstract class AbstractResult
     /// </summary>
     public abstract DataType DataType { get; }
     
+    /// <summary>
+    /// Converts a constant value to a variable by assigning it a fixed memory location.
+    /// </summary>
+    /// <returns>The result with a place in memory.</returns>
+    public abstract RuntimeValue ToRuntimeValue();
+    
     public bool TryCalculateConstants(AbstractResult other, ArithmeticOperator op, [NotNullWhen(true)] out ConstantValue? result)
     {
         result = null;
@@ -137,20 +143,6 @@ public abstract class AbstractResult
         };
 
         return true;
-    }
-
-    public RuntimeValue ToRuntimeValue()
-    {
-        if (this is RuntimeValue runtimeValue)
-        {
-            return runtimeValue;
-        }
-        if (this is ConstantValue constantValue)
-        {
-            return constantValue.ToRuntimeValue();
-        }
-
-        throw new UnreachableException($"Cannot convert {GetType().Name} to runtime value.");
     }
 
     public AbstractResult ToBoolean()

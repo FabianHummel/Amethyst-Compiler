@@ -6,14 +6,14 @@ public partial class Compiler
 {
     public override object? VisitDebug_statement(AmethystParser.Debug_statementContext context)
     {
-        var result = VisitExpression(context.expression());
-        
-        // Todo: prettify result into _out
-        
-        AddCode("""
-                tellraw @a ["",{"text":"[DEBUG]: ","bold":true,"italic":true,"color":"gray"},{"nbt":"_out","storage":"amethyst:","interpret":true}]
-                """);
+        throw new NotImplementedException();
 
-        return null;
+        // var result = VisitExpression(context.expression());
+        //
+        // AddCode("""
+        //         tellraw @a ["",{"text":"[DEBUG]: ","bold":true,"italic":true,"color":"gray"},{"nbt":"_out","storage":"amethyst:","interpret":true}]
+        //         """);
+        //
+        // return null;
     }
 }

@@ -1,3 +1,2 @@
 var cool = 0.123;
-var nice = [1 + cool];
-var nice2 = [cool];
+var nice = [cool];

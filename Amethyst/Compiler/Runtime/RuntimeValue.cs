@@ -26,6 +26,11 @@ public abstract partial class RuntimeValue : AbstractResult
     /// <returns>The number result.</returns>
     public abstract IntegerResult MakeInteger();
 
+    public override RuntimeValue ToRuntimeValue()
+    {
+        return this;
+    }
+
     protected void AddCode(string code)
     {
         Compiler.AddCode(code);

@@ -12,8 +12,6 @@ public class DecimalResult : NumericBase
         Modifier = null,
         DecimalPlaces = DecimalPlaces
     };
-    
-    public int Scale => (int) Math.Pow(10, DecimalPlaces);
 
     public override IntegerResult MakeInteger()
     {
@@ -24,7 +22,7 @@ public class DecimalResult : NumericBase
             AddCode($"scoreboard players operation {location} amethyst = {Location} amethyst");
         }
 
-        AddCode($"scoreboard players operation {location} amethyst *= .{Scale} amethyst_const");
+        AddCode($"scoreboard players operation {location} amethyst *= .{DataType.Scale} amethyst_const");
 
         return new IntegerResult
         {

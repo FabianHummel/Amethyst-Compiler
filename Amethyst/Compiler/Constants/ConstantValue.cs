@@ -5,12 +5,6 @@ public abstract class ConstantValue : AbstractResult
     public abstract int AsInteger { get; }
     
     public abstract bool AsBoolean { get; }
-
-    /// <summary>
-    /// Converts this constant value to a variable by assigning it a fixed memory location.
-    /// </summary>
-    /// <returns>The result with a place in memory.</returns>
-    public abstract RuntimeValue ToRuntimeValue();
     
     /// <summary>
     /// Converts this constant value to a string that can be used in NBT data.
