@@ -1,4 +1,6 @@
+id = "test"
+
 [datapack]
-name = "test"
-description = "Unit Tests"
+name = "Test Project"
+description = "Playground for testing purposes"
 output = "./output"

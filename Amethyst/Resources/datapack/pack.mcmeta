@@ -1,4 +1,5 @@
 {
+    "id": {{pack_id}}
     "pack": {
         "pack_format": {{pack_format}},
         "description": {{description}}

@@ -13,34 +13,33 @@ public class AmethystParseListener : AmethystBaseListener
         Parser = parser;
     }
     
-    public override void ExitFunction_declaration(AmethystParser.Function_declarationContext context)
-    {
-        if (Parser.Ns == null)
-        {
-            throw new Exception("Namespace is not defined. Either place the file in a folder or use the namespace keyword.");
-        }
-        
-        var name = context.identifier().GetText();
-        
-        if (Parser.Ns.Functions.ContainsKey(name))
-        {
-            throw new SyntaxException($"Function '{name}' is already defined in namespace '{Parser.Ns.Scope.Name}'.", context);
-        }
-        
-        Parser.Ns.Functions.Add(name, new Function
-        {
-            Scope = new Scope
-            {
-                Name = Parser.Ns.GetFunctionName(name),
-                Context = Parser.Context,
-                Parent = Parser.Ns.Scope
-            },
-            Attributes = context.attribute_list().attribute().Select(attributeContext =>
-            { 
-                return attributeContext.identifier().GetText();
-            }).ToList()
-        });
-    }
+    // public override void ExitFunction_declaration(AmethystParser.Function_declarationContext context)
+    // {
+    //     if (Parser.Ns == null)
+    //     {
+    //         throw new Exception("Namespace is not defined. Either place the file in a folder or use the namespace keyword.");
+    //     }
+    //     
+    //     var name = context.identifier().GetText();
+    //     
+    //     if (Parser.Ns.Functions.ContainsKey(name))
+    //     {
+    //         throw new SyntaxException($"Function '{name}' is already defined in namespace '{Parser.Ns.Scope.Name}'.", context);
+    //     }
+    //
+    //     Parser.Ns.Functions.Add(name, new Function
+    //     {
+    //         Scope = new Scope
+    //         {
+    //             Name = Parser.Ns.GetFunctionName(name),
+    //             Context = Parser.Context,
+    //             Parent = Parser.Ns.Scope
+    //         },
+    //         Attributes = context.attribute_list().attribute()
+    //             .Select(attributeContext => attributeContext.identifier().GetText())
+    //             .ToList()
+    //     });
+    // }
 
     public override void ExitNamespace_declaration(AmethystParser.Namespace_declarationContext context)
     {

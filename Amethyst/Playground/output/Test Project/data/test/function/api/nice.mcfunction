@@ -1,0 +1,1 @@
+function test:_load/_func0

@@ -13,7 +13,27 @@ public partial class Compiler
         }
         
         var functionName = context.identifier().GetText();
-        VisitBlockNamed(context.block(), Namespace.Functions[functionName].Scope.Name!);
+        
+        var scope = VisitBlockNamed(context.block(), "_func");
+        
+        var attributes = context.attribute_list().attribute()
+            .Select(attributeContext => attributeContext.identifier().GetText())
+            .ToHashSet();
+        
+        if (attributes.Contains(ATTRIBUTE_TICK_FUNCTION))
+        {
+            Context.Datapack.TickFunctions.Add(scope.McFunctionPath);
+        }
+        
+        if (attributes.Contains(ATTRIBUTE_LOAD_FUNCTION))
+        {
+            Context.Datapack.LoadFunctions.Add(scope.McFunctionPath);
+        }
+        
+        if (attributes.Contains(ATTRIBUTE_EXPORT_FUNCTION))
+        {
+            Context.Datapack.ExportedFunctions.Add(scope.McFunctionPath, functionName);
+        }
         
         return null;
     }

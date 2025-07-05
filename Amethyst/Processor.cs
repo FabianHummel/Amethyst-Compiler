@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using System.Reflection;
 using Amethyst.Model;
 using Amethyst.Utility;
@@ -64,6 +65,23 @@ public class Processor
     private void SetSourcePath()
     {
         Context.SourcePath = Path.Combine(Environment.CurrentDirectory, SOURCE_DIRECTORY);
+    }
+
+    private void SetProjectId()
+    {
+        var projectId = Table["id"];
+
+        if (projectId == null)
+        {
+            throw new Exception($"Project ID not specified in '{CONFIG_FILE}'. Please set the 'id' field to a unique identifier for your project.");
+        }
+
+        if (!Regex.IsMatch(projectId, @"^[a-z0-9_]+$"))
+        {
+            throw new Exception("Project ID must contain only lowercase letters, digits, or underscores.");
+        }
+
+        Context.ProjectId = projectId;
     }
     
     private void SetDatapackName()
@@ -182,10 +200,11 @@ public class Processor
             {
                 var mcMetaContents = reader.ReadToEnd();
                 var description = Table["datapack"]["description"].AsString ?? DEFAULT_DATAPACK_DESCRIPTION;
-                mcMetaContents = mcMetaContents.Replace(SUBSTITUTIONS["description"], $"\"{description}\"");
                 var packFormat = Table["datapack"]["pack_format"].AsInteger ?? DEFAULT_DATAPACK_FORMAT;
-                mcMetaContents = mcMetaContents.Replace(SUBSTITUTIONS["pack_format"], packFormat.ToString());
-                File.WriteAllText(mcMeta, mcMetaContents);
+                File.WriteAllText(mcMeta, mcMetaContents
+                    .Replace(SUBSTITUTIONS["pack_id"], $"\"{Context.ProjectId}\"")
+                    .Replace(SUBSTITUTIONS["description"], $"\"{description}\"")
+                    .Replace(SUBSTITUTIONS["pack_format"], packFormat.ToString()));
             }
         }
         
@@ -244,6 +263,28 @@ public class Processor
         if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
             PrintDebugMessageWithTime("Function tags created.", getElapsed());
+        }
+    }
+
+    private void CreateExportedFunctions()
+    {
+        var cts = PrintLongTask("Creating exported functions", out var getElapsed);
+
+        var apiPath = Path.Combine(Context.Datapack!.OutputDir, $"data/{Context.ProjectId}/function/api/");
+
+        Directory.CreateDirectory(apiPath);
+        
+        foreach (var (mcfPath, name) in Context.Datapack!.ExportedFunctions)
+        {
+            var path = Path.Combine(apiPath, name + MCFUNCTION_FILE_EXTENSION);
+            File.WriteAllText(path, $"function {mcfPath}");
+        }
+        
+        cts.Cancel();
+        
+        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
+        {
+            PrintDebugMessageWithTime("Exported functions created.", getElapsed());
         }
     }
     
@@ -346,6 +387,13 @@ public class Processor
         {
             foreach (var directory in Directory.GetDirectories(Context.SourcePath))
             {
+                var name = Path.GetFileName(directory);
+                
+                if (RESERVED_NAMESPACES.Contains(name))
+                {
+                    throw new Exception($"The directory '{name}' is reserved and cannot be used as a namespace.");
+                }
+                
                 if (Directory.GetFiles(directory, SOURCE_FILE).Length == 0)
                 {
                     var relativeFile = Path.GetRelativePath(Context.SourcePath, directory);
@@ -362,22 +410,29 @@ public class Processor
                     Context = Context,
                     Scope = new Scope
                     {
-                        Name = Path.GetFileName(directory),
+                        Name = name,
                         Parent = null,
                         Context = Context
                     }
                 };
-                
-                ns.Functions.Add("_load", new Function
+
+                var loadFunction = new Function
                 {
                     Scope = new Scope
                     {
-                        Name = ns.GetFunctionName("_load"),
+                        Name = "_load",
                         Context = Context,
-                        Parent = ns.Scope,
+                        Parent = ns.Scope
                     },
                     Attributes = new List<string> { ATTRIBUTE_LOAD_FUNCTION }
-                });
+                };
+                
+                ns.Functions.Add("_load", loadFunction);
+
+                if (Context.Datapack != null)
+                {
+                    Context.Datapack.LoadFunctions.Add(loadFunction.McFunctionPath);
+                }
 
                 Context.Namespaces.Add(ns);
                 
@@ -398,9 +453,11 @@ public class Processor
                 @namespace.Files.Add(file);
             }
             
-            CreateFunctionTags();
-            
             Context.Compile();
+            
+            CreateFunctionTags();
+            CreateExportedFunctions();
+            
             cts.Cancel();
             PrintMessageWithTime("Program compiled.", getElapsed());
         }
@@ -449,9 +506,10 @@ public class Processor
     
     public void RecompileProject()
     {
-        Context.Namespaces.Clear();
+        Context.Clear();
         try
         {
+            SetProjectId();
             CreateDatapackAndResourcepackContext();
             CompileProject();
         }

@@ -1,5 +1,3 @@
-using System.Collections.ObjectModel;
-
 namespace Amethyst;
 
 public static class Constants
@@ -22,6 +20,7 @@ public static class Constants
 
     public const string ATTRIBUTE_LOAD_FUNCTION = "initializing";
     public const string ATTRIBUTE_TICK_FUNCTION = "ticking";
+    public const string ATTRIBUTE_EXPORT_FUNCTION = "export";
     public const string ATTRIBUTE_ASSIGN_ON_LEAVE = "assign_on_leave";
     public const string ATTRIBUTE_ASSIGN_ON_JOIN = "assign_on_join";
     public const string ATTRIBUTE_ASSIGN_ON_TICK = "assign_on_tick";
@@ -31,6 +30,7 @@ public static class Constants
 
     public static readonly IReadOnlyDictionary<string, string> SUBSTITUTIONS = new Dictionary<string, string>
     {
+        { "pack_id", "{{pack_id}}" },
         { "description", "{{description}}" },
         { "pack_format", "{{pack_format}}" },
         { "loading_functions", "{{loading_functions}}" },
@@ -46,4 +46,10 @@ public static class Constants
     };
 
     public const string DATAPACK_FUNCTIONS_DIRECTORY = "function";
+    
+    public static readonly IReadOnlySet<string> RESERVED_NAMESPACES = new HashSet<string>
+    {
+        "minecraft",
+        "amethyst",
+    };
 }

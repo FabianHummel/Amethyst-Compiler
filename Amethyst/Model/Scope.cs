@@ -7,7 +7,7 @@ namespace Amethyst.Model;
 
 public class Scope
 {
-    public required string? Name { get; set; } // Todo: Make this not nullable (otherwise, variable names will clash)
+    public required string Name { get; init; }
     public required Scope? Parent { get; init; }
     public required Context Context { get; init; }
     public Dictionary<string, int> Scopes { get; } = new();
@@ -69,7 +69,7 @@ public class Scope
             }
             current = current.Parent;
         }
-        return Path.Combine("data", current.Name!, location, path);
+        return Path.Combine("data", current.Name, location, path);
     }
 
     public void CreateFunctionFile()
