@@ -24,7 +24,7 @@ public class IntegerConstant : ConstantValue<int>
         {
             Compiler = Compiler,
             Context = Context,
-            Location = location.ToString(),
+            Location = location,
             IsTemporary = true
         };
     }
@@ -32,5 +32,10 @@ public class IntegerConstant : ConstantValue<int>
     public override string ToNbtString()
     {
         return Value.ToString();
+    }
+
+    public override string ToTextComponent()
+    {
+        return $$"""{"text":"{{Value}}","color":"gold"}""";
     }
 }

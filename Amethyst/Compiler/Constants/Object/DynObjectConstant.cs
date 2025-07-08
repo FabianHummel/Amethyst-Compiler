@@ -21,7 +21,7 @@ public class DynObjectConstant : ObjectConstantBase
         
         return new DynObjectResult
         {
-            Location = location.ToString(),
+            Location = location,
             Compiler = Compiler,
             Context = Context,
             IsTemporary = true
@@ -32,5 +32,12 @@ public class DynObjectConstant : ObjectConstantBase
     {
         return $"{{keys:[{string.Join(",", Value.Keys.Select(key => key.ToNbtString()))}]," +
                $"data:{{{string.Join(',', Value.Select(kvp => $"{kvp.Key.ToNbtString()}:{kvp.Value.ToNbtString()}"))}}}}}";
+    }
+    
+    public override string ToTextComponent()
+    {
+        var content = string.Join(""",[", "],""", Value.Select(kvp => 
+            $$"""{"text":"{{kvp.Key}}","color":"aqua"},[": "],{{kvp.Value.ToTextComponent()}}"""));
+        return $$"""["{",{{content}},"}"]""";
     }
 }

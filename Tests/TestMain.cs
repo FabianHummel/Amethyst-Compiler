@@ -104,7 +104,7 @@ public static class TestMain
         return GetScoreboardValue("amethyst", variable.Location);
     }
 
-    public static int GetScoreboardValue(string objective, string target)
+    public static int GetScoreboardValue(string objective, int target)
     {
         _rcon.SendCommand($"scoreboard players get {target} {objective}", out var msg);
         // "<target> has <value> [<objective>]"
@@ -116,7 +116,7 @@ public static class TestMain
         return GetStorageValue("amethyst:", variable.Location);
     }
 
-    public static string GetStorageValue(string @namespace, string path)
+    public static string GetStorageValue(string @namespace, int path)
     {
         _rcon.SendCommand($"data get storage {@namespace} {path}", out var msg);
         // Storage <namespace> has the following contents: <contents>

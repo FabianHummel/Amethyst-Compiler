@@ -19,7 +19,7 @@ public class TestNot
     public void TestNotConstant(object value, bool expected)
     {
         Run($"var result = !{value.ToAmethystString()};");
-        Assert.That(GetScoreboardValue("amethyst", "0"), Is.EqualTo(expected ? 1 : 0));
+        Assert.That(GetScoreboardValue("amethyst", 0), Is.EqualTo(expected ? 1 : 0));
     }
     
     [Test]

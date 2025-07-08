@@ -32,7 +32,7 @@ public class DecimalConstant : ConstantValue<double>
             DecimalPlaces = DecimalPlaces, 
             Compiler = Compiler,
             Context = Context,
-            Location = location.ToString(),
+            Location = location,
             IsTemporary = true,
         };
     }
@@ -40,5 +40,10 @@ public class DecimalConstant : ConstantValue<double>
     public override string ToNbtString()
     {
         return $"{AsDouble.ToString("F" + DecimalPlaces)}d";
+    }
+
+    public override string ToTextComponent()
+    {
+        return $$"""[{"text":"{{Value.ToString("F" + DecimalPlaces)}}","color":"gold"},{"text":"d","color":"red"}]""";
     }
 }

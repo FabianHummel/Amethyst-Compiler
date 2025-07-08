@@ -18,7 +18,7 @@ public class DecimalResult : NumericBase
         var location = Location;
         if (!IsTemporary)
         {
-            location = (++Compiler.StackPointer).ToString();
+            location = ++Compiler.StackPointer;
             AddCode($"scoreboard players operation {location} amethyst = {Location} amethyst");
         }
 

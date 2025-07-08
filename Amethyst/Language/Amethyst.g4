@@ -214,6 +214,7 @@ selector_type
  | '@a'
  | '@e'
  | '@p'
+ | '@n'
  ;
  
 argument_list

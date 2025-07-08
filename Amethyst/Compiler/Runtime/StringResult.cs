@@ -12,10 +12,13 @@ public class StringResult : RuntimeValue
 
     public override BooleanResult MakeBoolean()
     {
-        Compiler.AddCode($"execute store success score {++Compiler.StackPointer} amethyst run data get storage amethyst: {Location}");
+        var location = ++Compiler.StackPointer;
+        
+        Compiler.AddCode($"execute store success score {location} amethyst run data get storage amethyst: {Location}");
+        
         return new BooleanResult
         {
-            Location = Compiler.StackPointer.ToString(),
+            Location = Compiler.StackPointer,
             Compiler = Compiler,
             Context = Context
         };
@@ -23,10 +26,13 @@ public class StringResult : RuntimeValue
 
     public override IntegerResult MakeInteger()
     {
-        Compiler.AddCode($"execute store result score {++Compiler.StackPointer} amethyst run data get storage amethyst: {Location}");
+        var location = ++Compiler.StackPointer;
+        
+        Compiler.AddCode($"execute store result score {location} amethyst run data get storage amethyst: {Location}");
+        
         return new IntegerResult
         {
-            Location = Compiler.StackPointer.ToString(),
+            Location = location,
             Compiler = Compiler,
             Context = Context
         };
@@ -38,7 +44,7 @@ public class StringResult : RuntimeValue
         
         if (!IsTemporary)
         {
-            lhsLocation = (++Compiler.StackPointer).ToString();
+            lhsLocation = ++Compiler.StackPointer;
         }
         
         var scope = Compiler.EvaluateScoped("_concat", _ =>

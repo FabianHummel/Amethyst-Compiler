@@ -25,7 +25,7 @@ public class BooleanConstant : ConstantValue<bool>
         {
             Compiler = Compiler,
             Context = Context,
-            Location = location.ToString(),
+            Location = location,
             IsTemporary = true,
         };
     }
@@ -33,5 +33,11 @@ public class BooleanConstant : ConstantValue<bool>
     public override string ToNbtString()
     {
         return Value.ToNbtString();
+    }
+
+    public override string ToTextComponent()
+    {
+        var value = Value ? "1" : "0";
+        return $$"""[{"text":"{{value}}","color":"gold"},{"text":"b","color":"red"}]""";
     }
 }

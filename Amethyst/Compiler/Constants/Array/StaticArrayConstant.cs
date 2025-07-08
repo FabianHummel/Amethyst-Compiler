@@ -23,7 +23,7 @@ public class StaticArrayConstant : ArrayConstantBase
         return new StaticArrayResult
         {
             BasicType = BasicType,
-            Location = location.ToString(),
+            Location = location,
             Compiler = Compiler,
             Context = Context,
             IsTemporary = true
@@ -33,5 +33,11 @@ public class StaticArrayConstant : ArrayConstantBase
     public override string ToNbtString()
     {
         return $"[{string.Join(",", Value.Select(v => v.ToNbtString()))}]";
+    }
+
+    public override string ToTextComponent()
+    {
+        var content = string.Join(""",[", "],""", Value.Select(v => v.ToTextComponent()));
+        return $"""["[",{content},"]"]""";
     }
 }

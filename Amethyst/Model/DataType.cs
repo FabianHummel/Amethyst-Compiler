@@ -84,6 +84,7 @@ public class DataType
     
     public bool IsScoreboardType => Modifier == null && BasicType is BasicType.Bool or BasicType.Int or BasicType.Dec;
     
+    // TODO: Refactor this to use a more structured approach for storage modifiers
     public string? StorageModifier
     {
         get

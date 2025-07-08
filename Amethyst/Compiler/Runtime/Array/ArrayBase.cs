@@ -15,7 +15,7 @@ public abstract class ArrayBase : RuntimeValue
         
         return new BooleanResult
         {
-            Location = location.ToString(),
+            Location = location,
             Compiler = Compiler,
             Context = Context,
             IsTemporary = true
@@ -30,7 +30,7 @@ public abstract class ArrayBase : RuntimeValue
         
         return new IntegerResult
         {
-            Location = location.ToString(),
+            Location = location,
             Compiler = Compiler,
             Context = Context,
             IsTemporary = true

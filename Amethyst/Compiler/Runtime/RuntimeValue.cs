@@ -6,7 +6,7 @@ public abstract partial class RuntimeValue : AbstractResult
     /// The memory location where the result is stored at.
     /// Corresponds to a player name inside a scoreboard for numeric values and a path to data storage for complex types.
     /// </summary>
-    public required string Location { get; set; }
+    public required int Location { get; set; }
     
     /// <summary>
     /// Marks the assigned variable as temporary, meaning it can be overwritten by another variable.
@@ -51,8 +51,8 @@ public abstract partial class RuntimeValue : AbstractResult
         {
             return this;
         }
-        
-        var location = (++Compiler.StackPointer).ToString();
+
+        var location = ++Compiler.StackPointer;
         
         if (DataType.IsScoreboardType)
         {

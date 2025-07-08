@@ -8,7 +8,7 @@ public abstract partial class NumericBase : RuntimeValue
 {
     public abstract override DataType DataType { get; }
 
-    private (string, string, int) ApplyScaling(NumericBase lhs, NumericBase rhs)
+    private (int, int, int) ApplyScaling(NumericBase lhs, NumericBase rhs)
     {
         var lhsLocation = lhs.Location;
         var rhsLocation = rhs.Location;

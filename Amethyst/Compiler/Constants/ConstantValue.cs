@@ -3,14 +3,21 @@ namespace Amethyst;
 public abstract class ConstantValue : AbstractResult
 {
     public abstract int AsInteger { get; }
-    
+
     public abstract bool AsBoolean { get; }
-    
+
     /// <summary>
     /// Converts this constant value to a string that can be used in NBT data.
     /// </summary>
     /// <returns>The NBT string representation of this constant value.</returns>
     public abstract string ToNbtString();
+    
+    /// <summary>
+    /// Converts this result to a string that can be used to display the value in Minecraft.
+    /// </summary>
+    /// <returns>A JSON text component that can be used with '/tellraw'.</returns>
+    public abstract string ToTextComponent();
+
 }
 
 public abstract class ConstantValue<T> : ConstantValue

@@ -19,7 +19,7 @@ public partial class Compiler
             {
                 Compiler = this,
                 Context = literalContext,
-                Value = stringLiteral.Symbol.Text
+                Value = stringLiteral.Symbol.Text.Substring(1, stringLiteral.Symbol.Text.Length - 2) // Remove quotes
             };
         }
         

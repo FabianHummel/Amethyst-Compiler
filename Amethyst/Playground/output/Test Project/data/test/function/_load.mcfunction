@@ -1,4 +1,6 @@
-# Created using Amethyst v1.0.1.0 on 2025-07-05.
-scoreboard players set 1 amethyst 1
-execute store success score 2 amethyst run function test:_load/_or0
-scoreboard players set 3 amethyst 123
+# Created using Amethyst v1.0.1.0 on 2025-07-08.
+tellraw @a ["",{"text":"DEBUG: ","color":"dark_gray"},["{",{"text":"okey","color":"aqua"},[": "],["{",{"text":"cool","color":"aqua"},[": "],{"text":"20","color":"gold"},[", "],{"text":"nice","color":"aqua"},[": "],{"text":"10","color":"gold"},"}"],[", "],{"text":"fancy","color":"aqua"},[": "],["[",{"text":"1","color":"gold"},[", "],{"text":"2","color":"gold"},[", "],{"text":"3","color":"gold"},"]"],[", "],{"text":"cool","color":"aqua"},[": "],["[",["[",["[",{"text":"1","color":"gold"},[", "],{"text":"2","color":"gold"},[", "],{"text":"3","color":"gold"},"]"],[", "],["[",{"text":"4","color":"gold"},[", "],{"text":"5","color":"gold"},[", "],{"text":"6","color":"gold"},"]"],"]"],[", "],["[",{"text":"7","color":"gold"},[", "],{"text":"8","color":"gold"},[", "],{"text":"9","color":"gold"},"]"],"]"],"}"]]
+data modify storage amethyst: 1 set value {keys:["okey","fancy","cool"],data:{"okey":{keys:["cool","nice"],data:{"cool":20,"nice":10}},"fancy":[1,2,3],"cool":[[[1,2,3],[4,5,6]],[7,8,9]]}}
+data modify storage amethyst:internal string.stringify.in set from storage amethyst: 1
+function amethyst:api/string/stringify
+tellraw @a ["",{"text":"DEBUG: ","color":"dark_gray"},{"nbt":"string.stringify.out","storage":"amethyst:internal","interpret":true}]

@@ -37,11 +37,16 @@ public partial class Compiler
                     throw new SyntaxException("Expected boolean result.", andExpressionContext);
                 }
 
-                if (booleanResult is BooleanConstant { Value: true })
+                if (booleanResult is BooleanConstant booleanConstant)
                 {
-                    cancel();
-                    isAlwaysTrue = true;
-                    return;
+                    if (booleanConstant.Value)
+                    {
+                        cancel();
+                        isAlwaysTrue = true;
+                        return;
+                    }
+
+                    continue;
                 }
 
                 var current = booleanResult.ToRuntimeValue();
@@ -69,7 +74,7 @@ public partial class Compiler
 
         return new BooleanResult
         {
-            Location = location.ToString(),
+            Location = location,
             Compiler = this,
             Context = context,
             IsTemporary = true

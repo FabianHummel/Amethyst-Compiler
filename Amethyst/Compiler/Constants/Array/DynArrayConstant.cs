@@ -21,7 +21,7 @@ public class DynArrayConstant : ArrayConstantBase
         
         return new DynArrayResult
         {
-            Location = location.ToString(),
+            Location = location,
             Compiler = Compiler,
             Context = Context,
             IsTemporary = true
@@ -31,5 +31,11 @@ public class DynArrayConstant : ArrayConstantBase
     public override string ToNbtString()
     {
         return $"[{string.Join(",", Value.Select(v => $"{{_:{v.ToNbtString()}}}"))}]";
+    }
+
+    public override string ToTextComponent()
+    {
+        var content = string.Join(""",[", "],""", Value.Select(v => v.ToTextComponent()));
+        return $"""["[",{content},"]"]""";
     }
 }

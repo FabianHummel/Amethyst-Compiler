@@ -25,7 +25,7 @@ public class StringConstant : ConstantValue<string>
         {
             Compiler = Compiler,
             Context = Context,
-            Location = location.ToString(),
+            Location = location,
             IsTemporary = true
         };
     }
@@ -33,5 +33,10 @@ public class StringConstant : ConstantValue<string>
     public override string ToNbtString()
     {
         return Value.ToNbtString();
+    }
+
+    public override string ToTextComponent()
+    {
+        return $$"""["\"",{"text":{{ToNbtString()}},"color":"green"},"\""]""";
     }
 }

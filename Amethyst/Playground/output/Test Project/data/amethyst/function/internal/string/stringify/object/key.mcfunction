@@ -1,0 +1,2 @@
+$data modify storage amethyst:internal string.stringify._str set value "[{\"text\":\"$(_key)\",\"color\":\"aqua\"},\": \"],"
+function amethyst:internal/string/stringify/concat with storage amethyst:internal string.stringify

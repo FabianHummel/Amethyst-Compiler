@@ -20,4 +20,9 @@ public class ConstantSubstitute : ConstantValue<RuntimeValue>
     {
         return Value.DataType.DefaultValue;
     }
+
+    public override string ToTextComponent()
+    {
+        throw new UnreachableException();
+    }
 }
