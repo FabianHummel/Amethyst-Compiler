@@ -42,4 +42,20 @@ public abstract class ArrayConstantBase : ConstantValue<ConstantValue[]>, ISubst
             }
         }
     }
+    
+    public override string ToNbtString()
+    {
+        return $"[{string.Join(",", Value.Select(v => v.ToNbtString()))}]";
+    }
+
+    public override string ToTextComponent()
+    {
+        if (Value.Length == 0)
+        {
+            return "\"[]\"";
+        }
+        
+        var content = string.Join(""",", ",""", Value.Select(v => v.ToTextComponent()));
+        return $"""["[",{content},"]"]""";
+    }
 }

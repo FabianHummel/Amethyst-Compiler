@@ -19,7 +19,7 @@ public enum BasicType
     Bool,
     [Description("array")]
     [DefaultValue("[]")]
-    [SubstitutionModifier("[{0}]._")]
+    [SubstitutionModifier("[{0}]")]
     Array,
     [Description("object")]
     [DefaultValue("{}")]

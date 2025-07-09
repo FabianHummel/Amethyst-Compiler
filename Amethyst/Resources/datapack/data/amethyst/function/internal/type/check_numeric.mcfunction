@@ -1,0 +1,6 @@
+$execute if data storage amethyst:internal {type:{in:$(in)i}} run return run data modify storage amethyst:internal type.out set value "int"
+$execute if data storage amethyst:internal {type:{in:$(in)b}} run return run data modify storage amethyst:internal type.out set value "byte"
+$execute if data storage amethyst:internal {type:{in:$(in)d}} run return run data modify storage amethyst:internal type.out set value "double"
+$execute if data storage amethyst:internal {type:{in:$(in)f}} run return run data modify storage amethyst:internal type.out set value "float"
+$execute if data storage amethyst:internal {type:{in:$(in)s}} run return run data modify storage amethyst:internal type.out set value "short"
+$execute if data storage amethyst:internal {type:{in:$(in)l}} run return run data modify storage amethyst:internal type.out set value "long"

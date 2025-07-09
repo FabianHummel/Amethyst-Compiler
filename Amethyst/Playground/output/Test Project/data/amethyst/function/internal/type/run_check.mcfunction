@@ -1,1 +1,0 @@
-execute store success score type._success amethyst run data modify storage amethyst:internal type._check append from storage amethyst:internal type.in

@@ -29,15 +29,4 @@ public class StaticArrayConstant : ArrayConstantBase
             IsTemporary = true
         };
     }
-
-    public override string ToNbtString()
-    {
-        return $"[{string.Join(",", Value.Select(v => v.ToNbtString()))}]";
-    }
-
-    public override string ToTextComponent()
-    {
-        var content = string.Join(""",[", "],""", Value.Select(v => v.ToTextComponent()));
-        return $"""["[",{content},"]"]""";
-    }
 }

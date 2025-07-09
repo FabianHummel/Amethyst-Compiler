@@ -1,10 +1,5 @@
-data modify storage amethyst:internal string.stringify._stack append value {_:0}
-data modify storage amethyst:internal string.stringify._stack[-1]._ set from storage amethyst:internal string.stringify._stack[-2]._[0]
+data modify storage amethyst:internal string.stringify._stack append from storage amethyst:internal string.stringify._stack[-1][0]
 function amethyst:internal/string/stringify/loop
-data remove storage amethyst:internal string.stringify._stack[-1]._[0]
-
-data modify storage amethyst:internal string.stringify._str set value ","
-function amethyst:internal/string/stringify/concat with storage amethyst:internal string.stringify
-
+data remove storage amethyst:internal string.stringify._stack[-1][0]
 # Rerun for next element if exists
-execute if data storage amethyst:internal string.stringify._stack[-1]._[] run function amethyst:internal/string/stringify/array/next
+execute if data storage amethyst:internal string.stringify._stack[-1][] run function amethyst:internal/string/stringify/array/next

@@ -27,15 +27,4 @@ public class DynArrayConstant : ArrayConstantBase
             IsTemporary = true
         };
     }
-
-    public override string ToNbtString()
-    {
-        return $"[{string.Join(",", Value.Select(v => $"{{_:{v.ToNbtString()}}}"))}]";
-    }
-
-    public override string ToTextComponent()
-    {
-        var content = string.Join(""",[", "],""", Value.Select(v => v.ToTextComponent()));
-        return $"""["[",{content},"]"]""";
-    }
 }
