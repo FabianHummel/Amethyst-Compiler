@@ -1,9 +1,10 @@
+using Amethyst.Language;
 using Amethyst.Model;
 using Amethyst.Utility;
 
 namespace Amethyst;
 
-public class StringConstant : ConstantValue<string>
+public class StringConstant : ConstantValue<string>, IMemberAccess
 {
     public override int AsInteger => Value.Length;
     
@@ -48,5 +49,19 @@ public class StringConstant : ConstantValue<string>
         }
         
         return Value.Equals(stringConstant.Value);
+    }
+
+    public AbstractResult GetMember(string memberName, AmethystParser.IdentifierContext identifierContext)
+    {
+        return memberName switch
+        {
+            "length" => new IntegerConstant
+            {
+                Compiler = Compiler,
+                Context = Context,
+                Value = Value.Length
+            },
+            _ => throw new SyntaxException($"Member '{memberName}' not found in string.", identifierContext)
+        };
     }
 }

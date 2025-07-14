@@ -1,9 +1,13 @@
+using Amethyst.Language;
 using Amethyst.Model;
 using Amethyst.Utility;
 
 namespace Amethyst;
 
-public abstract class ObjectConstantBase : ConstantValue<Dictionary<string, ConstantValue>>, ISubstitutable, IIndexable
+public abstract class ObjectConstantBase : ConstantValue<Dictionary<string, ConstantValue>>, 
+    ISubstitutable, 
+    IIndexable,
+    IMemberAccess
 {
     /// <summary>
     /// List of substitutions that need to be made in order to fully create the object.
@@ -109,5 +113,41 @@ public abstract class ObjectConstantBase : ConstantValue<Dictionary<string, Cons
         }
 
         throw new SyntaxException("Expected string index.", index.Context);
+    }
+    
+    private IEnumerable<StringConstant> GetKeysAsStringConstants()
+    {
+        return Value.Keys.Select(key => new StringConstant
+        {
+            Compiler = Compiler,
+            Context = Context,
+            Value = key
+        });
+    }
+
+    public AbstractResult GetMember(string memberName, AmethystParser.IdentifierContext identifierContext)
+    {
+        if (Value.TryGetValue(memberName, out var value))
+        {
+            return value;
+        }
+        
+        return memberName switch
+        {
+            "count" => new IntegerConstant
+            {
+                Compiler = Compiler,
+                Context = Context,
+                Value = Value.Count
+            },
+            "keys" => new StaticArrayConstant
+            {
+                Compiler = Compiler,
+                Context = Context,
+                BasicType = BasicType.String,
+                Value = GetKeysAsStringConstants().Cast<ConstantValue>().ToArray()
+            },
+            _ => throw new SyntaxException($"Member '{memberName}' not found in object.", identifierContext)
+        };
     }
 }

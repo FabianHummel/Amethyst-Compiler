@@ -1,8 +1,9 @@
+using Amethyst.Language;
 using Amethyst.Model;
 
 namespace Amethyst;
 
-public abstract class ArrayConstantBase : ConstantValue<ConstantValue[]>, ISubstitutable, IIndexable
+public abstract class ArrayConstantBase : ConstantValue<ConstantValue[]>, ISubstitutable, IIndexable, IMemberAccess
 {
     /// <summary>
     /// List of substitutions that need to be made in order to fully create the object.
@@ -102,5 +103,19 @@ public abstract class ArrayConstantBase : ConstantValue<ConstantValue[]>, ISubst
         }
         
         throw new SyntaxException("Expected integer index.", index.Context);
+    }
+
+    public AbstractResult GetMember(string memberName, AmethystParser.IdentifierContext identifierContext)
+    {
+        return memberName switch
+        {
+            "length" => new IntegerConstant
+            {
+                Compiler = Compiler,
+                Context = Context,
+                Value = Value.Length,
+            },
+            _ => throw new SyntaxException($"Array does not have a member named '{memberName}'.", identifierContext)
+        };
     }
 }

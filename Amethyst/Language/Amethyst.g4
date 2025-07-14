@@ -200,7 +200,7 @@ namespace_access
  ;
  
 selector
- : selector_type ('[' selector_query_list ']')?      # selector_specification
+ : selector_type ('[' selector_query_list ']')?  # selector_specification
  | selector '.' identifier                       # selector_member_access
  ;
  

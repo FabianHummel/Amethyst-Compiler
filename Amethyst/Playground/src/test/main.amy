@@ -1,2 +1,1 @@
-var i = "okey";
-debug {okey: "nice"}[i];
+var nice = "Hello World!".length;

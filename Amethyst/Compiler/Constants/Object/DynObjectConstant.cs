@@ -1,8 +1,9 @@
+using Amethyst.Language;
 using Amethyst.Model;
 
 namespace Amethyst;
 
-public class DynObjectConstant : ObjectConstantBase
+public class DynObjectConstant : ObjectConstantBase, IMemberAccess
 {
     public override DataType DataType => new()
     {
@@ -24,6 +25,20 @@ public class DynObjectConstant : ObjectConstantBase
             Compiler = Compiler,
             Context = Context,
             IsTemporary = true
+        };
+    }
+
+    public new AbstractResult GetMember(string memberName, AmethystParser.IdentifierContext identifierContext)
+    {
+        return memberName switch
+        {
+            "values" => new DynArrayConstant
+            {
+                Compiler = Compiler,
+                Context = Context,
+                Value = Value.Values.ToArray()
+            },
+            _ => base.GetMember(memberName, identifierContext)
         };
     }
 }
