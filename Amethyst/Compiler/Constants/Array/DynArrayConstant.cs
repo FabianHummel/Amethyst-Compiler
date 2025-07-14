@@ -10,7 +10,7 @@ public class DynArrayConstant : ArrayConstantBase
         Modifier = null
     };
     
-    public override RuntimeValue ToRuntimeValue()
+    public override ArrayBase ToRuntimeValue()
     {
         var location = ++Compiler.StackPointer;
         

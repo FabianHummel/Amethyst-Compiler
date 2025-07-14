@@ -10,7 +10,7 @@ public class DynObjectConstant : ObjectConstantBase
         Modifier = null
     };
 
-    public override RuntimeValue ToRuntimeValue()
+    public override ObjectBase ToRuntimeValue()
     {
         var location = ++Compiler.StackPointer;
 

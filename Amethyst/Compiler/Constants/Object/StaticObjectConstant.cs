@@ -13,7 +13,7 @@ public class StaticObjectConstant : ObjectConstantBase
         Modifier = Modifier.Object
     };
     
-    public override RuntimeValue ToRuntimeValue()
+    public override ObjectBase ToRuntimeValue()
     {
         var location = ++Compiler.StackPointer;
         

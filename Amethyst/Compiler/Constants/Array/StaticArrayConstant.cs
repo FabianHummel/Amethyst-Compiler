@@ -12,7 +12,7 @@ public class StaticArrayConstant : ArrayConstantBase
         Modifier = Modifier.Array
     };
     
-    public override RuntimeValue ToRuntimeValue()
+    public override ArrayBase ToRuntimeValue()
     {
         var location = ++Compiler.StackPointer;
         

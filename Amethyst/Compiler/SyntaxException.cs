@@ -1,6 +1,6 @@
 using Antlr4.Runtime;
 
-namespace Amethyst.Model;
+namespace Amethyst;
 
 public class SyntaxException : Exception
 {

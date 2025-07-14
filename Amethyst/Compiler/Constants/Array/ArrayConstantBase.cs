@@ -1,8 +1,9 @@
+using System.Diagnostics;
 using Amethyst.Model;
 
 namespace Amethyst;
 
-public abstract class ArrayConstantBase : ConstantValue<ConstantValue[]>, ISubstitutable
+public abstract class ArrayConstantBase : ConstantValue<ConstantValue[]>, ISubstitutable, IIndexable
 {
     /// <summary>
     /// List of substitutions that need to be made in order to fully create the object.
@@ -12,6 +13,8 @@ public abstract class ArrayConstantBase : ConstantValue<ConstantValue[]>, ISubst
     public override int AsInteger => Value.Length;
     
     public override bool AsBoolean => AsInteger > 0;
+    
+    public abstract override ArrayBase ToRuntimeValue();
     
     public void SubstituteRecursively(Compiler compiler, string substitutionModifierPrefix = "")
     {
@@ -69,5 +72,36 @@ public abstract class ArrayConstantBase : ConstantValue<ConstantValue[]>, ISubst
         }
         
         return Value.SequenceEqual(arrayConstantBase.Value);
+    }
+
+    public AbstractResult GetIndex(AbstractResult index)
+    {
+        if (index is IntegerConstant integerConstant)
+        {
+            var value = integerConstant.Value;
+
+            if (value < -Value.Length || value >= Value.Length)
+            {
+                throw new SyntaxException($"Index {value} out of bounds for array of length {Value.Length}.", index.Context);
+            }
+
+            if (value < 0)
+            {
+                value += Value.Length;
+            }
+
+            return Value[value];
+        }
+
+        if (index is IntegerResult integerResult)
+        {
+            // if the index is a runtime value, convert the array constant
+            // to a runtime array and continue the evaluation.
+            var runtimeValue = ToRuntimeValue();
+
+            return runtimeValue.GetIndex(integerResult);
+        }
+        
+        throw new SyntaxException("Expected integer index.", index.Context);
     }
 }

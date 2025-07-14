@@ -3,7 +3,7 @@ using Amethyst.Utility;
 
 namespace Amethyst;
 
-public abstract class ObjectConstantBase : ConstantValue<Dictionary<string, ConstantValue>>, ISubstitutable
+public abstract class ObjectConstantBase : ConstantValue<Dictionary<string, ConstantValue>>, ISubstitutable, IIndexable
 {
     /// <summary>
     /// List of substitutions that need to be made in order to fully create the object.
@@ -13,6 +13,8 @@ public abstract class ObjectConstantBase : ConstantValue<Dictionary<string, Cons
     public override int AsInteger => Value.Count;
     
     public override bool AsBoolean => AsInteger > 0;
+    
+    public abstract override ObjectBase ToRuntimeValue();
     
     public void SubstituteRecursively(Compiler compiler, string substitutionModifierPrefix = "")
     {
@@ -83,5 +85,29 @@ public abstract class ObjectConstantBase : ConstantValue<Dictionary<string, Cons
         }
 
         return true;
+    }
+
+    public AbstractResult GetIndex(AbstractResult index)
+    {
+        if (index is StringConstant stringConstant)
+        {
+            if (Value.TryGetValue(stringConstant.Value, out var value))
+            {
+                return value;
+            }
+
+            throw new SyntaxException($"Key '{stringConstant.Value}' not found in object.", index.Context);
+        }
+
+        if (index is StringResult stringResult)
+        {
+            // if the index is a runtime value, convert the object constant
+            // to a runtime object and continue the evaluation.
+            var runtimeValue = ToRuntimeValue();
+
+            return runtimeValue.GetIndex(stringResult);
+        }
+
+        throw new SyntaxException("Expected string index.", index.Context);
     }
 }

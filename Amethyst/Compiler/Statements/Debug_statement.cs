@@ -1,6 +1,5 @@
 using Amethyst.Language;
 using Amethyst.Model;
-using Amethyst.Utility;
 
 namespace Amethyst;
 
