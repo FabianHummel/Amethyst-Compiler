@@ -1,3 +1,5 @@
+using Amethyst.Model;
+
 namespace Amethyst;
 
 public abstract partial class RuntimeValue : AbstractResult
@@ -41,6 +43,16 @@ public abstract partial class RuntimeValue : AbstractResult
         Compiler.AddInitCode(code);
     }
 
+    public int NextFreeLocation()
+    {
+        if (IsTemporary)
+        {
+            return Location;
+        }
+        
+        return ++Compiler.StackPointer;
+    }
+
     /// <summary>
     /// Ensures that the current value is backed up in a temporary variable, so it can be freely modified.
     /// </summary>
@@ -52,13 +64,13 @@ public abstract partial class RuntimeValue : AbstractResult
             return this;
         }
 
-        var location = ++Compiler.StackPointer;
+        var location = NextFreeLocation();
         
-        if (DataType.IsScoreboardType)
+        if (DataType.Location == DataLocation.Scoreboard)
         {
             AddCode($"scoreboard players operation {location} amethyst = {Location} amethyst");
         }
-        else 
+        else
         {
             AddCode($"data modify storage amethyst: {location} set from storage amethyst: {Location}");
         }

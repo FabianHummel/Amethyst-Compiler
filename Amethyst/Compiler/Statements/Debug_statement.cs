@@ -1,4 +1,5 @@
 using Amethyst.Language;
+using Amethyst.Model;
 using Amethyst.Utility;
 
 namespace Amethyst;
@@ -18,17 +19,17 @@ public partial class Compiler
 
         if (result is RuntimeValue runtimeValue)
         {
-            if (runtimeValue.DataType.IsScoreboardType)
+            if (runtimeValue.DataType.Location == DataLocation.Scoreboard)
             {
-                AddCode($"execute store result storage amethyst:internal string.stringify.in {runtimeValue.DataType.StorageModifier!} run scoreboard players get {runtimeValue.Location} amethyst");
+                AddCode($"execute store result storage amethyst:internal data.stringify.in {runtimeValue.DataType.StorageModifier} run scoreboard players get {runtimeValue.Location} amethyst");
             }
             else
             {
-                AddCode($"data modify storage amethyst:internal string.stringify.in set from storage amethyst: {runtimeValue.Location}");
+                AddCode($"data modify storage amethyst:internal data.stringify.in set from storage amethyst: {runtimeValue.Location}");
             }
             
-            AddCode("function amethyst:api/string/stringify");
-            jsonComponent = """{"nbt":"string.stringify.out","storage":"amethyst:internal","interpret":true}""";
+            AddCode("function amethyst:api/data/stringify");
+            jsonComponent = """{"nbt":"data.stringify.out","storage":"amethyst:internal","interpret":true}""";
         }
         
         AddCode($$"""tellraw @a ["",{"text":"DEBUG: ","color":"dark_gray"},{{jsonComponent}}]""");

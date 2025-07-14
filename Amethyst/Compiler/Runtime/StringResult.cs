@@ -40,17 +40,21 @@ public class StringResult : RuntimeValue
 
     protected override RuntimeValue VisitAdd(StringResult rhs)
     {
-        var lhsLocation = Location;
-        
-        if (!IsTemporary)
+        var resultLocation = Location;
+
+        if (rhs.IsTemporary)
         {
-            lhsLocation = ++Compiler.StackPointer;
+            resultLocation = rhs.Location;
+        }
+        else if (!IsTemporary)
+        {
+            resultLocation = ++Compiler.StackPointer;
         }
         
         var scope = Compiler.EvaluateScoped("_concat", _ =>
         {
             // Todo: sanitize string by escaping quotes and other special characters that may mess up the macro expansion
-            Compiler.AddCode($"$data modify storage amethyst: {lhsLocation} set value \"$({Location})$({rhs.Location})\"");
+            Compiler.AddCode($"$data modify storage amethyst: {resultLocation} set value \"$({Location})$({rhs.Location})\"");
         });
         
         Compiler.AddCode($"function {scope.McFunctionPath} with storage amethyst:");
@@ -59,7 +63,7 @@ public class StringResult : RuntimeValue
         {
             Compiler = Compiler,
             Context = Context,
-            Location = lhsLocation,
+            Location = resultLocation,
             IsTemporary = true
         };
     }

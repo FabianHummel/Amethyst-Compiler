@@ -2,7 +2,7 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
-public class DecimalConstant : ConstantValue<double>
+public class DecimalConstant : ConstantValue<double>, INumericConstant
 {
     public required int DecimalPlaces { get; init; }
     
@@ -11,6 +11,8 @@ public class DecimalConstant : ConstantValue<double>
     public override int AsInteger => (int)AsDouble;
     
     public override bool AsBoolean => AsDouble != 0;
+    
+    public int ScoreboardValue => (int)Math.Round(Value * DataType.Scale);
     
     public override DecimalDataType DataType => new()
     {
@@ -23,9 +25,7 @@ public class DecimalConstant : ConstantValue<double>
     {
         var location = ++Compiler.StackPointer;
         
-        var value = (int)Math.Round(Value * DataType.Scale);
-        
-        Compiler.AddCode($"scoreboard players set {location} amethyst {value}");
+        Compiler.AddCode($"scoreboard players set {location} amethyst {ScoreboardValue}");
         
         return new DecimalResult
         {
@@ -45,5 +45,15 @@ public class DecimalConstant : ConstantValue<double>
     public override string ToTextComponent()
     {
         return $$"""[{"text":"{{Value.ToString("F" + DecimalPlaces)}}","color":"gold"},{"text":"d","color":"red"}]""";
+    }
+
+    public override bool Equals(ConstantValue? other)
+    {
+        if (other is not DecimalConstant decimalConstant)
+        {
+            return false;
+        }
+
+        return Value.Equals(decimalConstant.Value);
     }
 }

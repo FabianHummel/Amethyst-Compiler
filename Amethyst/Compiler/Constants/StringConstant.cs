@@ -39,4 +39,14 @@ public class StringConstant : ConstantValue<string>
     {
         return $$"""["\"",{"text":{{ToNbtString()}},"color":"green"},"\""]""";
     }
+
+    public override bool Equals(ConstantValue? other)
+    {
+        if (other is not StringConstant stringConstant)
+        {
+            return false;
+        }
+        
+        return Value.Equals(stringConstant.Value);
+    }
 }

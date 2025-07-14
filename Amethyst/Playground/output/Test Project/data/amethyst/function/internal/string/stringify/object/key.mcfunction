@@ -1,1 +1,0 @@
-$data modify storage amethyst:internal string.stringify.out append value ["",{"text":"$(_key)","color":"aqua"},": "]

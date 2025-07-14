@@ -1,3 +1,0 @@
-debug [1,2,3,{okey:"nice", nice: [1,true,"Helo",[],{},"nice"]}];
-var x = [1,2,3,{okey:"nice", nice: [1,true,"Helo",[],{},"nice"]}];
-debug x;

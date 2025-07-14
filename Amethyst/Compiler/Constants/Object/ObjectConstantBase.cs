@@ -1,3 +1,4 @@
+using Amethyst.Model;
 using Amethyst.Utility;
 
 namespace Amethyst;
@@ -31,7 +32,7 @@ public abstract class ObjectConstantBase : ConstantValue<Dictionary<string, Cons
             {
                 var substitutionModifier = substitutionModifierPrefix + DataType.GetSubstitutionModifier(i);
                 
-                if (element.DataType.IsScoreboardType)
+                if (element.DataType.Location == DataLocation.Scoreboard)
                 {
                     compiler.AddCode($"execute store result storage amethyst: {substitutionModifier} {element.DataType.StorageModifier} run scoreboard players get {element.Location} amethyst");
                 }
@@ -59,5 +60,28 @@ public abstract class ObjectConstantBase : ConstantValue<Dictionary<string, Cons
         var content = string.Join(""",", ",""", Value.Select(kvp => 
             $$"""{"text":"{{kvp.Key}}","color":"aqua"},": ",{{kvp.Value.ToTextComponent()}}"""));
         return $$"""["{",{{content}},"}"]""";
+    }
+
+    public override bool Equals(ConstantValue? other)
+    { 
+        if (other is not ObjectConstantBase objectConstantBase)
+        {
+            return false;
+        }
+
+        if (Value.Count != objectConstantBase.Value.Count)
+        {
+            return false;
+        }
+
+        foreach (var (key, value) in Value)
+        {
+            if (!objectConstantBase.Value.TryGetValue(key, out var otherValue) || !value.Equals(otherValue))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

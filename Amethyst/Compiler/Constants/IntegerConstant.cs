@@ -2,11 +2,13 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
-public class IntegerConstant : ConstantValue<int>
+public class IntegerConstant : ConstantValue<int>, INumericConstant
 {
     public override int AsInteger => Value;
     
     public override bool AsBoolean => AsInteger != 0;
+    
+    public int ScoreboardValue => Value;
     
     public override DataType DataType => new()
     {
@@ -37,5 +39,15 @@ public class IntegerConstant : ConstantValue<int>
     public override string ToTextComponent()
     {
         return $$"""{"text":"{{Value}}","color":"gold"}""";
+    }
+
+    public override bool Equals(ConstantValue? other)
+    {
+        if (other is not IntegerConstant integerConstant)
+        {
+            return false;
+        }
+
+        return Value.Equals(integerConstant.Value);
     }
 }

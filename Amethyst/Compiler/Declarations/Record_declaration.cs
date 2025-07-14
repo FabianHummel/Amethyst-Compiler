@@ -65,7 +65,7 @@ public partial class Compiler
             Attributes = attributes
         });
 
-        if (type.IsScoreboardType)
+        if (type.Location == DataLocation.Scoreboard)
         {
             AddInitCode($"scoreboard objectives add {name} dummy");
 
@@ -77,7 +77,7 @@ public partial class Compiler
 
         if (result != null)
         {
-            if (result.DataType.IsScoreboardType)
+            if (result.DataType.Location == DataLocation.Scoreboard)
             {
                 AddCode($"scoreboard players operation {name} amethyst_record_initializers = {result.Location} amethyst");
             }

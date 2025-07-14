@@ -13,7 +13,7 @@ public class ConstantSubstitute : ConstantValue<RuntimeValue>
     
     public override RuntimeValue ToRuntimeValue()
     {
-        throw new UnreachableException();
+        throw new UnreachableException("ConstantSubstitute cannot be converted to a runtime value.");
     }
 
     public override string ToNbtString()
@@ -23,6 +23,11 @@ public class ConstantSubstitute : ConstantValue<RuntimeValue>
 
     public override string ToTextComponent()
     {
-        throw new UnreachableException();
+        throw new UnreachableException("ConstantSubstitute cannot be converted to a text component.");
+    }
+
+    public override bool Equals(ConstantValue? other)
+    {
+        throw new UnreachableException("ConstantSubstitute cannot be compared for equality.");
     }
 }

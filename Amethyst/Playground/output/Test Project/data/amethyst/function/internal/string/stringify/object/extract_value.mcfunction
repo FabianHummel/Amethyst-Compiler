@@ -1,1 +1,0 @@
-$data modify storage amethyst:internal string.stringify._stack append from storage amethyst:internal string.stringify._stack[-1].data.$(_key)

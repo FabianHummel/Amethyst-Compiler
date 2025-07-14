@@ -16,19 +16,19 @@ public class DecimalResult : NumericBase
     public override IntegerResult MakeInteger()
     {
         var location = Location;
+        
         if (!IsTemporary)
         {
             location = ++Compiler.StackPointer;
             AddCode($"scoreboard players operation {location} amethyst = {Location} amethyst");
         }
 
-        AddCode($"scoreboard players operation {location} amethyst *= .{DataType.Scale} amethyst_const");
-
         return new IntegerResult
         {
             Compiler = Compiler,
             Context = Context,
             Location = location,
+            IsTemporary = true
         };
     }
 }

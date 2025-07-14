@@ -1,3 +1,5 @@
+using Amethyst.Model;
+
 namespace Amethyst;
 
 public abstract class ArrayConstantBase : ConstantValue<ConstantValue[]>, ISubstitutable
@@ -31,7 +33,7 @@ public abstract class ArrayConstantBase : ConstantValue<ConstantValue[]>, ISubst
             {
                 var substitutionModifier = substitutionModifierPrefix + DataType.GetSubstitutionModifier(i);
                 
-                if (element.DataType.IsScoreboardType)
+                if (element.DataType.Location == DataLocation.Scoreboard)
                 {
                     compiler.AddCode($"execute store result storage amethyst: {substitutionModifier} {element.DataType.StorageModifier} run scoreboard players get {element.Location} amethyst");
                 }
@@ -57,5 +59,15 @@ public abstract class ArrayConstantBase : ConstantValue<ConstantValue[]>, ISubst
         
         var content = string.Join(""",", ",""", Value.Select(v => v.ToTextComponent()));
         return $"""["[",{content},"]"]""";
+    }
+
+    public override bool Equals(ConstantValue? other)
+    {
+        if (other is not ArrayConstantBase arrayConstantBase)
+        {
+            return false;
+        }
+        
+        return Value.SequenceEqual(arrayConstantBase.Value);
     }
 }

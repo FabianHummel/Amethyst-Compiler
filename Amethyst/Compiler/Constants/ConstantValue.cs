@@ -1,6 +1,6 @@
 namespace Amethyst;
 
-public abstract class ConstantValue : AbstractResult
+public abstract class ConstantValue : AbstractResult, IEquatable<ConstantValue>
 {
     public abstract int AsInteger { get; }
 
@@ -18,6 +18,11 @@ public abstract class ConstantValue : AbstractResult
     /// <returns>A JSON text component that can be used with '/tellraw'.</returns>
     public abstract string ToTextComponent();
 
+    /// <summary>
+    /// Checks if two constant values are value equal.
+    /// </summary>
+    /// <param name="other">The other constant value to compare with.</param>
+    public abstract bool Equals(ConstantValue? other);
 }
 
 public abstract class ConstantValue<T> : ConstantValue

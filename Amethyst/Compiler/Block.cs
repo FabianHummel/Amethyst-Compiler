@@ -11,15 +11,20 @@ public partial class Compiler
         AddCode($"function {scope.McFunctionPath}");
         return null;
     }
+    
+    private void VisitBlockInline(AmethystParser.BlockContext context)
+    {
+        foreach (var statementContext in context.statement())
+        {
+            VisitStatement(statementContext);
+        }
+    }
 
     private Scope VisitBlockNamed(AmethystParser.BlockContext context, string name)
     {
         return EvaluateScoped(name, _ =>
         {
-            foreach (var statementContext in context.statement())
-            {
-                VisitStatement(statementContext);
-            }
+            VisitBlockInline(context);
         });
     }
 }

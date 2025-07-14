@@ -82,14 +82,16 @@ public class DataType
         return !left.Equals(right);
     }
     
-    public bool IsScoreboardType => Modifier == null && BasicType is BasicType.Bool or BasicType.Int or BasicType.Dec;
+    public DataLocation Location => Modifier == null && BasicType is BasicType.Bool or BasicType.Int or BasicType.Dec 
+        ? DataLocation.Scoreboard
+        : DataLocation.Storage;
     
     // TODO: Refactor this to use a more structured approach for storage modifiers
     public string? StorageModifier
     {
         get
         {
-            if (!IsScoreboardType)
+            if (Location == DataLocation.Storage)
             {
                 return null;
             }
