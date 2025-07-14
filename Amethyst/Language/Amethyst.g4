@@ -154,7 +154,7 @@ primary_expression
  | group                                   # group_expression
  | selector                                # selector_expression
  | primary_expression '.' identifier       # member_access
- | function_call                           # function_call_expression
+ | call                                    # call_expression
  | namespace_access                        # identifier_expression
  | primary_expression '[' expression ']'   # indexed_access
  | primary_expression '++'                 # post_increment
@@ -191,7 +191,7 @@ group
  : '(' expression ')'
  ;
  
-function_call
+call
  : namespace_access '(' argument_list? ')'
  ;
  

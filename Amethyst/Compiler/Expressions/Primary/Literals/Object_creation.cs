@@ -25,7 +25,6 @@ public partial class Compiler
             
             var result = VisitExpression(objectElementContext.expression());
             
-            
             // if the initial data type differs from the current data type, we need to make the array dynamic
             if (!dynamic && dataType != null && dataType != result.DataType)
             {

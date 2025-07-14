@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Amethyst.Language;
-using Amethyst.Model;
 
 namespace Amethyst;
 
@@ -10,7 +9,7 @@ public partial class Compiler
     {
         if (context.literal() is not { } literalContext)
         {
-            throw new UnreachableException();
+            throw new SyntaxException("Expected literal expression", context);
         }
         
         if (literalContext.String_Literal() is { } stringLiteral)
@@ -29,8 +28,13 @@ public partial class Compiler
             {
                 throw new SyntaxException("Invalid decimal literal", literalContext);
             }
+
+            var decimalPlaces = DecimalDataType.DEFAULT_DECIMAL_PLACES;
             
-            var decimalPlaces = decimalLiteral.Symbol.Text.Split('.').LastOrDefault()?.Length ?? 0;
+            if (decimalLiteral.Symbol.Text.Split('.').LastOrDefault() is { } decimalPart)
+            {
+                decimalPlaces = decimalPart.Length;
+            }
 
             return new DecimalConstant
             {

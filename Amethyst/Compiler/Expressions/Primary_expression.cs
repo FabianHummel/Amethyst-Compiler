@@ -23,9 +23,9 @@ public partial class Compiler
         {
             return VisitMember_access(memberAccess);
         }
-        if (context is AmethystParser.Function_call_expressionContext functionCallExpression)
+        if (context is AmethystParser.Call_expressionContext callExpression)
         {
-            return VisitFunction_call_expression(functionCallExpression);
+            return VisitCall_expression(callExpression);
         }
         if (context is AmethystParser.Identifier_expressionContext identifierExpression)
         {

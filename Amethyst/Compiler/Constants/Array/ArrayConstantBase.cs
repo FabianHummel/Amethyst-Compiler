@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Amethyst.Model;
 
 namespace Amethyst;

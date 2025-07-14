@@ -21,7 +21,7 @@ public partial class Compiler
         
         if (context.@decimal() is { } decimalContext)
         {
-            var numDecimalPlaces = 2;
+            var numDecimalPlaces = DecimalDataType.DEFAULT_DECIMAL_PLACES;
 
             if (decimalContext.Integer_Literal() is { } integerLiteral)
             {

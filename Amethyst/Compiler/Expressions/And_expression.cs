@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Amethyst.Language;
-using Amethyst.Model;
 
 namespace Amethyst;
 
