@@ -171,12 +171,26 @@ public abstract class AbstractResult
         {
             return (runtimeValue, constantValue);
         }
-
         if (lhs is RuntimeValue runtimeValue2 && rhs is ConstantValue constantValue2)
         {
             return (runtimeValue2, constantValue2);
         }
 
         throw new ArgumentException("One operand must be a constant value and the other must be a runtime value.", nameof(rhs));
+    }
+
+    public string ToTargetSelectorString()
+    {
+        if (this is ConstantValue constantValue)
+        {
+            return constantValue.ToTargetSelectorString();
+        }
+        if (this is RuntimeValue runtimeValue)
+        {
+            var storageValue = runtimeValue.EnsureInStorage().EnsureBackedUp();
+            return $"$({storageValue.Location})";
+        }
+
+        throw new UnreachableException($"Cannot convert {GetType().Name} to a target selector's value.");
     }
 }

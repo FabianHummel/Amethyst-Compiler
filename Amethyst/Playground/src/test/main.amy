@@ -1,1 +1,2 @@
-var nice = "Hello World!".length;
+var distance = 10.5;
+var self = @s;

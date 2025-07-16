@@ -30,4 +30,9 @@ public class ConstantSubstitute : ConstantValue<RuntimeValue>
     {
         throw new UnreachableException("ConstantSubstitute cannot be compared for equality.");
     }
+
+    public override string ToTargetSelectorString()
+    {
+        return Value.ToTargetSelectorString();
+    }
 }

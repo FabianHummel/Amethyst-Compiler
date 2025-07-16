@@ -150,15 +150,15 @@ unary_expression
  ;
  
 primary_expression
- : literal                                 # literal_expression
- | group                                   # group_expression
- | selector                                # selector_expression
- | primary_expression '.' identifier       # member_access
- | call                                    # call_expression
- | namespace_access                        # identifier_expression
- | primary_expression '[' expression ']'   # indexed_access
- | primary_expression '++'                 # post_increment
- | primary_expression '--'                 # post_decrement
+ : literal                                      # literal_expression
+ | group                                        # group_expression
+ | selector_type ('[' selector_query_list ']')? # selector_expression
+ | primary_expression '.' identifier            # member_access
+ | call                                         # call_expression
+ | namespace_access                             # identifier_expression
+ | primary_expression '[' expression ']'        # indexed_access
+ | primary_expression '++'                      # post_increment
+ | primary_expression '--'                      # post_decrement
  ;
  
 literal
@@ -166,6 +166,7 @@ literal
  | Integer_Literal
  | Decimal_Literal
  | String_Literal
+ | Resource_Literal
  | object_creation
  | array_creation
  ;
@@ -186,6 +187,10 @@ Decimal_Literal
 String_Literal
  : '"' .*? '"'
  ;
+ 
+Resource_Literal
+ : '`' .*? '`'
+ ;
 
 group
  : '(' expression ')'
@@ -195,17 +200,32 @@ call
  : namespace_access '(' argument_list? ')'
  ;
  
+range_expression
+ : expression '..' expression?
+ | expression? '..' expression
+ ;
+ 
 namespace_access
  : identifier ('::' identifier)?
  ;
- 
-selector
- : selector_type ('[' selector_query_list ']')?  # selector_specification
- | selector '.' identifier                       # selector_member_access
+
+selector_query_list
+ : selector_query (',' selector_query)*
  ;
  
-selector_query_list
- : identifier '=' expression (',' identifier '=' expression)*
+selector_query
+ : identifier '=' expression            # expression_selector
+ | identifier '=' range_expression      # range_selector
+ | identifier '=' record_selector_list  # records_selector
+ ;
+ 
+record_selector_list
+ : '{}'
+ | '{' (record_selector_element (',' record_selector_element)*)? '}'
+ ;
+ 
+record_selector_element
+ : identifier ':' (expression | range_expression)
  ;
  
 selector_type

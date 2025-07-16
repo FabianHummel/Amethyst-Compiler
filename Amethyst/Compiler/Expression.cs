@@ -12,6 +12,11 @@ public partial class Compiler
             return VisitConditional_expression(conditionalExpressionContext);
         }
 
+        if (context.assignment_expression() is { } assignmentExpressionContext)
+        {
+            throw new NotImplementedException();
+        }
+        
         throw new UnreachableException();
     }
 }

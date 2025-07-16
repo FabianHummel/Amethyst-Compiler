@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
 
@@ -103,6 +104,11 @@ public abstract class ArrayConstantBase : ConstantValue<ConstantValue[]>, ISubst
         }
         
         throw new SyntaxException("Expected integer index.", index.Context);
+    }
+
+    public override string ToTargetSelectorString()
+    {
+        throw new UnreachableException("Array cannot be converted to a target selector's value.");
     }
 
     public AbstractResult GetMember(string memberName, AmethystParser.IdentifierContext identifierContext)

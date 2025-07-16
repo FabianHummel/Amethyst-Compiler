@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
 using Amethyst.Utility;
@@ -123,6 +124,11 @@ public abstract class ObjectConstantBase : ConstantValue<Dictionary<string, Cons
             Context = Context,
             Value = key
         });
+    }
+    
+    public override string ToTargetSelectorString()
+    {
+        throw new UnreachableException("Object cannot be converted to a target selector's value.");
     }
 
     public AbstractResult GetMember(string memberName, AmethystParser.IdentifierContext identifierContext)

@@ -23,6 +23,12 @@ public abstract class ConstantValue : AbstractResult, IEquatable<ConstantValue>
     /// </summary>
     /// <param name="other">The other constant value to compare with.</param>
     public abstract bool Equals(ConstantValue? other);
+
+    /// <summary>
+    /// Converts this constant value into a string representation that can be used in target selectors.
+    /// </summary>
+    /// <returns>The target selector's string value representation.</returns>
+    public new abstract string ToTargetSelectorString();
 }
 
 public abstract class ConstantValue<T> : ConstantValue

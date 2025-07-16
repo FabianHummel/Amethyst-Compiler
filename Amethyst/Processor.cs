@@ -465,7 +465,7 @@ public class Processor
         {
             cts.Cancel();
             var relativeFile = Path.GetRelativePath(Context.SourcePath, e.File);
-            PrintError($"Syntax error: {relativeFile} ({e.Line}:{e.PosInLine}): {e.Message}");
+            PrintError($"Syntax error: {relativeFile} ({e.Line}:{e.Column}): {e.Message}");
         }
     }
     

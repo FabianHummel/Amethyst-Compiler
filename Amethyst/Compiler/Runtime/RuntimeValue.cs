@@ -90,4 +90,18 @@ public abstract partial class RuntimeValue : AbstractResult
             Value = this 
         };
     }
+
+    /// <summary>
+    /// Ensures that this value is stored in storage, likely to be able to use it as macro input.
+    /// </summary>
+    /// <returns>A runtime value pointing to a storage location</returns>
+    public RuntimeValue EnsureInStorage()
+    {
+        if (this is NumericBase numericBase)
+        {
+            return numericBase.EnsureInStorage();
+        }
+
+        return this;
+    }
 }

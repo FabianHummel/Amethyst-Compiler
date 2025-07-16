@@ -1,6 +1,4 @@
-using Amethyst.Model;
-
-namespace Amethyst;
+namespace Amethyst.Model;
 
 public class DecimalDataType : DataType
 {

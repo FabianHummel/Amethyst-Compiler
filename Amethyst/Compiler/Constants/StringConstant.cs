@@ -51,6 +51,11 @@ public class StringConstant : ConstantValue<string>, IMemberAccess
         return Value.Equals(stringConstant.Value);
     }
 
+    public override string ToTargetSelectorString()
+    {
+        return Value;
+    }
+
     public AbstractResult GetMember(string memberName, AmethystParser.IdentifierContext identifierContext)
     {
         return memberName switch

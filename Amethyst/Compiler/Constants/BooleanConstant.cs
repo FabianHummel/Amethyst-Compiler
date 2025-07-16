@@ -52,4 +52,9 @@ public class BooleanConstant : ConstantValue<bool>, INumericConstant
 
         return Value.Equals(booleanConstant.Value);
     }
+
+    public override string ToTargetSelectorString()
+    {
+        return Value ? "true" : "false";
+    }
 }

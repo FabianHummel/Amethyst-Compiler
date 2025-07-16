@@ -56,4 +56,9 @@ public class DecimalConstant : ConstantValue<double>, INumericConstant
 
         return Value.Equals(decimalConstant.Value);
     }
+
+    public override string ToTargetSelectorString()
+    {
+        return $"{Value}";
+    }
 }

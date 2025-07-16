@@ -38,4 +38,16 @@ public static class EnumExtension
         var attribute = (AmethystOperatorAttribute)Attribute.GetCustomAttribute(field, typeof(AmethystOperatorAttribute));
         return attribute!.Operator;
     }
+    
+    public static T GetEnumFromMcfOperator<T>(string mcfOperator) where T : Enum
+    {
+        foreach (var field in typeof(T).GetFields())
+        {
+            if (Attribute.GetCustomAttribute(field, typeof(McfOperatorAttribute)) is McfOperatorAttribute attribute && attribute.Operator == mcfOperator)
+            {
+                return (T)field.GetValue(null)!;
+            }
+        }
+        throw new ArgumentException($"No enum value found for Mcf operator '{mcfOperator}' in enum '{typeof(T).Name}'.");
+    }
 }

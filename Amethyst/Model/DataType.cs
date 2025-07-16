@@ -26,7 +26,9 @@ public enum BasicType
     [SubstitutionModifier(".data.{0}")]
     Object,
     [Description("unknown")]
-    Unknown
+    Unknown,
+    [Description("entity")]
+    Entity,
 }
 
 public enum Modifier

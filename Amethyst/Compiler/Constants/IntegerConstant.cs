@@ -50,4 +50,9 @@ public class IntegerConstant : ConstantValue<int>, INumericConstant
 
         return Value.Equals(integerConstant.Value);
     }
+
+    public override string ToTargetSelectorString()
+    {
+        return $"{Value}";
+    }
 }
