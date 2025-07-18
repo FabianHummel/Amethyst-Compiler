@@ -1,0 +1,3 @@
+data modify storage amethyst:internal data.type._check set string storage amethyst:internal data.type.in
+execute store success score data.type._success amethyst run data modify storage amethyst:internal data.type._check set from storage amethyst:internal data.type.in
+execute if score data.type._success amethyst matches 0 run return run data modify storage amethyst:internal data.type.out set value "string"

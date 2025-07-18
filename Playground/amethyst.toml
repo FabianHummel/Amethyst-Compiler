@@ -1,7 +1,0 @@
-minecraft = "/Users/fabian/Library/Application Support/PrismLauncher/instances/23w33a/.minecraft"
-
-name = "playground"
-namespace = "playground"
-description = "Test project for the amethyst compiler"
-pack_format = 18
-output = "New World"
