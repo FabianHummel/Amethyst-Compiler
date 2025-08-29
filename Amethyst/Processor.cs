@@ -12,8 +12,30 @@ using static ConsoleUtility;
 public class Processor
 {
     private TomlTable Table { get; set; } = null!;
-    
     public Context Context { get; } = new();
+    
+    public void ReinitializeProject()
+    {
+        ReadAndSetConfigFile();
+        SetMinecraftRootFolder();
+        SetSourcePath();
+        RecompileProject();
+    }
+    
+    public void RecompileProject()
+    {
+        Context.Clear();
+        try
+        {
+            SetProjectId();
+            CreateDatapackAndResourcepackContext();
+            CompileProject();
+        }
+        catch (Exception e)
+        {
+            PrintError(e.Message);
+        }
+    }
 
     private void ReadAndSetConfigFile()
     {
@@ -194,20 +216,18 @@ public class Processor
         var mcMeta = Path.Combine(Context.Datapack!.OutputDir, "pack.mcmeta");
     
         var assembly = Assembly.GetExecutingAssembly();
-        using (var stream = assembly.GetManifestResourceStream("Amethyst.Resources.datapack.pack.mcmeta")!)
-        {
-            using (var reader = new StreamReader(stream))
-            {
-                var mcMetaContents = reader.ReadToEnd();
-                var description = Table["datapack"]["description"].AsString ?? DEFAULT_DATAPACK_DESCRIPTION;
-                var packFormat = Table["datapack"]["pack_format"].AsInteger ?? DEFAULT_DATAPACK_FORMAT;
-                File.WriteAllText(mcMeta, mcMetaContents
-                    .Replace(SUBSTITUTIONS["pack_id"], $"\"{Context.ProjectId}\"")
-                    .Replace(SUBSTITUTIONS["description"], $"\"{description}\"")
-                    .Replace(SUBSTITUTIONS["pack_format"], packFormat.ToString()));
-            }
-        }
+        using var stream = assembly.GetManifestResourceStream("Amethyst.Resources.datapack.pack.mcmeta")!;
+        using var reader = new StreamReader(stream);
         
+        var mcMetaContents = reader.ReadToEnd();
+        var description = Table["datapack"]["description"].AsString ?? DEFAULT_DATAPACK_DESCRIPTION;
+        var packFormat = Table["datapack"]["pack_format"].AsInteger ?? DEFAULT_DATAPACK_FORMAT;
+        
+        File.WriteAllText(mcMeta, mcMetaContents
+            .Replace(SUBSTITUTIONS["pack_id"], $"\"{Context.ProjectId}\"")
+            .Replace(SUBSTITUTIONS["description"], $"\"{description}\"")
+            .Replace(SUBSTITUTIONS["pack_format"], packFormat.ToString()));
+
         cts.Cancel();
 
         if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
@@ -222,20 +242,19 @@ public class Processor
         var mcMeta = Path.Combine(Context.Resourcepack!.OutputDir, "pack.mcmeta");
     
         var assembly = Assembly.GetExecutingAssembly();
-        using (var stream = assembly.GetManifestResourceStream("Amethyst.Resources.resourcepack.pack.mcmeta")!)
-        {
-            using (var reader = new StreamReader(stream))
-            {
-                var mcMetaContents = reader.ReadToEnd();
-                var description = Table["resourcepack"]["description"].AsString ?? DEFAULT_RESOURCEPACK_DESCRIPTION;
-                mcMetaContents = mcMetaContents.Replace(SUBSTITUTIONS["description"], $"\"{description}\"");
-                var packFormat = Table["resourcepack"]["pack_format"].AsInteger ?? DEFAULT_RESOURCEPACK_FORMAT;
-                mcMetaContents = mcMetaContents.Replace(SUBSTITUTIONS["pack_format"], packFormat.ToString());
-                File.WriteAllText(mcMeta, mcMetaContents);
-            }
-        }
+        using var stream = assembly.GetManifestResourceStream("Amethyst.Resources.resourcepack.pack.mcmeta")!;
+        using var reader = new StreamReader(stream);
         
+        var mcMetaContents = reader.ReadToEnd();
+        var description = Table["resourcepack"]["description"].AsString ?? DEFAULT_RESOURCEPACK_DESCRIPTION;
+        mcMetaContents = mcMetaContents.Replace(SUBSTITUTIONS["description"], $"\"{description}\"");
+        var packFormat = Table["resourcepack"]["pack_format"].AsInteger ?? DEFAULT_RESOURCEPACK_FORMAT;
+        mcMetaContents = mcMetaContents.Replace(SUBSTITUTIONS["pack_format"], packFormat.ToString());
+        
+        File.WriteAllText(mcMeta, mcMetaContents);
+
         cts.Cancel();
+        
         if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
             PrintDebugMessageWithTime($"Resourcepack meta file created at '{mcMeta}'.", getElapsed());
@@ -265,52 +284,12 @@ public class Processor
             PrintDebugMessageWithTime("Function tags created.", getElapsed());
         }
     }
-
-    private void CreateExportedFunctions()
-    {
-        var cts = PrintLongTask("Creating exported functions", out var getElapsed);
-
-        var apiPath = Path.Combine(Context.Datapack!.OutputDir, $"data/{Context.ProjectId}/function/api/");
-
-        Directory.CreateDirectory(apiPath);
-        
-        foreach (var (mcfPath, name) in Context.Datapack!.ExportedFunctions)
-        {
-            var path = Path.Combine(apiPath, name + MCFUNCTION_FILE_EXTENSION);
-            File.WriteAllText(path, $"function {mcfPath}");
-        }
-        
-        cts.Cancel();
-        
-        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
-        {
-            PrintDebugMessageWithTime("Exported functions created.", getElapsed());
-        }
-    }
     
     private void CopyDatapackTemplate()
     {
         var cts = PrintLongTask("Copying datapack template", out var getElapsed);
         
-        var assembly = Assembly.GetExecutingAssembly();
-        var templateFiles = assembly.GetManifestResourceNames().Where(s => s.StartsWith("Amethyst.Resources.datapack"));
-        foreach (var templateFile in templateFiles)
-        {
-            var path = templateFile["Amethyst.Resources.datapack.".Length..];
-            path = path[..path.LastIndexOf('.')].Replace('.', Path.DirectorySeparatorChar) + path[path.LastIndexOf('.')..];
-            path = Path.Combine(Context.Datapack!.OutputDir, path);
-            using (var stream = assembly.GetManifestResourceStream(templateFile)!)
-            {
-                using (var reader = new BinaryReader(stream))
-                {
-                    Directory.CreateDirectory(path[..path.LastIndexOf(Path.DirectorySeparatorChar)]);
-                    using (var writer = new BinaryWriter(File.OpenWrite(path)))
-                    {
-                        writer.Write(reader.ReadBytes((int)reader.BaseStream.Length));
-                    }
-                }
-            }
-        }
+        AssemblyUtility.CopyAssemblyFolder("Amethyst.Resources.datapack", Context.Datapack!.OutputDir);
         
         cts.Cancel();
 
@@ -324,148 +303,13 @@ public class Processor
     {
         var cts = PrintLongTask("Copying resourcepack template", out var getElapsed);
         
-        var assembly = Assembly.GetExecutingAssembly();
-        var templateFiles = assembly.GetManifestResourceNames().Where(s => s.StartsWith("Amethyst.Resources.resourcepack"));
-        foreach (var templateFile in templateFiles)
-        {
-            var path = templateFile["Amethyst.Resources.resourcepack.".Length..];
-            path = path[..path.LastIndexOf('.')].Replace('.', Path.DirectorySeparatorChar) + path[path.LastIndexOf('.')..];
-            path = Path.Combine(Context.Resourcepack!.OutputDir, path);
-            using (var stream = assembly.GetManifestResourceStream(templateFile)!)
-            {
-                using (var reader = new BinaryReader(stream))
-                {
-                    Directory.CreateDirectory(path[..path.LastIndexOf(Path.DirectorySeparatorChar)]);
-                    using (var writer = new BinaryWriter(File.OpenWrite(path)))
-                    {
-                        writer.Write(reader.ReadBytes((int)reader.BaseStream.Length));
-                    }
-                }
-            }
-        }
+        AssemblyUtility.CopyAssemblyFolder("Amethyst.Resources.resourcepack", Context.Resourcepack!.OutputDir);
         
         cts.Cancel();
 
         if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
             PrintDebugMessageWithTime("Resourcepack template copied.", getElapsed());
-        }
-    }
-    
-    private IEnumerable<string> FindCompileTargets(string sDir) 
-    {
-        var cts = PrintLongTask($"Searching for {SOURCE_FILE} files", out var getElapsed);
-        var count = 0;
-        
-        foreach (var f in Directory.GetFiles(sDir, SOURCE_FILE))
-        {
-            count++;
-            yield return f;
-        }
-
-        foreach (var d in Directory.GetDirectories(sDir)) 
-        {
-            foreach (var f in FindCompileTargets(d))
-            {
-                count++;
-                yield return f;
-            }
-        }
-        
-        cts.Cancel();
-
-        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
-        {
-            PrintDebugMessageWithTime($"Found {count} {SOURCE_FILE} files.", getElapsed());
-        }
-    }
-    
-    private void CompileProject()
-    {
-        var cts = PrintLongTask("Compiling program", out var getElapsed);
-        try
-        {
-            foreach (var directory in Directory.GetDirectories(Context.SourcePath))
-            {
-                var name = Path.GetFileName(directory);
-                
-                if (RESERVED_NAMESPACES.Contains(name))
-                {
-                    throw new Exception($"The directory '{name}' is reserved and cannot be used as a namespace.");
-                }
-                
-                if (Directory.GetFiles(directory, SOURCE_FILE).Length == 0)
-                {
-                    var relativeFile = Path.GetRelativePath(Context.SourcePath, directory);
-                    if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
-                    {
-                        PrintDebug($"Skipping empty namespace '/{relativeFile}'.");
-                    }
-
-                    continue;
-                }
-                
-                var ns = new Namespace
-                {
-                    Context = Context,
-                    Scope = new Scope
-                    {
-                        Name = name,
-                        Parent = null,
-                        Context = Context
-                    }
-                };
-
-                var loadFunction = new Function
-                {
-                    Scope = new Scope
-                    {
-                        Name = "_load",
-                        Context = Context,
-                        Parent = ns.Scope
-                    },
-                    Attributes = new List<string> { ATTRIBUTE_LOAD_FUNCTION }
-                };
-                
-                ns.Functions.Add("_load", loadFunction);
-
-                if (Context.Datapack != null)
-                {
-                    Context.Datapack.LoadFunctions.Add(loadFunction.McFunctionPath);
-                }
-
-                Context.Namespaces.Add(ns);
-                
-                foreach (var target in FindCompileTargets(directory))
-                {
-                    var fileStream = File.OpenRead(target);
-                    var tree = Context.Parse(fileStream, target, ns, out var @namespace);
-                    var file = new SourceFile { Context = tree, Path = target };
-                    @namespace.Files.Add(file);
-                }
-            }
-
-            foreach (var target in Directory.GetFiles(Context.SourcePath, SOURCE_FILE))
-            {
-                var fileStream = File.OpenRead(target);
-                var tree = Context.Parse(fileStream, target, null, out var @namespace);
-                var file = new SourceFile { Context = tree, Path = target };
-                @namespace.Files.Add(file);
-            }
-            
-            Context.Compile();
-            
-            CreateFunctionTags();
-            CreateExportedFunctions();
-            
-            cts.Cancel();
-            PrintMessageWithTime("Program compiled.", getElapsed());
-        }
-        catch (SyntaxException e)
-        {
-            cts.Cancel();
-            var relativeFile = Path.GetRelativePath(Context.SourcePath, e.File);
-            PrintError($"Syntax error: {relativeFile} ({e.Line}:{e.Column}): {e.Message}");
         }
     }
     
@@ -495,27 +339,108 @@ public class Processor
         cts.Cancel();
         PrintMessageWithTime("Project structure created.", getElapsed());
     }
-
-    public void ReinitializeProject()
-    {
-        ReadAndSetConfigFile();
-        SetMinecraftRootFolder();
-        SetSourcePath();
-        RecompileProject();
-    }
     
-    public void RecompileProject()
+    private void CompileProject()
     {
-        Context.Clear();
+        var cts = PrintLongTask("Compiling program", out var getElapsed);
         try
         {
-            SetProjectId();
-            CreateDatapackAndResourcepackContext();
-            CompileProject();
+            if (Context.Datapack != null)
+            {
+                ProcessDatapackOrResourcepack(true);
+            }
+            if (Context.Resourcepack != null)
+            {
+                ProcessDatapackOrResourcepack(false);
+            }
+        
+            var compiler = new Compiler(Context);
+            compiler.CompileProject();
         }
-        catch (Exception e)
+        catch (SyntaxException e)
         {
-            PrintError(e.Message);
+            cts.Cancel();
+            PrintError($"Syntax error: {e.File} ({e.Line}:{e.Column}): {e.Message}");
+            return;
+        }
+        
+        CreateFunctionTags();
+        
+        cts.Cancel();
+        PrintMessageWithTime("Program compiled.", getElapsed());
+    }
+
+    private void ProcessDatapackOrResourcepack(bool isDatapack)
+    {
+        var dirName = isDatapack ? "data" : "assets";
+        var sourceDir = Path.Combine(Context.SourcePath, dirName);
+        var outputDir = Path.Combine(isDatapack ? Context.Datapack!.OutputDir : Context.Resourcepack!.OutputDir, dirName);
+        
+        // Copy everything except amethyst source code to output folder
+        FilesystemUtility.CopyDirectory(sourceDir, outputDir, filePath => {
+            return Path.GetExtension(filePath) != SOURCE_FILE_EXTENSION;
+        });
+
+        // Scan namespaces
+        foreach (var nsPath in Directory.GetDirectories(sourceDir))
+        {
+            RegisterAndIndexNamespace(nsPath);
+        }
+    }
+    
+    private void RegisterAndIndexNamespace(string nsPath)
+    {
+        var nsName = Path.GetFileName(nsPath);
+        
+        if (!Context.Namespaces.TryGetValue(nsName, out var ns))
+        {
+            if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
+            {
+                PrintDebug($"Registering namespace: {nsName}");
+            }
+            
+            Context.Namespaces.Add(nsName, ns = new Namespace
+            {
+                Context = Context,
+                Name = nsName
+            });
+        }
+        
+        var parser = new Parser();
+
+        foreach (var registryPath in Directory.GetDirectories(nsPath))
+        {
+            var registryName = Path.GetFileName(registryPath);
+            parser.RegistryName = registryName;
+            
+            // Scan amethyst source code files in each registry
+            foreach (var filePath in Directory.GetFiles(registryPath, SOURCE_FILE, SearchOption.AllDirectories))
+            {
+                if (!ns.Registries.TryGetValue(registryName, out var registry))
+                {
+                    ns.Registries.Add(registryName, registry = new SourceFolder
+                    {
+                        Context = Context,
+                    });
+                }
+                
+                var relativePath = Path.GetRelativePath(registryPath, filePath);
+                var fileName = Path.GetFileNameWithoutExtension(filePath);
+                var folder = registry.CreateOrGetFolderForPath(relativePath);
+                var sourceFile = new SourceFile
+                {
+                    Path = filePath,
+                    Name = $"{nsName}:{relativePath}",
+                    RootScope = new Scope
+                    {
+                        Context = Context,
+                        Name = nsName,
+                        Parent = null
+                    }
+                };
+                parser.Parse(sourceFile);
+                folder.SourceFiles.Add(fileName, sourceFile);
+            }
         }
     }
 }

@@ -13,6 +13,6 @@ public class AmethystErrorListener : BaseErrorListener
     
     public override void SyntaxError(IRecognizer recognizer, IToken offendingSymbol, int line, int charPositionInLine, string msg, RecognitionException e)
     {
-        throw new SyntaxException(msg, line, charPositionInLine, Parser.FilePath);
+        throw new SyntaxException(msg, line, charPositionInLine, offendingSymbol.InputStream.SourceName!);
     }
 }

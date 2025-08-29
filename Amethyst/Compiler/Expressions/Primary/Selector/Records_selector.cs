@@ -1,4 +1,5 @@
 using Amethyst.Language;
+using Amethyst.Model;
 
 namespace Amethyst;
 
@@ -18,7 +19,7 @@ public partial class Compiler
 
             var recordName = identifierContext.GetText();
 
-            if (!Scope.TryGetRecord(recordName, out var record))
+            if (!Scope.TryGetSymbol(recordName, out var symbol) || symbol is not Record record)
             {
                 throw new SyntaxException($"The record '{recordName}' does not exist in the current context.", identifierContext);
             }

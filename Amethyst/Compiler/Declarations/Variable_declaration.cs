@@ -10,9 +10,9 @@ public partial class Compiler
     {
         var variableName = context.identifier().GetText();
         
-        if (Scope.Variables.ContainsKey(variableName))
+        if (Scope.TryGetSymbol(variableName, out _))
         {
-            throw new SyntaxException($"The variable '{variableName}' has already been declared.", context);
+            throw new SyntaxException($"The symbol '{variableName}' has already been declared.", context);
         }
         
         if (context.expression() is not { } expressionContext)
@@ -51,7 +51,7 @@ public partial class Compiler
 
         var attributes = VisitAttribute_list(context.attribute_list());
 
-        Scope.Variables.Add(variableName, new Variable
+        Scope.Symbols.Add(variableName, new Variable
         {
             Location = name,
             DataType = type,

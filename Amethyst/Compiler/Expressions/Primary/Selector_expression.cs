@@ -71,7 +71,7 @@ public partial class Compiler
 
             if (IsSelectorSingleTarget(selector, limitExpression))
             {
-                AddCode($"{prefix}execute as {selectorString} run function gu:generate");
+                AddCode($"{prefix}execute as {selectorString} run function amethyst:libraries/gu/generate");
                 AddCode($"data modify storage amethyst: {location} set from storage gu:main out");
             
                 return new EntityResult
@@ -87,7 +87,7 @@ public partial class Compiler
 
             var scope = EvaluateScoped("_multi_selector", _ =>
             {
-                AddCode("function gu:generate");
+                AddCode("function amethyst:libraries/gu/generate");
                 AddCode($"data modify storage amethyst: {location} append from storage gu:main out");
             });
         

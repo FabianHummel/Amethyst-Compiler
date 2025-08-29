@@ -21,7 +21,7 @@ public partial class Compiler
 
         foreach (var objectElementContext in objectElementContexts)
         {
-            var key = objectElementContext.identifier().IDENTIFIER().Symbol.Text;
+            var key = objectElementContext.IDENTIFIER().Symbol.Text;
             
             var result = VisitExpression(objectElementContext.expression());
             

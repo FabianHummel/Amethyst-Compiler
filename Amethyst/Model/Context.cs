@@ -8,7 +8,7 @@ public class Context
     public string SourcePath { get; set; } = null!;
     public Datapack? Datapack { get; set; }
     public Resourcepack? Resourcepack { get; set; }
-    public List<Namespace> Namespaces { get; } = new();
+    public Dictionary<string, Namespace> Namespaces { get; } = new();
 
     public void Clear()
     {

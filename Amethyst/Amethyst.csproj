@@ -39,4 +39,9 @@
     <ItemGroup>
       <None Remove="Amethyst.csproj.DotSettings" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Playground\src\" />
+      <Folder Include="Resources\resourcepack\assets\" />
+    </ItemGroup>
 </Project>

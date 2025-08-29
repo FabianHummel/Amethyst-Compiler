@@ -6,34 +6,63 @@ namespace Amethyst;
 public partial class Compiler : AmethystBaseVisitor<object?>
 {
     internal Context Context { get; }
-    internal Scope Scope { get; set; } = null!;
     internal int TotalRecordCount { get; set; } = 0;
     internal int StackPointer { get; set; } = 0;
+    
     internal Namespace Namespace { get; set; } = null!;
     internal SourceFile SourceFile { get; set; } = null!;
+    internal Scope Scope { get; set; } = null!;
     
     public Compiler(Context context)
     {
         Context = context;
     }
-
-    public void Compile()
+    
+    public void CompileProject()
     {
-        foreach (var ns in Context.Namespaces)
+        foreach (var ns in Context.Namespaces.Values)
         {
             Namespace = ns;
-
-            using (Scope = ns.Functions["_load"].Scope)
+            CompileNamespace();
+        }
+    }
+    
+    public void CompileNamespace()
+    {
+        if (Namespace.Registries.TryGetValue(Constants.DATAPACK_FUNCTIONS_DIRECTORY, out var functionRegistry))
+        {
+            foreach (var sourceFile in GetSourceFilesInFolder(functionRegistry))
             {
-                Scope.CreateFunctionFile();
-            
-                foreach (var file in ns.Files)
+                SourceFile = sourceFile;
+                Scope = sourceFile.RootScope;
+                
+                foreach (var entryPoint in sourceFile.EntryPointFunctions.Values)
                 {
-                    SourceFile = file;
-                    VisitFile(file.Context);
+                    VisitFunction_declaration(entryPoint);
                 }
             }
         }
+
+        foreach (var (registryName, registry) in Namespace.Registries)
+        {
+            if (registryName == Constants.DATAPACK_FUNCTIONS_DIRECTORY) continue;
+            foreach (var sourceFile in GetSourceFilesInFolder(registry))
+            {
+                SourceFile = sourceFile;
+                Scope = sourceFile.RootScope;
+                
+                foreach (var exportedSymbol in sourceFile.ExportedSymbols.Values)
+                {
+                    VisitDeclaration(exportedSymbol);
+                }
+            }
+        }
+    }
+
+    public static IEnumerable<SourceFile> GetSourceFilesInFolder(SourceFolder sourceFolder)
+    {
+        return sourceFolder.SourceFiles.Values
+            .Concat(sourceFolder.Children.SelectMany(pair => GetSourceFilesInFolder(pair.Value)));
     }
     
     internal void AddCode(string code)

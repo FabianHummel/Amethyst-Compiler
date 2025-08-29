@@ -17,9 +17,9 @@ public partial class Compiler
         
         var recordName = context.identifier().GetText();
         
-        if (Scope.Records.ContainsKey(recordName))
+        if (Scope.TryGetSymbol(recordName, out _))
         {
-            throw new SyntaxException($"The record '{recordName}' has already been declared.", context);
+            throw new SyntaxException($"The symbol '{recordName}' has already been declared.", context);
         }
         
         var name = GetRecordName();
@@ -57,7 +57,7 @@ public partial class Compiler
         
         var attributes = VisitAttribute_list(context.attribute_list());
 
-        Scope.Records.Add(recordName, new Record
+        Scope.Symbols.Add(recordName, new Record
         {
             Name = name,
             DataType = type,

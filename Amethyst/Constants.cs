@@ -4,6 +4,7 @@ public static class Constants
 {
     public const string CONFIG_FILE = "amethyst.toml";
     public const string SOURCE_FILE = "*.amy";
+    public const string SOURCE_FILE_EXTENSION = ".amy"; 
     public const string SOURCE_DIRECTORY = "src";
     public const string MCFUNCTION_FILE_EXTENSION = ".mcfunction";
     public const string DEFAULT_DATAPACK_NAME = "Amethyst Datapack";
@@ -20,7 +21,7 @@ public static class Constants
 
     public const string ATTRIBUTE_LOAD_FUNCTION = "initializing";
     public const string ATTRIBUTE_TICK_FUNCTION = "ticking";
-    public const string ATTRIBUTE_EXPORT_FUNCTION = "export";
+    public const string ATTRIBUTE_FUNCTION_NO_MANGLE = "no_mangle";
     public const string ATTRIBUTE_ASSIGN_ON_LEAVE = "assign_on_leave";
     public const string ATTRIBUTE_ASSIGN_ON_JOIN = "assign_on_join";
     public const string ATTRIBUTE_ASSIGN_ON_TICK = "assign_on_tick";

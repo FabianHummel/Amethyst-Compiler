@@ -11,9 +11,13 @@ public partial class Compiler
         {
             return VisitFunction_declaration(functionDeclaration);
         }
-        if (context.statement() is { } statement)
+        if (context.variable_declaration() is { } variableDeclaration)
         {
-            return VisitStatement(statement);
+            return VisitVariable_declaration(variableDeclaration);
+        }
+        if (context.record_declaration() is { } recordDeclaration)
+        {
+            return VisitRecord_declaration(recordDeclaration);
         }
     
         throw new UnreachableException();

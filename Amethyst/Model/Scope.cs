@@ -11,12 +11,13 @@ public class Scope : IDisposable
     public required Scope? Parent { get; init; }
     public required Context Context { get; init; }
     public Dictionary<string, int> Scopes { get; } = new();
-    public Dictionary<string, Variable> Variables { get; } = new();
-    public Dictionary<string, Record> Records { get; } = new();
+    public Dictionary<string, Symbol> Symbols { get; } = new();
 
-    private TextWriter _writer = new StringWriter();
+    private readonly TextWriter _writer = new StringWriter();
     
-    public string FilePath => Path.Combine(Context.Datapack!.OutputDir, GetDataSubpath(DATAPACK_FUNCTIONS_DIRECTORY) + MCFUNCTION_FILE_EXTENSION);
+    public string FilePath => Path.Combine(
+        Context.Datapack!.OutputDir, 
+        GetDataSubpath(DATAPACK_FUNCTIONS_DIRECTORY) + MCFUNCTION_FILE_EXTENSION);
     
     public string McFunctionPath
     {
@@ -51,9 +52,9 @@ public class Scope : IDisposable
     /// <summary>
     /// Gets the data subpath for the given location. Path structure is 'data/{root_namespace}/{location}/...'
     /// </summary>
-    /// <param name="location">The location to get the data subpath for. (functions, predicates, etc...)</param>
+    /// <param name="registry">The registry to get the data subpath for. (function, predicate, etc...)</param>
     /// <returns>The data subpath for the given location.</returns>
-    public string GetDataSubpath(string location)
+    public string GetDataSubpath(string registry)
     {
         var path = "";
         var current = this;
@@ -62,13 +63,13 @@ public class Scope : IDisposable
             path = Path.Combine(current.Name, path);
             current = current.Parent;
         }
-        return Path.Combine("data", current.Name, location, path);
+        return Path.Combine("data", current.Name, registry, path);
     }
 
     public void CreateFunctionFile()
     {
-        var directory = Path.GetDirectoryName(FilePath)!;
-        Directory.CreateDirectory(directory);
+        var dirPath = Path.GetDirectoryName(FilePath)!;
+        Directory.CreateDirectory(dirPath);
         
         using var writer = File.CreateText(FilePath);
         var assembly = Assembly.GetExecutingAssembly();
@@ -85,31 +86,16 @@ public class Scope : IDisposable
         _writer.WriteLine(code);
     }
 
-    public bool TryGetVariable(string identifier, [NotNullWhen(true)] out Variable? variable)
+    public bool TryGetSymbol(string identifier, [NotNullWhen(true)] out Symbol? symbol)
     {
-        if (Variables.TryGetValue(identifier, out variable))
+        if (Symbols.TryGetValue(identifier, out symbol))
         {
             return true;
         }
         
         if (Parent is not null)
         {
-            return Parent.TryGetVariable(identifier, out variable);
-        }
-        
-        return false;
-    }
-
-    public bool TryGetRecord(string identifier, [NotNullWhen(true)] out Record? record)
-    {
-        if (Records.TryGetValue(identifier, out record))
-        {
-            return true;
-        }
-        
-        if (Parent is not null)
-        {
-            return Parent.TryGetRecord(identifier, out record);
+            return Parent.TryGetSymbol(identifier, out symbol);
         }
         
         return false;

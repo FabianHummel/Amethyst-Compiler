@@ -7,13 +7,9 @@ public partial class Compiler
 {
     public override object? VisitStatement(AmethystParser.StatementContext context)
     {
-        if (context.variable_declaration() is { } variableDeclaration)
+        if (context.declaration() is { } declaration)
         {
-            return VisitVariable_declaration(variableDeclaration);
-        }
-        if (context.record_declaration() is { } recordDeclaration)
-        {
-            return VisitRecord_declaration(recordDeclaration);
+            return VisitDeclaration(declaration);
         }
         if (context.for_statement() is { } forStatement)
         {

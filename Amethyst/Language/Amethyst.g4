@@ -5,20 +5,29 @@ COMMENT: '#' ~[\r\n]* -> skip;
 IDENTIFIER: [a-zA-Z] [a-zA-Z0-9_]*;
 
 file
- : namespace_declaration? declaration* EOF
+ : from* declaration* EOF
  ;
  
-namespace_declaration
- : 'namespace' identifier ';'
+from
+ : 'from' String_Literal String_Literal (',' String_Literal)* ';'
  ;
 
 declaration
  : function_declaration
- | statement
+ | variable_declaration
+ | record_declaration
  ;
  
 function_declaration
  : attribute_list 'function' identifier '(' parameter_list? ')' (':' type)? block
+ ;
+ 
+variable_declaration
+ : attribute_list 'var' identifier (':' type)? ('=' expression)? ';'
+ ;
+ 
+record_declaration
+ : attribute_list 'record' identifier (':' type)? ('=' expression)? ';'
  ;
  
 attribute_list
@@ -42,8 +51,7 @@ block
  ;
  
 statement
- : variable_declaration
- | record_declaration
+ : declaration
  | for_statement
  | while_statement
  | foreach_statement
@@ -55,14 +63,6 @@ statement
  | continue_statement
  | block
  | expression_statement
- ;
- 
-variable_declaration
- : attribute_list 'var' identifier (':' type)? ('=' expression)? ';'
- ;
- 
-record_declaration
- : attribute_list 'record' identifier (':' type)? ('=' expression)? ';'
  ;
 
 for_statement
@@ -155,7 +155,7 @@ primary_expression
  | selector_type ('[' selector_query_list ']')? # selector_expression
  | primary_expression '.' identifier            # member_access
  | call                                         # call_expression
- | namespace_access                             # identifier_expression
+ | identifier                                   # identifier_expression
  | primary_expression '[' expression ']'        # indexed_access
  | primary_expression '++'                      # post_increment
  | primary_expression '--'                      # post_decrement
@@ -197,17 +197,13 @@ group
  ;
  
 call
- : namespace_access '(' argument_list? ')'
+ : identifier '(' argument_list? ')'
  ;
  
 range_expression
  : expression '..' expression?
  | expression? '..' expression
- ;
- 
-namespace_access
- : identifier ('::' identifier)?
- ;
+ ; 
 
 selector_query_list
  : selector_query (',' selector_query)*
@@ -247,16 +243,17 @@ object_creation
  ;
  
 object_element
- : identifier ':' expression
+ : IDENTIFIER ':' expression
  ;
 
 array_creation
  : '[]'
- | '[' (expression (',' expression)*)? ']'
+ | '[' (expression (',' expression)* )? ']'
  ;
  
 identifier
- : IDENTIFIER
+ : IDENTIFIER (':' IDENTIFIER ('/' IDENTIFIER)+ )   #absolute_identifier
+ | IDENTIFIER ('/' IDENTIFIER)*                     #relative_identifier
  ;
  
 type

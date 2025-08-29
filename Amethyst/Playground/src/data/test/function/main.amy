@@ -1,0 +1,6 @@
+var nice = 10;
+
+[initializing]
+function main() {
+    debug 30 + nice;
+}

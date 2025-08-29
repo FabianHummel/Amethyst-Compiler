@@ -1,6 +1,5 @@
 using Amethyst.Language;
 using Amethyst.Model;
-using static Amethyst.Constants;
 
 namespace Amethyst;
 
@@ -13,68 +12,88 @@ public class AmethystParseListener : AmethystBaseListener
         Parser = parser;
     }
     
-    // public override void ExitFunction_declaration(AmethystParser.Function_declarationContext context)
-    // {
-    //     if (Parser.Ns == null)
-    //     {
-    //         throw new Exception("Namespace is not defined. Either place the file in a folder or use the namespace keyword.");
-    //     }
-    //     
-    //     var name = context.identifier().GetText();
-    //     
-    //     if (Parser.Ns.Functions.ContainsKey(name))
-    //     {
-    //         throw new SyntaxException($"Function '{name}' is already defined in namespace '{Parser.Ns.Scope.Name}'.", context);
-    //     }
-    //
-    //     Parser.Ns.Functions.Add(name, new Function
-    //     {
-    //         Scope = new Scope
-    //         {
-    //             Name = Parser.Ns.GetFunctionName(name),
-    //             Context = Parser.Context,
-    //             Parent = Parser.Ns.Scope
-    //         },
-    //         Attributes = context.attribute_list().attribute()
-    //             .Select(attributeContext => attributeContext.identifier().GetText())
-    //             .ToList()
-    //     });
-    // }
-
-    public override void ExitNamespace_declaration(AmethystParser.Namespace_declarationContext context)
+    public override void ExitFrom(AmethystParser.FromContext context)
     {
-        var name = context.identifier().GetText();
-        if (Parser.Ns is { } ns)
+        var path = context.String_Literal(0).GetText();
+        if (path == null)
         {
-            throw new SyntaxException($"Namespace '{name}' cannot be used instead of '{ns.Scope.Name}' because the file is placed inside '/{SOURCE_DIRECTORY}/{ns.Scope.Name}'. " +
-                                      $"Either place the file directly inside '/{SOURCE_DIRECTORY}' or remove the namespace declaration.",
-                context.identifier().Start.Line,
-                context.identifier().Start.Column,
-                Parser.FilePath);
+            throw new SyntaxException("Expected resource path for the import path.", context);
         }
 
-        Parser.Ns = new Namespace
+        var symbols = context.String_Literal()
+            .Skip(1)
+            .Select(s => s.GetText()!)
+            .ToList();
+
+        if (symbols.Count == 0)
         {
-            Context = Parser.Context,
-            Scope = new Scope
+            throw new SyntaxException("Expected at least one symbol to import.", context);
+        }
+
+        foreach (var symbolName in symbols)
+        {
+            if (!Parser.SourceFile!.ExportedSymbols.ContainsKey(symbolName) &&
+                !Parser.SourceFile!.ImportedSymbols.TryAdd(symbolName, path))
             {
-                Name = name,
-                Parent = null,
-                Context = Parser.Context
+                throw new SyntaxException($"'{symbolName}' is already declared in this scope.", context);
             }
-        };
-
-        Parser.Ns.Functions.Add("_load", new Function
+        }
+    }
+    
+    public override void ExitDeclaration(AmethystParser.DeclarationContext context)
+    {
+        if (Parser.RegistryName != Constants.DATAPACK_FUNCTIONS_DIRECTORY)
         {
-            Scope = new Scope
-            {
-                Name = Parser.Ns.GetFunctionName("_load"),
-                Context = Parser.Context,
-                Parent = Parser.Ns.Scope
-            },
-            Attributes = new List<string> { ATTRIBUTE_LOAD_FUNCTION }
-        });
+            throw new SyntaxException("Runtime declarations must go inside the 'function' registry.", context);
+        }
 
-        Parser.Context.Namespaces.Add(Parser.Ns);
+        string? symbolName = null;
+        if (context.function_declaration() is { } functionDeclarationContext)
+        {
+            symbolName = functionDeclarationContext.identifier().GetText();
+        }
+        else if (context.variable_declaration() is { } variableDeclarationContext)
+        {
+            symbolName = variableDeclarationContext.identifier().GetText();
+        }
+        else if (context.record_declaration() is { } recordDeclarationContext)
+        {
+            symbolName = recordDeclarationContext.identifier().GetText();
+        }
+        
+        if (symbolName is null)
+        {
+            throw new SyntaxException("Could not determine symbol name for declaration.", context);
+        }
+        
+        if (!Parser.SourceFile!.ExportedSymbols.TryAdd(symbolName, context) && 
+            !Parser.SourceFile!.ImportedSymbols.ContainsKey(symbolName))
+        {
+            throw new SyntaxException($"Symbol '{symbolName}' is already declared in this scope.", context);
+        }
+    }
+
+    public override void ExitFunction_declaration(AmethystParser.Function_declarationContext context)
+    {
+        var fnName = context.identifier().GetText();
+        if (fnName == null)
+        {
+            throw new SyntaxException("Expected function name.", context);
+        }
+
+        var attributesListContext = context.attribute_list();
+        var attributes = attributesListContext.attribute()
+            .Select(attributeContext => attributeContext.identifier().GetText())
+            .ToHashSet();
+        
+        var entryPointAttributes = new HashSet<string>
+        {
+            Constants.ATTRIBUTE_LOAD_FUNCTION,
+            Constants.ATTRIBUTE_TICK_FUNCTION
+        };
+        if (attributes.Overlaps(entryPointAttributes))
+        {
+            Parser.SourceFile!.EntryPointFunctions.Add(fnName, context);
+        }
     }
 }

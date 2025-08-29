@@ -33,5 +33,5 @@ execute store result score 3= gu.main run scoreboard players operation 2= gu.mai
 execute store result storage gu:temp e int 1 run scoreboard players operation 2= gu.main %= 256 num
 execute store result storage gu:temp f int 1 run scoreboard players operation 3= gu.main /= 256 num
 
-function gu:zzz/get_hexes with storage gu:temp
-function gu:zzz/concat_uuid with storage gu:temp
+function amethyst:libraries/gu/zzz/get_hexes with storage gu:temp
+function amethyst:libraries/gu/zzz/concat_uuid with storage gu:temp

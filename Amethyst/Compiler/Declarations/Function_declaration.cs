@@ -1,4 +1,5 @@
 using Amethyst.Language;
+using Amethyst.Model;
 using static Amethyst.Constants;
 
 namespace Amethyst;
@@ -14,11 +15,14 @@ public partial class Compiler
         
         var functionName = context.identifier().GetText();
         
-        var scope = VisitBlockNamed(context.block(), "_func");
+        if (Scope.TryGetSymbol(functionName, out _))
+        {
+            throw new SyntaxException($"The symbol '{functionName}' has already been declared.", context);
+        }
         
-        var attributes = context.attribute_list().attribute()
-            .Select(attributeContext => attributeContext.identifier().GetText())
-            .ToHashSet();
+        var scope = VisitBlockNamed(context.block(), "_func");
+
+        var attributes = VisitAttribute_list(context.attribute_list());
         
         if (attributes.Contains(ATTRIBUTE_TICK_FUNCTION))
         {
@@ -30,10 +34,10 @@ public partial class Compiler
             Context.Datapack.LoadFunctions.Add(scope.McFunctionPath);
         }
         
-        if (attributes.Contains(ATTRIBUTE_EXPORT_FUNCTION))
+        Scope.Symbols.Add(functionName, new Function
         {
-            Context.Datapack.ExportedFunctions.Add(scope.McFunctionPath, functionName);
-        }
+            Attributes = attributes
+        });
         
         return null;
     }
