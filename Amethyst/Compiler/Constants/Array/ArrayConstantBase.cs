@@ -111,7 +111,7 @@ public abstract class ArrayConstantBase : ConstantValue<ConstantValue[]>, ISubst
         throw new UnreachableException("Array cannot be converted to a target selector's value.");
     }
 
-    public AbstractResult GetMember(string memberName, AmethystParser.IdentifierContext identifierContext)
+    public AbstractResult GetMember(string memberName)
     {
         return memberName switch
         {
@@ -121,7 +121,7 @@ public abstract class ArrayConstantBase : ConstantValue<ConstantValue[]>, ISubst
                 Context = Context,
                 Value = Value.Length,
             },
-            _ => throw new SyntaxException($"Array does not have a member named '{memberName}'.", identifierContext)
+            _ => throw new SemanticException($"Array does not have a member named '{memberName}'.")
         };
     }
 }

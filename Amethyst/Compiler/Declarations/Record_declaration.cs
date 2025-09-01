@@ -14,8 +14,13 @@ public partial class Compiler
     public override object? VisitRecord_declaration(AmethystParser.Record_declarationContext context)
     {
         TotalRecordCount++;
+
+        if (context.IDENTIFIER() is not { } recordNameContext)
+        {
+            throw new SyntaxException("Expected record name.", context);
+        }
         
-        var recordName = context.identifier().GetText();
+        var recordName = recordNameContext.GetText();
         
         if (Scope.TryGetSymbol(recordName, out _))
         {

@@ -131,7 +131,7 @@ public abstract class ObjectConstantBase : ConstantValue<Dictionary<string, Cons
         throw new UnreachableException("Object cannot be converted to a target selector's value.");
     }
 
-    public AbstractResult GetMember(string memberName, AmethystParser.IdentifierContext identifierContext)
+    public AbstractResult GetMember(string memberName)
     {
         if (Value.TryGetValue(memberName, out var value))
         {
@@ -153,7 +153,7 @@ public abstract class ObjectConstantBase : ConstantValue<Dictionary<string, Cons
                 BasicType = BasicType.String,
                 Value = GetKeysAsStringConstants().Cast<ConstantValue>().ToArray()
             },
-            _ => throw new SyntaxException($"Member '{memberName}' not found in object.", identifierContext)
+            _ => throw new SemanticException($"Member '{memberName}' not found in object.")
         };
     }
 }

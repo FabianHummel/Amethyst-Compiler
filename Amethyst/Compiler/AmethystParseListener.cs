@@ -1,5 +1,4 @@
 using Amethyst.Language;
-using Amethyst.Model;
 
 namespace Amethyst;
 
@@ -14,26 +13,19 @@ public class AmethystParseListener : AmethystBaseListener
     
     public override void ExitFrom(AmethystParser.FromContext context)
     {
-        var path = context.String_Literal(0).GetText();
-        if (path == null)
+        if (context.RESOURCE_LITERAL() is not { } resourcePath)
         {
-            throw new SyntaxException("Expected resource path for the import path.", context);
+            return;
         }
 
-        var symbols = context.String_Literal()
-            .Skip(1)
-            .Select(s => s.GetText()!)
+        var symbols = context.IDENTIFIER()
+            .Select(s => s.GetText())
             .ToList();
-
-        if (symbols.Count == 0)
-        {
-            throw new SyntaxException("Expected at least one symbol to import.", context);
-        }
 
         foreach (var symbolName in symbols)
         {
             if (!Parser.SourceFile!.ExportedSymbols.ContainsKey(symbolName) &&
-                !Parser.SourceFile!.ImportedSymbols.TryAdd(symbolName, path))
+                !Parser.SourceFile!.ImportedSymbols.TryAdd(symbolName, resourcePath.GetText()[1..^1]))
             {
                 throw new SyntaxException($"'{symbolName}' is already declared in this scope.", context);
             }
@@ -44,21 +36,21 @@ public class AmethystParseListener : AmethystBaseListener
     {
         if (Parser.RegistryName != Constants.DATAPACK_FUNCTIONS_DIRECTORY)
         {
-            throw new SyntaxException("Runtime declarations must go inside the 'function' registry.", context);
+            throw new SyntaxException($"Runtime declarations must go inside the '{Constants.DATAPACK_FUNCTIONS_DIRECTORY}' registry.", context);
         }
 
         string? symbolName = null;
         if (context.function_declaration() is { } functionDeclarationContext)
         {
-            symbolName = functionDeclarationContext.identifier().GetText();
+            symbolName = functionDeclarationContext.IDENTIFIER().GetText();
         }
         else if (context.variable_declaration() is { } variableDeclarationContext)
         {
-            symbolName = variableDeclarationContext.identifier().GetText();
+            symbolName = variableDeclarationContext.IDENTIFIER().GetText();
         }
         else if (context.record_declaration() is { } recordDeclarationContext)
         {
-            symbolName = recordDeclarationContext.identifier().GetText();
+            symbolName = recordDeclarationContext.IDENTIFIER().GetText();
         }
         
         if (symbolName is null)
@@ -75,7 +67,7 @@ public class AmethystParseListener : AmethystBaseListener
 
     public override void ExitFunction_declaration(AmethystParser.Function_declarationContext context)
     {
-        var fnName = context.identifier().GetText();
+        var fnName = context.IDENTIFIER().GetText();
         if (fnName == null)
         {
             throw new SyntaxException("Expected function name.", context);
@@ -83,7 +75,7 @@ public class AmethystParseListener : AmethystBaseListener
 
         var attributesListContext = context.attribute_list();
         var attributes = attributesListContext.attribute()
-            .Select(attributeContext => attributeContext.identifier().GetText())
+            .Select(attributeContext => attributeContext.IDENTIFIER().GetText())
             .ToHashSet();
         
         var entryPointAttributes = new HashSet<string>

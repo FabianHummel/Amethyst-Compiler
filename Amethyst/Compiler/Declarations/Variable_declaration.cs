@@ -8,7 +8,12 @@ public partial class Compiler
 {
     public override object? VisitVariable_declaration(AmethystParser.Variable_declarationContext context)
     {
-        var variableName = context.identifier().GetText();
+        if (context.IDENTIFIER() is not { } variableNameContext)
+        {
+            throw new SyntaxException("Expected variable name.", context);
+        }
+        
+        var variableName = variableNameContext.GetText();
         
         if (Scope.TryGetSymbol(variableName, out _))
         {

@@ -7,7 +7,7 @@ namespace Amethyst;
 /// </summary>
 public interface IMemberAccess
 {
-    AbstractResult GetMember(string memberName, AmethystParser.IdentifierContext identifierContext);
+    AbstractResult GetMember(string memberName);
 }
 
 public partial class Compiler
@@ -21,18 +21,28 @@ public partial class Compiler
         
         var result = VisitPrimary_expression(primaryExpressionContext);
         
-        if (context.identifier() is not { } identifierContext)
+        if (context.IDENTIFIER() is not { } identifier)
         {
             throw new SyntaxException("Expected member identifier.", context);
         }
         
-        var memberName = identifierContext.GetText();
+        var memberName = identifier.GetText();
         
         if (result is not IMemberAccess memberAccess)
         {
             throw new SyntaxException($"Type '{result.DataType}' does not support member access.", primaryExpressionContext);
         }
 
-        return memberAccess.GetMember(memberName, identifierContext);
+        AbstractResult memberResult;
+        try
+        {
+            memberResult = memberAccess.GetMember(memberName);
+        }
+        catch (SemanticException e)
+        {
+            throw new SyntaxException(e.Message, context);
+        }
+        
+        return memberResult;
     }
 }

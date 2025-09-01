@@ -12,16 +12,16 @@ public partial class Compiler
 
         foreach (var recordSelectorElementContext in context.record_selector_element())
         {
-            if (recordSelectorElementContext.identifier() is not { } identifierContext)
+            if (recordSelectorElementContext.IDENTIFIER() is not { } identifier)
             {
                 throw new SyntaxException("Expected identifier.", recordSelectorElementContext);
             }
 
-            var recordName = identifierContext.GetText();
+            var recordName = identifier.GetText();
 
             if (!Scope.TryGetSymbol(recordName, out var symbol) || symbol is not Record record)
             {
-                throw new SyntaxException($"The record '{recordName}' does not exist in the current context.", identifierContext);
+                throw new SyntaxException($"The record '{recordName}' does not exist in the current context.", context);
             }
 
             SelectorQueryResult queryResult;
@@ -36,7 +36,7 @@ public partial class Compiler
             }
             else
             {
-                throw new SyntaxException("Expected numeric or range expression.", identifierContext);
+                throw new SyntaxException("Expected numeric or range expression.", context);
             }
             
             containsRuntimeValues |= queryResult.ContainsRuntimeValues;

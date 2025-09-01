@@ -13,7 +13,7 @@ public partial class Compiler
             throw new SyntaxException("Expected literal expression", context);
         }
         
-        if (literalContext.String_Literal() is { } stringLiteral)
+        if (literalContext.STRING_LITERAL() is { } stringLiteral)
         {
             return new StringConstant
             {
@@ -23,7 +23,7 @@ public partial class Compiler
             };
         }
         
-        if (literalContext.Decimal_Literal() is { } decimalLiteral)
+        if (literalContext.DECIMAL_LITERAL() is { } decimalLiteral)
         {
             if (!double.TryParse(decimalLiteral.Symbol.Text, out var result))
             {
@@ -46,7 +46,7 @@ public partial class Compiler
             };
         }
         
-        if (literalContext.Integer_Literal() is { } integerLiteral)
+        if (literalContext.INTEGER_LITERAL() is { } integerLiteral)
         {
             if (!int.TryParse(integerLiteral.Symbol.Text, out var result))
             {

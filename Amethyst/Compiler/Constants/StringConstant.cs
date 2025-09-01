@@ -56,7 +56,7 @@ public class StringConstant : ConstantValue<string>, IMemberAccess
         return Value;
     }
 
-    public AbstractResult GetMember(string memberName, AmethystParser.IdentifierContext identifierContext)
+    public AbstractResult GetMember(string memberName)
     {
         return memberName switch
         {
@@ -66,7 +66,7 @@ public class StringConstant : ConstantValue<string>, IMemberAccess
                 Context = Context,
                 Value = Value.Length
             },
-            _ => throw new SyntaxException($"Member '{memberName}' not found in string.", identifierContext)
+            _ => throw new SemanticException($"Member '{memberName}' not found in string.")
         };
     }
 }

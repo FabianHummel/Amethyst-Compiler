@@ -29,7 +29,7 @@ public partial class Compiler
     {
         if (context is AmethystParser.Expression_selectorContext expressionSelectorContext)
         {
-            if (expressionSelectorContext.identifier() is not { } identifierContext)
+            if (expressionSelectorContext.IDENTIFIER() is not { } identifier)
             {
                 throw new SyntaxException("Expected identifier.", context);
             }
@@ -39,7 +39,7 @@ public partial class Compiler
                 throw new SyntaxException("Expected expression.", context);
             }
 
-            var queryKey = identifierContext.GetText();
+            var queryKey = identifier.GetText();
 
             if (queryKey is "x" or "y" or "z" or "dx" or "dy" or "dz" or "distance" or "x_rotation" or "y_rotation")
             {
@@ -59,7 +59,7 @@ public partial class Compiler
 
         if (context is AmethystParser.Range_selectorContext rangeSelectorContext)
         {
-            if (rangeSelectorContext.identifier() is not { } identifierContext)
+            if (rangeSelectorContext.IDENTIFIER() is not { } identifier)
             {
                 throw new SyntaxException("Expected identifier.", context);
             }
@@ -69,7 +69,7 @@ public partial class Compiler
                 throw new SyntaxException("Expected range expression.", context);
             }
             
-            var queryKey = identifierContext.GetText();
+            var queryKey = identifier.GetText();
 
             if (queryKey is "distance" or "x_rotation" or "y_rotation")
             {
@@ -79,7 +79,7 @@ public partial class Compiler
 
         if (context is AmethystParser.Records_selectorContext recordsSelectorContext)
         {
-            if (recordsSelectorContext.identifier() is not { } identifierContext)
+            if (recordsSelectorContext.IDENTIFIER() is not { } identifier)
             {
                 throw new SyntaxException("Expected identifier.", context);
             }
@@ -89,7 +89,7 @@ public partial class Compiler
                 throw new SyntaxException("Expected record list.", context);
             }
             
-            var queryKey = identifierContext.GetText();
+            var queryKey = identifier.GetText();
 
             if (queryKey is "records")
             {

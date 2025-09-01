@@ -1,4 +1,4 @@
-var nice = 10;
+from `test:a` nice;
 
 [initializing]
 function main() {

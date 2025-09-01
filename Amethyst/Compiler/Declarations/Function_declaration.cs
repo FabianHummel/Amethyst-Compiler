@@ -13,7 +13,12 @@ public partial class Compiler
             throw new Exception($"Consider configuring the datapack in '{CONFIG_FILE}' in order to use functions.");
         }
         
-        var functionName = context.identifier().GetText();
+        if (context.IDENTIFIER() is not { } functionNameContext)
+        {
+            throw new SyntaxException("Expected function name.", context);
+        }
+        
+        var functionName = functionNameContext.GetText();
         
         if (Scope.TryGetSymbol(functionName, out _))
         {

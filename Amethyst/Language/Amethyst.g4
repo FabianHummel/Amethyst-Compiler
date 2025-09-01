@@ -9,7 +9,7 @@ file
  ;
  
 from
- : 'from' String_Literal String_Literal (',' String_Literal)* ';'
+ : 'from' RESOURCE_LITERAL IDENTIFIER (',' IDENTIFIER)* ';'
  ;
 
 declaration
@@ -19,15 +19,15 @@ declaration
  ;
  
 function_declaration
- : attribute_list 'function' identifier '(' parameter_list? ')' (':' type)? block
+ : attribute_list 'function' IDENTIFIER '(' parameter_list? ')' (':' type)? block
  ;
  
 variable_declaration
- : attribute_list 'var' identifier (':' type)? ('=' expression)? ';'
+ : attribute_list 'var' IDENTIFIER (':' type)? ('=' expression)? ';'
  ;
  
 record_declaration
- : attribute_list 'record' identifier (':' type)? ('=' expression)? ';'
+ : attribute_list 'record' IDENTIFIER (':' type)? ('=' expression)? ';'
  ;
  
 attribute_list
@@ -35,7 +35,7 @@ attribute_list
  ;
  
 attribute
- : identifier
+ : IDENTIFIER
  ;
  
 parameter_list
@@ -43,7 +43,7 @@ parameter_list
  ;
  
 parameter
- : identifier ':' type
+ : IDENTIFIER ':' type
  ;
  
 block
@@ -74,7 +74,7 @@ while_statement
  ;
  
 foreach_statement
- : 'foreach' '(' identifier ':' expression ')' block
+ : 'foreach' '(' IDENTIFIER ':' expression ')' block
  ;
 
 if_statement
@@ -86,7 +86,7 @@ debug_statement
  ;
  
 comment_statement
- : 'comment' String_Literal ';'
+ : 'comment' STRING_LITERAL ';'
  ;
  
 return_statement
@@ -153,9 +153,9 @@ primary_expression
  : literal                                      # literal_expression
  | group                                        # group_expression
  | selector_type ('[' selector_query_list ']')? # selector_expression
- | primary_expression '.' identifier            # member_access
+ | primary_expression '.' IDENTIFIER            # member_access
  | call                                         # call_expression
- | identifier                                   # identifier_expression
+ | IDENTIFIER                                   # identifier_expression
  | primary_expression '[' expression ']'        # indexed_access
  | primary_expression '++'                      # post_increment
  | primary_expression '--'                      # post_decrement
@@ -163,10 +163,10 @@ primary_expression
  
 literal
  : boolean_literal
- | Integer_Literal
- | Decimal_Literal
- | String_Literal
- | Resource_Literal
+ | INTEGER_LITERAL
+ | DECIMAL_LITERAL
+ | STRING_LITERAL
+ | RESOURCE_LITERAL
  | object_creation
  | array_creation
  ;
@@ -176,19 +176,19 @@ boolean_literal
  | 'false'
  ;
  
-Integer_Literal
+INTEGER_LITERAL
  : '0'..'9'+
  ;
  
-Decimal_Literal
+DECIMAL_LITERAL
  : '0'..'9'* '.' '0'..'9'+
  ;
  
-String_Literal
+STRING_LITERAL
  : '"' .*? '"'
  ;
  
-Resource_Literal
+RESOURCE_LITERAL
  : '`' .*? '`'
  ;
 
@@ -197,7 +197,7 @@ group
  ;
  
 call
- : identifier '(' argument_list? ')'
+ : IDENTIFIER '(' argument_list? ')'
  ;
  
 range_expression
@@ -210,9 +210,9 @@ selector_query_list
  ;
  
 selector_query
- : identifier '=' expression            # expression_selector
- | identifier '=' range_expression      # range_selector
- | identifier '=' record_selector_list  # records_selector
+ : IDENTIFIER '=' expression            # expression_selector
+ | IDENTIFIER '=' range_expression      # range_selector
+ | IDENTIFIER '=' record_selector_list  # records_selector
  ;
  
 record_selector_list
@@ -221,7 +221,7 @@ record_selector_list
  ;
  
 record_selector_element
- : identifier ':' (expression | range_expression)
+ : IDENTIFIER ':' (expression | range_expression)
  ;
  
 selector_type
@@ -251,15 +251,10 @@ array_creation
  | '[' (expression (',' expression)* )? ']'
  ;
  
-identifier
- : IDENTIFIER (':' IDENTIFIER ('/' IDENTIFIER)+ )   #absolute_identifier
- | IDENTIFIER ('/' IDENTIFIER)*                     #relative_identifier
- ;
- 
 type
  : ('int' | decimal | 'string' | 'bool' | 'array' | 'object') ('[]' | '{}')?
  ;
  
 decimal
- : 'dec' ('(' Integer_Literal ')')?
+ : 'dec' ('(' INTEGER_LITERAL ')')?
  ;
