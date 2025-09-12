@@ -29,31 +29,26 @@ public partial class Compiler : AmethystBaseVisitor<object?>
     
     public void CompileNamespace()
     {
-        if (Namespace.Registries.TryGetValue(Constants.DATAPACK_FUNCTIONS_DIRECTORY, out var functionRegistry))
+        foreach (var registry in Namespace.Registries.Values)
         {
-            foreach (var sourceFile in GetSourceFilesInFolder(functionRegistry))
-            {
-                SourceFile = sourceFile;
-                Scope = sourceFile.RootScope;
-                
-                foreach (var entryPoint in sourceFile.EntryPointFunctions.Values)
-                {
-                    VisitFunction_declaration(entryPoint);
-                }
-            }
-        }
-
-        foreach (var (registryName, registry) in Namespace.Registries)
-        {
-            if (registryName == Constants.DATAPACK_FUNCTIONS_DIRECTORY) continue;
             foreach (var sourceFile in GetSourceFilesInFolder(registry))
             {
                 SourceFile = sourceFile;
                 Scope = sourceFile.RootScope;
-                
-                foreach (var exportedSymbol in sourceFile.ExportedSymbols.Values)
+             
+                foreach (var entryPoint in sourceFile.EntryPointFunctions.Values)
                 {
-                    VisitDeclaration(exportedSymbol);
+                    VisitFunctionDeclaration(entryPoint);
+                }
+                
+                foreach (var (symbolName, symbol) in sourceFile.ExportedSymbols)
+                {
+                    if (Scope.Symbols.ContainsKey(symbolName))
+                    {
+                        continue;
+                    }
+                    
+                    VisitDeclaration(symbol);
                 }
             }
         }

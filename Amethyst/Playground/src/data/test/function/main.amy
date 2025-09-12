@@ -1,6 +1,5 @@
-from `test:a` nice;
-
 [initializing]
 function main() {
-    debug 30 + nice;
+    var a = 10 + 20 + 2 + true;
+    debug a;
 }

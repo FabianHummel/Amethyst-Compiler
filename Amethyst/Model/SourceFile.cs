@@ -9,5 +9,5 @@ public class SourceFile
     public required Scope RootScope { get; init; }
     public Dictionary<string, AmethystParser.DeclarationContext> ExportedSymbols { get; } = new();
     public Dictionary<string, string> ImportedSymbols { get; } = new();
-    public Dictionary<string, AmethystParser.Function_declarationContext> EntryPointFunctions { get; } = new();
+    public Dictionary<string, AmethystParser.FunctionDeclarationContext> EntryPointFunctions { get; } = new();
 }

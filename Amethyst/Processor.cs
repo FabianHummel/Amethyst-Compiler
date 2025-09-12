@@ -34,6 +34,11 @@ public class Processor
         catch (Exception e)
         {
             PrintError(e.Message);
+            
+            if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
+            {
+                PrintError(e.StackTrace ?? string.Empty);
+            }
         }
     }
 

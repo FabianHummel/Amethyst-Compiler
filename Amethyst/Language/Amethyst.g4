@@ -13,24 +13,24 @@ from
  ;
 
 declaration
- : function_declaration
- | variable_declaration
- | record_declaration
+ : functionDeclaration
+ | variableDeclaration
+ | recordDeclaration
  ;
  
-function_declaration
- : attribute_list 'function' IDENTIFIER '(' parameter_list? ')' (':' type)? block
+functionDeclaration
+ : attributeList 'function' IDENTIFIER '(' parameterList? ')' (':' type)? block
  ;
  
-variable_declaration
- : attribute_list 'var' IDENTIFIER (':' type)? ('=' expression)? ';'
+variableDeclaration
+ : attributeList 'var' IDENTIFIER (':' type)? ('=' expression)? ';'
  ;
  
-record_declaration
- : attribute_list 'record' IDENTIFIER (':' type)? ('=' expression)? ';'
+recordDeclaration
+ : attributeList 'record' IDENTIFIER (':' type)? ('=' expression)? ';'
  ;
  
-attribute_list
+attributeList
  : ('[' attribute (',' attribute)* ']')*
  ;
  
@@ -38,7 +38,7 @@ attribute
  : IDENTIFIER
  ;
  
-parameter_list
+parameterList
  : parameter (',' parameter)*
  ;
  
@@ -52,126 +52,95 @@ block
  
 statement
  : declaration
- | for_statement
- | while_statement
- | foreach_statement
- | if_statement
- | debug_statement
- | comment_statement
- | return_statement
- | break_statement
- | continue_statement
+ | forStatement
+ | whileStatement
+ | foreachStatement
+ | ifStatement
+ | debugStatement
+ | commentStatement
+ | returnStatement
+ | breakStatement
+ | continueStatement
  | block
- | expression_statement
+ | expressionStatement
  ;
 
-for_statement
- : 'for' '(' (variable_declaration | expression_statement)? expression? ';' expression? ')' block
+forStatement
+ : 'for' '(' (variableDeclaration | expressionStatement)? expression? ';' expression? ')' block
  ;
  
-while_statement
+whileStatement
  : 'while' '(' expression ')' block
  ;
  
-foreach_statement
+foreachStatement
  : 'foreach' '(' IDENTIFIER ':' expression ')' block
  ;
 
-if_statement
- : 'if' '(' expression ')' block ('else' (block | if_statement))?
+ifStatement
+ : 'if' '(' expression ')' block ('else' (block | ifStatement))?
  ;
  
-debug_statement
+debugStatement
  : 'debug' expression ';'
  ;
  
-comment_statement
+commentStatement
  : 'comment' STRING_LITERAL ';'
  ;
  
-return_statement
+returnStatement
  : 'return' expression? ';'
  ;
  
-break_statement
+breakStatement
  : 'break' ';'
  ;
 
-continue_statement
+continueStatement
  : 'continue' ';'
  ;
  
-expression_statement
- : expression ';'
+expressionStatement
+ : assignment ';'
+ ;
+
+assignment
+ : expression ('=' | '+=' | '-=' | '*=' | '/=' | '%=') expression            # assignmentExpression
+ | expression '++'                                                           # incrementExpression
+ | expression '--'                                                           # decrementExpression
+ | expression                                                                # baseExpression
  ;
 
 expression
- : conditional_expression
- | assignment_expression
- ;
- 
-assignment_expression
- : unary_expression ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' ) expression
- ;
- 
-conditional_expression
- : or_expression
- ;
- 
-or_expression
- : and_expression ( '||' and_expression )*
- ;
- 
-and_expression
- : equality_expression ( '&&' equality_expression )*
- ;
- 
-equality_expression
- : comparison_expression ( ( '==' | '!=' ) comparison_expression )*
- ;
-
-comparison_expression
- : term_expression ( ( '<' | '<=' | '>' | '>=' ) term_expression )*
- ;
- 
-term_expression
- : factor_expression ( ( '+' | '-' ) factor_expression )*
- ;
- 
-factor_expression
- : unary_expression ( ( '*' | '/' | '%' ) unary_expression )*
- ;
- 
-unary_expression
- : primary_expression
- | '++' unary_expression
- | '--' unary_expression
- | ( '+' | '-' | '!' ) unary_expression
- ;
- 
-primary_expression
- : literal                                      # literal_expression
- | group                                        # group_expression
- | selector_type ('[' selector_query_list ']')? # selector_expression
- | primary_expression '.' IDENTIFIER            # member_access
- | call                                         # call_expression
- | IDENTIFIER                                   # identifier_expression
- | primary_expression '[' expression ']'        # indexed_access
- | primary_expression '++'                      # post_increment
- | primary_expression '--'                      # post_decrement
+ : selectorType ('[' selectorQueryList ']')?            # selectorExpression
+ | IDENTIFIER '(' argumentList? ')'                     # callExpression            // TODO:;
+ | expression '.' IDENTIFIER                            # memberExpression
+ | expression '[' expression ']'                        # indexExpression
+ | expression ('*' | '/' | '%') expression              # factorExpression
+ | expression ('+' | '-') expression                    # termExpression
+ | expression ('<' | '<=' | '>' | '>=') expression      # comparisonExpression
+ | expression ('==' | '!=') expression                  # equalityExpression
+ | expression '&&' expression                           # conjunctionExpression
+ | expression '||' expression                           # disjunctionExpression
+ | '-' expression                                       # negationExpression        // TODO:
+ | '!' expression                                       # inversionExpression       // TODO:
+ | group                                                # groupedExpression
+ | literal                                              # literalExpression
+ | IDENTIFIER                                           # identifierExpression
  ;
  
 literal
- : boolean_literal
+ : booleanLiteral
  | INTEGER_LITERAL
  | DECIMAL_LITERAL
  | STRING_LITERAL
  | RESOURCE_LITERAL
- | object_creation
- | array_creation
+ | objectCreation
+ | arrayCreation
  ;
  
-boolean_literal
+booleanLiteral
  : 'true'
  | 'false'
  ;
@@ -196,35 +165,31 @@ group
  : '(' expression ')'
  ;
  
-call
- : IDENTIFIER '(' argument_list? ')'
- ;
- 
-range_expression
+rangeExpression
  : expression '..' expression?
  | expression? '..' expression
  ; 
 
-selector_query_list
- : selector_query (',' selector_query)*
+selectorQueryList
+ : selectorQuery (',' selectorQuery)*
  ;
  
-selector_query
- : IDENTIFIER '=' expression            # expression_selector
- | IDENTIFIER '=' range_expression      # range_selector
- | IDENTIFIER '=' record_selector_list  # records_selector
+selectorQuery
+ : IDENTIFIER '=' expression                # expressionSelector
+ | IDENTIFIER '=' rangeExpression           # rangeSelector
+ | IDENTIFIER '=' recordSelectorList        # recordsSelector
  ;
  
-record_selector_list
+recordSelectorList
  : '{}'
- | '{' (record_selector_element (',' record_selector_element)*)? '}'
+ | '{' (recordSelectorElement (',' recordSelectorElement)*)? '}'
  ;
  
-record_selector_element
- : IDENTIFIER ':' (expression | range_expression)
+recordSelectorElement
+ : IDENTIFIER ':' (expression | rangeExpression)
  ;
  
-selector_type
+selectorType
  : '@s'
  | '@r'
  | '@a'
@@ -233,20 +198,20 @@ selector_type
  | '@n'
  ;
  
-argument_list
+argumentList
  : expression (',' expression)*
  ;
   
-object_creation
+objectCreation
  : '{}'
- | '{' (object_element (',' object_element)*)? '}'
+ | '{' (objectElement (',' objectElement)*)? '}'
  ;
  
-object_element
+objectElement
  : IDENTIFIER ':' expression
  ;
 
-array_creation
+arrayCreation
  : '[]'
  | '[' (expression (',' expression)* )? ']'
  ;

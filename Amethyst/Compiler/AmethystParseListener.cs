@@ -40,15 +40,15 @@ public class AmethystParseListener : AmethystBaseListener
         }
 
         string? symbolName = null;
-        if (context.function_declaration() is { } functionDeclarationContext)
+        if (context.functionDeclaration() is { } functionDeclarationContext)
         {
             symbolName = functionDeclarationContext.IDENTIFIER().GetText();
         }
-        else if (context.variable_declaration() is { } variableDeclarationContext)
+        else if (context.variableDeclaration() is { } variableDeclarationContext)
         {
             symbolName = variableDeclarationContext.IDENTIFIER().GetText();
         }
-        else if (context.record_declaration() is { } recordDeclarationContext)
+        else if (context.recordDeclaration() is { } recordDeclarationContext)
         {
             symbolName = recordDeclarationContext.IDENTIFIER().GetText();
         }
@@ -65,7 +65,7 @@ public class AmethystParseListener : AmethystBaseListener
         }
     }
 
-    public override void ExitFunction_declaration(AmethystParser.Function_declarationContext context)
+    public override void ExitFunctionDeclaration(AmethystParser.FunctionDeclarationContext context)
     {
         var fnName = context.IDENTIFIER().GetText();
         if (fnName == null)
@@ -73,7 +73,7 @@ public class AmethystParseListener : AmethystBaseListener
             throw new SyntaxException("Expected function name.", context);
         }
 
-        var attributesListContext = context.attribute_list();
+        var attributesListContext = context.attributeList();
         var attributes = attributesListContext.attribute()
             .Select(attributeContext => attributeContext.IDENTIFIER().GetText())
             .ToHashSet();
