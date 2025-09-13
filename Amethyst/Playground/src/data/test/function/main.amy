@@ -1,5 +1,6 @@
 [initializing]
 function main() {
-    var a = 10 + 20 + 2 + true;
+    var x = false;
+    var a = x && true && true;
     debug a;
 }

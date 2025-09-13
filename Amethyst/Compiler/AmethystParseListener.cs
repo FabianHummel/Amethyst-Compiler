@@ -5,12 +5,27 @@ namespace Amethyst;
 public class AmethystParseListener : AmethystBaseListener
 {
     private Parser Parser { get; }
+    private int _depth;
     
     public AmethystParseListener(Parser parser)
     {
         Parser = parser;
     }
+
+    public override void EnterBlock(AmethystParser.BlockContext context)
+    {
+        _depth++;
+    }
     
+    public override void ExitBlock(AmethystParser.BlockContext context)
+    {
+        _depth--;
+        if (_depth < 0)
+        {
+            throw new SyntaxException("Mismatched block depth.", context);
+        }
+    }
+
     public override void ExitFrom(AmethystParser.FromContext context)
     {
         if (context.RESOURCE_LITERAL() is not { } resourcePath)
@@ -56,6 +71,11 @@ public class AmethystParseListener : AmethystBaseListener
         if (symbolName is null)
         {
             throw new SyntaxException("Could not determine symbol name for declaration.", context);
+        }
+        
+        if (_depth > 0)
+        {
+            return; // Only register top-level declarations
         }
         
         if (!Parser.SourceFile!.ExportedSymbols.TryAdd(symbolName, context) && 
