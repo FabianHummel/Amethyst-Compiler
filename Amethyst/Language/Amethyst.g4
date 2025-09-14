@@ -5,11 +5,109 @@ COMMENT: '#' ~[\r\n]* -> skip;
 IDENTIFIER: [a-zA-Z] [a-zA-Z0-9_]*;
 
 file
- : from* declaration* EOF
+ : preprocessor* EOF
  ;
  
-from
- : 'from' RESOURCE_LITERAL IDENTIFIER (',' IDENTIFIER)* ';'
+preprocessor
+ : preprocessorFromDeclaration
+ | preprocessorStatement
+ ;
+
+preprocessorFromDeclaration
+ : 'FROM' RESOURCE_LITERAL IDENTIFIER (',' IDENTIFIER)* ';'
+ ;
+
+preprocessorStatement
+ : preprocessorYieldingStatement
+ | declaration
+ ;
+ 
+preprocessorYieldingStatement
+ : preprocessorDeclaration
+ | preprocessorIfStatement
+ | preprocessorForStatement
+ | preprocessorReturnStatement
+ | preprocessorYieldStatement
+ | preprocessorDebugStatement
+ | preprocessorExpressionStatement
+ ;
+ 
+preprocessorDeclaration
+ : preprocessorVariableDeclaration
+ ;
+ 
+preprocessorVariableDeclaration
+ : 'VAR' IDENTIFIER (':' preprocessorType)? ('=' preprocessorExpression)? ';'
+ ;
+ 
+preprocessorIfStatement
+ : 'IF' '(' preprocessorExpression ')' preprocessorBlock ('ELSE' (preprocessorBlock | preprocessorIfStatement))?
+ ;
+ 
+preprocessorForStatement
+ : 'FOR' '(' (preprocessorVariableDeclaration | preprocessorExpressionStatement)? preprocessorExpression? ';' preprocessorAssignment? ')' preprocessorBlock
+ ;
+ 
+preprocessorBlock
+ : '{' preprocessorStatement* '}'
+ ;
+ 
+preprocessorReturnStatement
+ : 'RETURN' preprocessorExpression? ';'
+ ;
+
+preprocessorYieldStatement
+ : 'YIELD' (recordSelectorList | selectorQueryList | objectElementList | arrayElementList) ';'
+ ;
+ 
+preprocessorDebugStatement
+ : 'DEBUG' preprocessorExpression ';'
+ ;
+ 
+preprocessorExpressionStatement
+ : preprocessorAssignment ';'
+ ;
+ 
+preprocessorAssignment
+ : preprocessorExpression ('=' | '+=' | '-=' | '*=' | '/=' | '%=') preprocessorExpression   # preprocessorAssignmentExpression
+ | preprocessorExpression '++'                                                              # preprocessorIncrementExpression
+ | preprocessorExpression '--'                                                              # preprocessorDecrementExpression
+ | preprocessorExpression                                                                   # preprocessorBaseExpression
+ ;
+
+preprocessorExpression
+ : IDENTIFIER '(' preprocessorArgumentList? ')'                                 # preprocessorCallExpression
+ | preprocessorExpression ('*' | '/' | '%') preprocessorExpression              # preprocessorFactorExpression
+ | preprocessorExpression ('+' | '-') preprocessorExpression                    # preprocessorTermExpression
+ | preprocessorExpression ('<' | '<=' | '>' | '>=') preprocessorExpression      # preprocessorComparisonExpression
+ | preprocessorExpression ('==' | '!=') preprocessorExpression                  # preprocessorEqualityExpression
+ | preprocessorExpression '&&' preprocessorExpression                           # preprocessorConjunctionExpression
+ | preprocessorExpression '||' preprocessorExpression                           # preprocessorDisjunctionExpression
+ | '-' preprocessorExpression                                                   # preprocessorNegationExpression
+ | '!' preprocessorExpression                                                   # preprocessorInversionExpression
+ | preprocessorGroup                                                            # preprocessorGroupedExpression
+ | preprocessorLiteral                                                          # preprocessorLiteralExpression
+ | IDENTIFIER                                                                   # preprocessorIdentifierExpression
+ ;
+ 
+preprocessorArgumentList
+ : preprocessorExpression (',' preprocessorExpression)*
+ ;
+ 
+preprocessorGroup
+ : '(' preprocessorExpression ')'
+ ;
+ 
+preprocessorLiteral
+ : booleanLiteral
+ | INTEGER_LITERAL
+ | DECIMAL_LITERAL
+ | STRING_LITERAL
+ | RESOURCE_LITERAL
+ ;
+
+preprocessorType
+ : 'BOOL' | 'INT' | 'DEC' | 'STRING' | 'RESOURCE'
  ;
 
 declaration
@@ -66,7 +164,7 @@ statement
  ;
 
 forStatement
- : 'for' '(' (variableDeclaration | expressionStatement)? expression? ';' expression? ')' block
+ : 'for' '(' (variableDeclaration | expressionStatement)? expression? ';' assignment? ')' block
  ;
  
 whileStatement
@@ -113,8 +211,7 @@ assignment
  ;
 
 expression
- : selectorType ('[' selectorQueryList ']')?            # selectorExpression
- | IDENTIFIER '(' argumentList? ')'                     # callExpression            // TODO:;
+ : IDENTIFIER '(' argumentList? ')'                     # callExpression            // TODO:
  | expression '.' IDENTIFIER                            # memberExpression
  | expression '[' expression ']'                        # indexExpression
  | expression ('*' | '/' | '%') expression              # factorExpression
@@ -130,19 +227,26 @@ expression
  | IDENTIFIER                                           # identifierExpression
  ;
  
+argumentList
+ : expression (',' expression)*
+ ;
+ 
+group
+ : '(' expression ')'
+ ;
+ 
 literal
  : booleanLiteral
  | INTEGER_LITERAL
  | DECIMAL_LITERAL
  | STRING_LITERAL
- | RESOURCE_LITERAL
+ | selectorCreation
  | objectCreation
  | arrayCreation
  ;
  
 booleanLiteral
- : 'true'
- | 'false'
+ : 'true' | 'false'
  ;
  
 INTEGER_LITERAL
@@ -160,51 +264,53 @@ STRING_LITERAL
 RESOURCE_LITERAL
  : '`' .*? '`'
  ;
-
-group
- : '(' expression ')'
- ;
  
 rangeExpression
  : expression '..' expression?
  | expression? '..' expression
- ; 
+ ;
 
+selectorCreation
+ : selectorType ('[' selectorQueryList? ']')?
+ ;
+ 
+selectorType
+ : '@s' | '@r' | '@a' | '@e' | '@p' | '@n'
+ ;
+  
 selectorQueryList
- : selectorQuery (',' selectorQuery)*
+ : preprocessorYieldingStatement
+ | ( selectorQuery ','? )+
  ;
  
 selectorQuery
  : IDENTIFIER '=' expression                # expressionSelector
  | IDENTIFIER '=' rangeExpression           # rangeSelector
- | IDENTIFIER '=' recordSelectorList        # recordsSelector
+ | IDENTIFIER '=' recordSelector            # recordsSelector
+ ;
+ 
+recordSelector
+ : '{}'
+ | '{' recordSelectorList? '}'
  ;
  
 recordSelectorList
- : '{}'
- | '{' (recordSelectorElement (',' recordSelectorElement)*)? '}'
+ : preprocessorYieldingStatement
+ | ( recordSelectorElement ','? )+
  ;
  
 recordSelectorElement
  : IDENTIFIER ':' (expression | rangeExpression)
  ;
- 
-selectorType
- : '@s'
- | '@r'
- | '@a'
- | '@e'
- | '@p'
- | '@n'
- ;
- 
-argumentList
- : expression (',' expression)*
- ;
   
 objectCreation
  : '{}'
- | '{' (objectElement (',' objectElement)*)? '}'
+ | '{' objectElementList? '}'
+ ;
+ 
+objectElementList
+ : preprocessorYieldingStatement
+ | ( objectElement ','? )+
  ;
  
 objectElement
@@ -213,11 +319,16 @@ objectElement
 
 arrayCreation
  : '[]'
- | '[' (expression (',' expression)* )? ']'
+ | '[' arrayElementList? ']'
+ ;
+ 
+arrayElementList
+ : preprocessorYieldingStatement
+ | ( expression ','? )+
  ;
  
 type
- : ('int' | decimal | 'string' | 'bool' | 'array' | 'object') ('[]' | '{}')?
+ : ('bool' | 'int' | decimal | 'string' | 'array' | 'object') ('[]' | '{}')?
  ;
  
 decimal
