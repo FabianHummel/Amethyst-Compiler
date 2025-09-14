@@ -5,7 +5,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public SelectorQueryResult VisitTags_selector(AmethystParser.ExpressionContext context)
+    public SelectorQueryResult VisitTagsSelector(AmethystParser.ExpressionContext context)
     {
         var result = VisitExpression(context);
 

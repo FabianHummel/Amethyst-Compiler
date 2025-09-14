@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
 
@@ -7,6 +6,11 @@ namespace Amethyst;
 public partial class Compiler
 {
     public override AbstractResult VisitObjectCreation(AmethystParser.ObjectCreationContext context)
+    {
+        return VisitObjectElementList(context.objectElementList());
+    }
+
+    public override AbstractResult VisitObjectElementList(AmethystParser.ObjectElementListContext context)
     {
         var objectElementContexts = context.objectElement();
         

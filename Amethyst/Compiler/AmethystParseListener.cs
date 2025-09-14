@@ -26,7 +26,7 @@ public class AmethystParseListener : AmethystBaseListener
         }
     }
 
-    public override void ExitFrom(AmethystParser.FromContext context)
+    public override void ExitPreprocessorFromDeclaration(AmethystParser.PreprocessorFromDeclarationContext context)
     {
         if (context.RESOURCE_LITERAL() is not { } resourcePath)
         {

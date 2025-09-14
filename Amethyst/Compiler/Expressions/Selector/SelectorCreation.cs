@@ -6,7 +6,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override AbstractResult VisitSelectorExpression(AmethystParser.SelectorExpressionContext context)
+    public override AbstractResult VisitSelectorCreation(AmethystParser.SelectorCreationContext context)
     {
         var selectorTypeContext = context.selectorType();
         var selector = VisitSelectorType(selectorTypeContext);
@@ -19,6 +19,12 @@ public partial class Compiler
         
         if (context.selectorQueryList() is { } selectorQueryListContext)
         {
+            if (selectorQueryListContext.preprocessorYieldingStatement() is { } preprocessorYieldingStatementContext)
+            {
+                var result = VisitPreprocessorYieldingStatement(preprocessorYieldingStatementContext);
+                // TODO: Validate and aggregate selector queries and return them
+            }
+        
             foreach (var selectorQueryContext in selectorQueryListContext.selectorQuery())
             {
                 var selectorQuery = VisitSelectorQuery(selectorQueryContext);

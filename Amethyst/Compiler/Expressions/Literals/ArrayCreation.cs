@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
 
@@ -8,6 +7,17 @@ public partial class Compiler
 {
     public override AbstractResult VisitArrayCreation(AmethystParser.ArrayCreationContext context)
     {
+        return VisitArrayElementList(context.arrayElementList());
+    }
+    
+    public override AbstractResult VisitArrayElementList(AmethystParser.ArrayElementListContext context)
+    {
+        if (context.preprocessorYieldingStatement() is { } preprocessorYieldingStatementContext)
+        {
+            var result = VisitPreprocessorYieldingStatement(preprocessorYieldingStatementContext);
+            // TODO: Validate that the result is an array and return it
+        }
+        
         var expressionContexts = context.expression();
         
         DataType? dataType = null;

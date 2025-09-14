@@ -1,6 +1,6 @@
 [initializing]
 function main() {
-    var x = false;
-    var a = x && true && true;
-    debug a;
+    FOR (VAR i = 0; i < 10; i++) {
+        debug $i;
+    }
 }

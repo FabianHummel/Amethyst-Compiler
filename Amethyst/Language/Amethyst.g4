@@ -19,7 +19,7 @@ preprocessorFromDeclaration
 
 preprocessorStatement
  : preprocessorYieldingStatement
- | declaration
+ | statement
  ;
  
 preprocessorYieldingStatement
@@ -41,15 +41,11 @@ preprocessorVariableDeclaration
  ;
  
 preprocessorIfStatement
- : 'IF' '(' preprocessorExpression ')' preprocessorBlock ('ELSE' (preprocessorBlock | preprocessorIfStatement))?
+ : 'IF' '(' preprocessorExpression ')' block ('ELSE' (block | preprocessorIfStatement))?
  ;
  
 preprocessorForStatement
- : 'FOR' '(' (preprocessorVariableDeclaration | preprocessorExpressionStatement)? preprocessorExpression? ';' preprocessorAssignment? ')' preprocessorBlock
- ;
- 
-preprocessorBlock
- : '{' preprocessorStatement* '}'
+ : 'FOR' '(' (preprocessorVariableDeclaration | preprocessorExpressionStatement)? preprocessorExpression? ';' preprocessorAssignment? ')' block
  ;
  
 preprocessorReturnStatement
@@ -145,7 +141,7 @@ parameter
  ;
  
 block
- : '{' statement* '}'
+ : '{' preprocessorStatement* '}'
  ;
  
 statement
@@ -286,10 +282,10 @@ selectorQueryList
 selectorQuery
  : IDENTIFIER '=' expression                # expressionSelector
  | IDENTIFIER '=' rangeExpression           # rangeSelector
- | IDENTIFIER '=' recordSelector            # recordsSelector
+ | IDENTIFIER '=' recordSelectorCreation    # recordSelector
  ;
  
-recordSelector
+recordSelectorCreation
  : '{}'
  | '{' recordSelectorList? '}'
  ;

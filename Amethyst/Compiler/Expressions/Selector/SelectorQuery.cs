@@ -46,7 +46,7 @@ public partial class Compiler
 
             if (queryKey is "tags")
             {
-                return VisitTags_selector(expressionContext);
+                return VisitTagsSelector(expressionContext);
             }
         }
 
@@ -62,15 +62,15 @@ public partial class Compiler
             }
         }
 
-        if (context is AmethystParser.RecordsSelectorContext recordsSelectorContext)
+        if (context is AmethystParser.RecordSelectorContext recordSelectorContext)
         {
-            var identifier = recordsSelectorContext.IDENTIFIER();
+            var identifier = recordSelectorContext.IDENTIFIER();
             var queryKey = identifier.GetText();
 
             if (queryKey is "records")
             {
-                var recordSelectorListContext = recordsSelectorContext.recordSelectorList();
-                return VisitRecordSelectorList(recordSelectorListContext);
+                var recordSelectorCreationContext = recordSelectorContext.recordSelectorCreation();
+                return VisitRecordSelectorCreation(recordSelectorCreationContext);
             }
         }
 

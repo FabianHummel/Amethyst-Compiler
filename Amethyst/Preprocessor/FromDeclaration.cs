@@ -4,7 +4,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override object? VisitFrom(AmethystParser.FromContext context)
+    public override object? VisitPreprocessorFromDeclaration(AmethystParser.PreprocessorFromDeclarationContext context)
     {
         if (context.RESOURCE_LITERAL() is not { } resourcePath)
         {
