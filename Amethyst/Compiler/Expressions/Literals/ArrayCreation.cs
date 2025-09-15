@@ -7,45 +7,17 @@ public partial class Compiler
 {
     public override AbstractResult VisitArrayCreation(AmethystParser.ArrayCreationContext context)
     {
-        return VisitArrayElementList(context.arrayElementList());
-    }
-    
-    public override AbstractResult VisitArrayElementList(AmethystParser.ArrayElementListContext context)
-    {
-        if (context.preprocessorYieldingStatement() is { } preprocessorYieldingStatementContext)
-        {
-            var result = VisitPreprocessorYieldingStatement(preprocessorYieldingStatementContext);
-            // TODO: Validate that the result is an array and return it
-        }
-        
-        var expressionContexts = context.expression();
-        
         DataType? dataType = null;
-        
-        var dynamic = false;
-
+        var isDynamic = false;
         var elements = new List<AbstractResult>();
-        
-        foreach (var expressionContext in expressionContexts)
+
+        var arrayElementContexts = context.arrayElement();
+        ProcessArrayElements(arrayElementContexts);
+
+        if (dataType == null)
         {
-            var result = VisitExpression(expressionContext);
-            
-            // if the initial data type differs from the current data type, we need to make the array dynamic
-            if (!dynamic && dataType != null && dataType != result.DataType)
-            {
-                dynamic = true;
-            }
-
-            // set the initial data type if it is not set yet
-            if (!dynamic)
-            {
-                dataType ??= result.DataType;
-            }
-            
-            elements.Add(result);
+            isDynamic = true;
         }
-
-        var isDynamic = dynamic || dataType == null;
         
         if (elements.All(element => element is ConstantValue))
         {
@@ -108,5 +80,44 @@ public partial class Compiler
             Substitutions = substitutions,
             BasicType = dataType!.BasicType
         };
+
+        List<AbstractResult> ProcessArrayElements(IEnumerable<ArrayElementContext> arrayElementContexts)
+        {
+            foreach (var arrayElementContext in arrayElementContexts)
+            {
+                if (arrayElementContext.preprocessorYieldingStatement() is { } preprocessorYieldingStatementContext)
+                {
+                    var result = VisitPreprocessorYieldingStatement<ArrayElementContext>(preprocessorYieldingStatementContext);
+                    ProcessArrayElements(result);
+                }
+                else if (arrayElementContext.expression() is { } expressionContext)
+                {
+                    var result = VisitExpression(expressionContext);
+                
+                    // if the initial data type differs from the current data type, we need to make the array dynamic
+                    if (!isDynamic && dataType != null && dataType != result.DataType)
+                    {
+                        isDynamic = true;
+                    }
+
+                    // set the initial data type if it is not set yet
+                    if (!isDynamic)
+                    {
+                        dataType ??= result.DataType;
+                    }
+                    
+                    elements.Add(result);
+                }
+            }
+        }
+    }
+    
+    public override AbstractResult VisitArrayElementList(AmethystParser.ArrayElementListContext context)
+    {
+        if (context.preprocessorYieldingStatement() is { } preprocessorYieldingStatementContext)
+        {
+            var result = VisitPreprocessorYieldingStatement(preprocessorYieldingStatementContext);
+            // TODO: Validate that the result is an array and return it
+        }
     }
 }

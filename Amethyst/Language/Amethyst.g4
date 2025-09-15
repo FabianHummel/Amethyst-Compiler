@@ -267,19 +267,19 @@ rangeExpression
  ;
 
 selectorCreation
- : selectorType ('[' selectorQueryList? ']')?
+ : selectorType ('[' ( selectorElement ','? )* ']')?
  ;
- 
+
 selectorType
  : '@s' | '@r' | '@a' | '@e' | '@p' | '@n'
  ;
-  
-selectorQueryList
+
+selectorElement
  : preprocessorYieldingStatement
- | ( selectorQuery ','? )+
+ | selectorKvp
  ;
  
-selectorQuery
+selectorKvp
  : IDENTIFIER '=' expression                # expressionSelector
  | IDENTIFIER '=' rangeExpression           # rangeSelector
  | IDENTIFIER '=' recordSelectorCreation    # recordSelector
@@ -287,40 +287,39 @@ selectorQuery
  
 recordSelectorCreation
  : '{}'
- | '{' recordSelectorList? '}'
+ | '{' ( recordSelectorElement ','? )* '}'
  ;
- 
-recordSelectorList
- : preprocessorYieldingStatement
- | ( recordSelectorElement ','? )+
- ;
- 
+
 recordSelectorElement
+ : preprocessorYieldingStatement
+ | recordSelectorKvp
+ ;
+ 
+recordSelectorKvp
  : IDENTIFIER ':' (expression | rangeExpression)
  ;
   
 objectCreation
  : '{}'
- | '{' objectElementList? '}'
+ | '{' ( objectElement ','? )* '}'
  ;
- 
-objectElementList
- : preprocessorYieldingStatement
- | ( objectElement ','? )+
- ;
- 
+
 objectElement
+ : preprocessorYieldingStatement
+ | objectKvp
+
+objectKvp
  : IDENTIFIER ':' expression
  ;
 
 arrayCreation
  : '[]'
- | '[' arrayElementList? ']'
+ | '[' ( arrayElement ','? )* ']'
  ;
- 
-arrayElementList
+
+arrayElement
  : preprocessorYieldingStatement
- | ( expression ','? )+
+ | expression
  ;
  
 type
