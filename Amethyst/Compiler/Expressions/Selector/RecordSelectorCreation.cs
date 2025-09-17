@@ -7,31 +7,34 @@ public partial class Compiler
 {
     public override SelectorQueryResult VisitRecordSelectorCreation(AmethystParser.RecordSelectorCreationContext context)
     {
-        return VisitRecordSelectorList(context.recordSelectorList());
-    }
-
-    public override SelectorQueryResult VisitRecordSelectorList(AmethystParser.RecordSelectorListContext context)
-    {
-        var records = new List<string>();
+        var recordSelectors = new List<string>();
         var containsRuntimeValues = false;
 
-        if (context.preprocessorYieldingStatement() is { } preprocessorYieldingStatementContext)
-        {
-            var result = VisitPreprocessorYieldingStatement(preprocessorYieldingStatementContext);
-            // TODO: Validate that the result is a record selector and return it
-        }
-        
-        foreach (var recordSelectorElementContext in context.recordSelectorElement())
-        {
-            var queryResult = VisitRecordSelectorElement(recordSelectorElementContext);
-            containsRuntimeValues |= queryResult.ContainsRuntimeValues;
-            records.Add(queryResult.ToString());
-        }
+        var recordSelectorElementContexts = context.recordSelectorElement();
+        ProcessRecordSelectorElements(recordSelectorElementContexts);
 
-        return new SelectorQueryResult("records", $"scores={{{string.Join(",", records)}}}", containsRuntimeValues);
+        return new SelectorQueryResult("records", $"scores={{{string.Join(",", recordSelectors)}}}", containsRuntimeValues);
+        
+        void ProcessRecordSelectorElements(IEnumerable<AmethystParser.RecordSelectorElementContext> recordSelectorElementContexts)
+        {
+            foreach (var recordSelectorElementContext in recordSelectorElementContexts)
+            {
+                if (recordSelectorElementContext.preprocessorYieldingStatement() is { } preprocessorYieldingStatementContext)
+                {
+                    var result = VisitPreprocessorYieldingStatement<AmethystParser.RecordSelectorElementContext>(preprocessorYieldingStatementContext);
+                    ProcessRecordSelectorElements(result);
+                }
+                else if (recordSelectorElementContext.recordSelectorKvp() is { } recordSelectorKvpContext)
+                {
+                    var queryResult = VisitRecordSelectorKvp(recordSelectorKvpContext);
+                    containsRuntimeValues |= queryResult.ContainsRuntimeValues;
+                    recordSelectors.Add(queryResult.ToString());
+                }
+            }
+        }
     }
 
-    public override SelectorQueryResult VisitRecordSelectorElement(AmethystParser.RecordSelectorElementContext context)
+    public override SelectorQueryResult VisitRecordSelectorKvp(AmethystParser.RecordSelectorKvpContext context)
     {
         var identifier = context.IDENTIFIER();
         var recordName = identifier.GetText();

@@ -7,39 +7,12 @@ public partial class Compiler
 {
     public override AbstractResult VisitObjectCreation(AmethystParser.ObjectCreationContext context)
     {
-        return VisitObjectElementList(context.objectElementList());
-    }
-
-    public override AbstractResult VisitObjectElementList(AmethystParser.ObjectElementListContext context)
-    {
-        var objectElementContexts = context.objectElement();
-        
         DataType? dataType = null;
-        
         var dynamic = false;
-        
         var map = new Dictionary<string, AbstractResult>();
-
-        foreach (var objectElementContext in objectElementContexts)
-        {
-            var key = objectElementContext.IDENTIFIER().Symbol.Text;
-            
-            var result = VisitExpression(objectElementContext.expression());
-            
-            // if the initial data type differs from the current data type, we need to make the array dynamic
-            if (!dynamic && dataType != null && dataType != result.DataType)
-            {
-                dynamic = true;
-            }
-
-            // set the initial data type if it is not set yet
-            if (!dynamic)
-            {
-                dataType ??= result.DataType;
-            }
-            
-            map.Add(key, result);
-        }
+        
+        var objectElementContexts = context.objectElement();
+        ProcessObjectElements(objectElementContexts);
         
         var isDynamic = dynamic || dataType == null;
         
@@ -104,5 +77,36 @@ public partial class Compiler
             Substitutions = substitutions,
             BasicType = dataType!.BasicType
         };
+        
+        void ProcessObjectElements(IEnumerable<AmethystParser.ObjectElementContext> objectElementContexts)
+        {
+            foreach (var objectElementContext in objectElementContexts)
+            {
+                if (objectElementContext.preprocessorYieldingStatement() is { } preprocessorYieldingStatementContext)
+                {
+                    var result = VisitPreprocessorYieldingStatement<AmethystParser.ObjectElementContext>(preprocessorYieldingStatementContext);
+                    ProcessObjectElements(result);
+                }
+                else if (objectElementContext.objectKvp() is { } objectKvpContext)
+                {
+                    var key = objectKvpContext.IDENTIFIER().Symbol.Text;
+                    var result = VisitExpression(objectKvpContext.expression());
+            
+                    // if the initial data type differs from the current data type, we need to make the array dynamic
+                    if (!dynamic && dataType != null && dataType != result.DataType)
+                    {
+                        dynamic = true;
+                    }
+
+                    // set the initial data type if it is not set yet
+                    if (!dynamic)
+                    {
+                        dataType ??= result.DataType;
+                    }
+            
+                    map.Add(key, result);
+                }
+            }
+        }
     }
 }

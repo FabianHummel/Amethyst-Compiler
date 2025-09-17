@@ -81,13 +81,13 @@ public partial class Compiler
             BasicType = dataType!.BasicType
         };
 
-        List<AbstractResult> ProcessArrayElements(IEnumerable<ArrayElementContext> arrayElementContexts)
+        void ProcessArrayElements(IEnumerable<AmethystParser.ArrayElementContext> arrayElementContexts)
         {
             foreach (var arrayElementContext in arrayElementContexts)
             {
                 if (arrayElementContext.preprocessorYieldingStatement() is { } preprocessorYieldingStatementContext)
                 {
-                    var result = VisitPreprocessorYieldingStatement<ArrayElementContext>(preprocessorYieldingStatementContext);
+                    var result = VisitPreprocessorYieldingStatement<AmethystParser.ArrayElementContext>(preprocessorYieldingStatementContext);
                     ProcessArrayElements(result);
                 }
                 else if (arrayElementContext.expression() is { } expressionContext)
@@ -109,15 +109,6 @@ public partial class Compiler
                     elements.Add(result);
                 }
             }
-        }
-    }
-    
-    public override AbstractResult VisitArrayElementList(AmethystParser.ArrayElementListContext context)
-    {
-        if (context.preprocessorYieldingStatement() is { } preprocessorYieldingStatementContext)
-        {
-            var result = VisitPreprocessorYieldingStatement(preprocessorYieldingStatementContext);
-            // TODO: Validate that the result is an array and return it
         }
     }
 }

@@ -16,29 +16,9 @@ public partial class Compiler
         AbstractResult? limitExpression = null;
 
         var sp = StackPointer;
-        
-        if (context.selectorQueryList() is { } selectorQueryListContext)
-        {
-            if (selectorQueryListContext.preprocessorYieldingStatement() is { } preprocessorYieldingStatementContext)
-            {
-                var result = VisitPreprocessorYieldingStatement(preprocessorYieldingStatementContext);
-                // TODO: Validate and aggregate selector queries and return them
-            }
-        
-            foreach (var selectorQueryContext in selectorQueryListContext.selectorQuery())
-            {
-                var selectorQuery = VisitSelectorQuery(selectorQueryContext);
 
-                if (queryList.ContainsKey(selectorQuery.QueryKey))
-                {
-                    throw new SyntaxException($"Duplicate selector '{selectorQuery.QueryKey}'.", selectorQueryContext);
-                }
-                
-                containsRuntimeValues |= selectorQuery.ContainsRuntimeValues;
-                limitExpression ??= selectorQuery.LimitExpression;
-                queryList.Add(selectorQuery.QueryKey, selectorQuery.QueryString);
-            }
-        }
+        var selectorElementContexts = context.selectorElement();
+        ProcessSelectorElements(selectorElementContexts);
         
         var selectorString = $"{selector.GetMcfOperatorSymbol()}{QueryListToString(queryList)}";
 
@@ -50,7 +30,7 @@ public partial class Compiler
             
             var scope = EvaluateScoped("_create_selector", _ =>
             {
-                result = CreateSelector(true);
+                result = CreateSelector(isMacroInvocation: true);
             });
             
             AddCode($"function {scope.McFunctionPath} with storage amethyst:");
@@ -59,6 +39,31 @@ public partial class Compiler
         }
 
         return CreateSelector();
+
+        void ProcessSelectorElements(IEnumerable<AmethystParser.SelectorElementContext> selectorElementContexts)
+        {
+            foreach (var selectorElementContext in selectorElementContexts)
+            {
+                if (selectorElementContext.preprocessorYieldingStatement() is { } preprocessorYieldingStatementContext)
+                {
+                    var result = VisitPreprocessorYieldingStatement<AmethystParser.SelectorElementContext>(preprocessorYieldingStatementContext);
+                    ProcessSelectorElements(result);
+                }
+                else if (selectorElementContext.selectorKvp() is { } selectorKvpContext)
+                {
+                    var queryResult = VisitSelectorKvp(selectorKvpContext);
+
+                    if (queryList.ContainsKey(queryResult.QueryKey))
+                    {
+                        throw new SyntaxException($"Duplicate selector '{queryResult.QueryKey}'.", selectorKvpContext);
+                    }
+                
+                    containsRuntimeValues |= queryResult.ContainsRuntimeValues;
+                    limitExpression ??= queryResult.LimitExpression;
+                    queryList.Add(queryResult.QueryKey, queryResult.QueryString);
+                }
+            }
+        }
 
         AbstractResult CreateSelector(bool isMacroInvocation = false)
         {
@@ -99,6 +104,58 @@ public partial class Compiler
                 IsTemporary = true
             };
         }
+    }
+    
+    public override SelectorQueryResult VisitSelectorKvp(AmethystParser.SelectorKvpContext context)
+    {
+        if (context is AmethystParser.ExpressionSelectorContext expressionSelectorContext)
+        {
+            var identifier = expressionSelectorContext.IDENTIFIER();
+            var queryKey = identifier.GetText();
+            
+            var expressionContext = expressionSelectorContext.expression();
+
+            if (queryKey is "x" or "y" or "z" or "dx" or "dy" or "dz" or "distance" or "x_rotation" or "y_rotation")
+            {
+                return VisitNumericSelector(queryKey, expressionContext, allowDecimals: true);
+            }
+
+            if (queryKey is "tag")
+            {
+                return VisitStringSelector(queryKey, expressionContext);
+            }
+
+            if (queryKey is "tags")
+            {
+                return VisitTagsSelector(expressionContext);
+            }
+        }
+
+        if (context is AmethystParser.RangeSelectorContext rangeSelectorContext)
+        {
+            var identifier = rangeSelectorContext.IDENTIFIER();
+            var queryKey = identifier.GetText();
+            
+            if (queryKey is "distance" or "x_rotation" or "y_rotation")
+            {
+                var rangeExpressionContext = rangeSelectorContext.rangeExpression();
+                return VisitRangeSelector(queryKey, rangeExpressionContext, allowDecimals: true);
+            }
+        }
+
+        if (context is AmethystParser.RecordSelectorContext recordSelectorContext)
+        {
+            var identifier = recordSelectorContext.IDENTIFIER();
+            var queryKey = identifier.GetText();
+
+            if (queryKey is "records")
+            {
+                var recordSelectorCreationContext = recordSelectorContext.recordSelectorCreation();
+                return VisitRecordSelectorCreation(recordSelectorCreationContext);
+            }
+        }
+
+        throw new SyntaxException("Invalid selector.", context);
     }
 
     public new static TargetSelector VisitSelectorType(AmethystParser.SelectorTypeContext context)

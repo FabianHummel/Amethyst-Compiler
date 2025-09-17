@@ -53,7 +53,7 @@ preprocessorReturnStatement
  ;
 
 preprocessorYieldStatement
- : 'YIELD' (recordSelectorList | selectorQueryList | objectElementList | arrayElementList) ';'
+ : 'YIELD' (selectorElement | recordSelectorElement | objectElement | arrayElement) ';'
  ;
  
 preprocessorDebugStatement
@@ -307,6 +307,7 @@ objectCreation
 objectElement
  : preprocessorYieldingStatement
  | objectKvp
+ ;
 
 objectKvp
  : IDENTIFIER ':' expression

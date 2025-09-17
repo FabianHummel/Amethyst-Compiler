@@ -25,58 +25,6 @@ public partial class Compiler
         }
     }
     
-    public new SelectorQueryResult VisitSelectorQuery(AmethystParser.SelectorQueryContext context)
-    {
-        if (context is AmethystParser.ExpressionSelectorContext expressionSelectorContext)
-        {
-            var identifier = expressionSelectorContext.IDENTIFIER();
-            var queryKey = identifier.GetText();
-            
-            var expressionContext = expressionSelectorContext.expression();
-
-            if (queryKey is "x" or "y" or "z" or "dx" or "dy" or "dz" or "distance" or "x_rotation" or "y_rotation")
-            {
-                return VisitNumericSelector(queryKey, expressionContext, allowDecimals: true);
-            }
-
-            if (queryKey is "tag")
-            {
-                return VisitStringSelector(queryKey, expressionContext);
-            }
-
-            if (queryKey is "tags")
-            {
-                return VisitTagsSelector(expressionContext);
-            }
-        }
-
-        if (context is AmethystParser.RangeSelectorContext rangeSelectorContext)
-        {
-            var identifier = rangeSelectorContext.IDENTIFIER();
-            var queryKey = identifier.GetText();
-            
-            if (queryKey is "distance" or "x_rotation" or "y_rotation")
-            {
-                var rangeExpressionContext = rangeSelectorContext.rangeExpression();
-                return VisitRangeSelector(queryKey, rangeExpressionContext, allowDecimals: true);
-            }
-        }
-
-        if (context is AmethystParser.RecordSelectorContext recordSelectorContext)
-        {
-            var identifier = recordSelectorContext.IDENTIFIER();
-            var queryKey = identifier.GetText();
-
-            if (queryKey is "records")
-            {
-                var recordSelectorCreationContext = recordSelectorContext.recordSelectorCreation();
-                return VisitRecordSelectorCreation(recordSelectorCreationContext);
-            }
-        }
-
-        throw new SyntaxException("Invalid selector.", context);
-    }
-    
     public SelectorQueryResult VisitNumericSelector(string queryKey, AmethystParser.ExpressionContext context, bool allowDecimals)
     {
         var result = VisitExpression(context);
