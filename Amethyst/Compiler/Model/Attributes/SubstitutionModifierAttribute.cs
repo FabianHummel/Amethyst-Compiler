@@ -1,4 +1,4 @@
-namespace Amethyst.Model.Attributes;
+namespace Amethyst.Model;
 
 [AttributeUsage(AttributeTargets.Field)]
 public class SubstitutionModifierAttribute : Attribute

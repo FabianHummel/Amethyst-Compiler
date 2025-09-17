@@ -1,5 +1,3 @@
-using Amethyst.Model.Attributes;
-
 namespace Amethyst.Model;
 
 public enum ComparisonOperator

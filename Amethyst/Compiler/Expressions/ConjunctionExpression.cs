@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using Amethyst.Language;
+using static Amethyst.Utility.ParserUtility;
 
 namespace Amethyst;
 

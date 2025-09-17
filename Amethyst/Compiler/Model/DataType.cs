@@ -1,4 +1,3 @@
-using Amethyst.Model.Attributes;
 using Amethyst.Utility;
 
 namespace Amethyst.Model;

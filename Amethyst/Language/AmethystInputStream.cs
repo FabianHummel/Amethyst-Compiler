@@ -1,7 +1,7 @@
 using Amethyst.Model;
 using Antlr4.Runtime;
 
-namespace Amethyst.Utility;
+namespace Amethyst;
 
 public class AmethystInputStream : AntlrInputStream
 {

@@ -4,5 +4,5 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    internal YieldingScope YieldingScope { get; set; }
+    internal YieldingScope YieldingScope { get; set; } = null!;
 }

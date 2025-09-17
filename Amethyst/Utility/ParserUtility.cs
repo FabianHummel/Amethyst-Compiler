@@ -1,8 +1,8 @@
-namespace Amethyst;
+namespace Amethyst.Utility;
 
-public partial class Compiler
+public static class ParserUtility
 {
-    private static IEnumerable<TParent> FlattenParserRules<TParent, TTarget>(TParent ctx, Func<TTarget, TParent[]> getChildren) 
+    public static IEnumerable<TParent> FlattenParserRules<TParent, TTarget>(TParent ctx, Func<TTarget, TParent[]> getChildren) 
         where TTarget : TParent
     {
         if (ctx is TTarget targetContext)

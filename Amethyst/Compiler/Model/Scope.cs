@@ -111,5 +111,7 @@ public class Scope : IDisposable
         File.AppendAllText(FilePath, _writer.ToString());
         
         _writer.Dispose();
+        
+        GC.SuppressFinalize(this);
     }
 }

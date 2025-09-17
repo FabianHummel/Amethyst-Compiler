@@ -6,21 +6,12 @@ public partial class Compiler
 {
     public override object? VisitPreprocessorFromDeclaration(AmethystParser.PreprocessorFromDeclarationContext context)
     {
-        if (context.RESOURCE_LITERAL() is not { } resourcePath)
-        {
-            throw new SyntaxException("Expected resource path for the import path.", context);
-        }
-
-        var resource = VisitResource(resourcePath.GetText(), Constants.DATAPACK_FUNCTIONS_DIRECTORY);
+        var resourcePath = context.RESOURCE_LITERAL().GetText()[1..^1];
+        var resource = VisitResource(resourcePath, Constants.DATAPACK_FUNCTIONS_DIRECTORY);
 
         var symbols = context.IDENTIFIER()
             .Select(s => s.GetText())
             .ToList();
-
-        if (symbols.Count == 0)
-        {
-            throw new SyntaxException("Expected at least one symbol to import.", context);
-        }
         
         foreach (var symbol in symbols)
         {

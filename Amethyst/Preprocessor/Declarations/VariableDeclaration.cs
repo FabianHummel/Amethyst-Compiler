@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
 
@@ -5,7 +6,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override object? VisitVariableDeclaration(AmethystParser.VariableDeclarationContext context)
+    public override object? VisitPreprocessorVariableDeclaration(AmethystParser.PreprocessorVariableDeclarationContext context)
     {
         if (context.IDENTIFIER() is not { } variableNameContext)
         {
@@ -19,21 +20,19 @@ public partial class Compiler
             throw new SyntaxException($"The symbol '{variableName}' has already been declared.", context);
         }
         
-        if (context.expression() is not { } expressionContext)
+        if (context.preprocessorExpression() is not { } preprocessorExpressionContext)
         {
-            throw new SyntaxException("Expected expression.", context);
+            throw new SyntaxException("Expected preprocessor expression.", context);
         }
-        
-        var result = VisitExpression(expressionContext).ToRuntimeValue();
 
-        var name = result.Location;
+        var result = VisitPreprocessorExpression(preprocessorExpressionContext);
         
-        DataType? type = null;
+        PreprocessorDataType? type = null;
         
         // if a type is defined, set the type to the defined type
-        if (context.type() is { } typeContext)
+        if (context.preprocessorType() is { } preprocessorTypeContext)
         {
-            type = VisitType(typeContext);
+            type = VisitPreprocessorType(preprocessorTypeContext);
         }
         // if both types are defined, check if they match
         if (type != null && result != null && type != result.DataType)
@@ -50,14 +49,11 @@ public partial class Compiler
         {
             type = result.DataType;
         }
-
-        var attributes = VisitAttributeList(context.attributeList());
-
-        Scope.Symbols.Add(variableName, new Variable
+        
+        Scope.Symbols.Add(variableName, new PreprocessorVariable
         {
-            Location = name,
             DataType = type!,
-            Attributes = attributes
+            Value = result!
         });
         
         return null;
