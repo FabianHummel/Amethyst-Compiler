@@ -21,16 +21,14 @@ public partial class Compiler
 
         using var scope = new LoopingScope(this);
 
-        while(result.AsBoolean && maxIterations-- > 0)
+        scope.Run(() =>
         {
-            VisitBlock(context.block());
-            result = VisitPreprocessorExpression(context.preprocessorExpression());
-
-            if (scope.IsCancelled)
+            while(result.AsBoolean && maxIterations-- > 0)
             {
-                break;
+                VisitBlock(context.block());
+                result = VisitPreprocessorExpression(context.preprocessorExpression());
             }
-        }
+        });
 
         return null;
     }

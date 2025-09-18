@@ -27,6 +27,7 @@ preprocessorYieldingStatement
  | preprocessorIfStatement
  | preprocessorForStatement
  | preprocessorReturnStatement
+ | preprocessorBreakStatement
  | preprocessorYieldStatement
  | preprocessorDebugStatement
  | preprocessorExpressionStatement
@@ -50,6 +51,10 @@ preprocessorForStatement
  
 preprocessorReturnStatement
  : 'RETURN' preprocessorExpression? ';'
+ ;
+
+preprocessorBreakStatement
+ : 'BREAK' ';'
  ;
 
 preprocessorYieldStatement

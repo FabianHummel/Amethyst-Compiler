@@ -4,10 +4,13 @@ namespace Amethyst.Model;
 
 public class LoopingScope : IDisposable
 {
+    private class BreakException : Exception
+    {
+        
+    }
+
     private readonly Compiler _compiler;
     private readonly LoopingScope _previousScope;
-    
-    public bool IsCancelled { get; private set; } = false;
     
     public LoopingScope(Compiler compiler)
     {
@@ -15,9 +18,21 @@ public class LoopingScope : IDisposable
         _previousScope = compiler.LoopingScope;
     }
 
+    public void Run(Action cb)
+    {
+        try
+        {
+            cb();
+        }
+        catch (BreakException ex)
+        {
+            return;
+        }
+    }
+
     public void Break()
     {
-        IsCancelled = true;
+        throw new BreakException();
     }
 
     public void Dispose()
