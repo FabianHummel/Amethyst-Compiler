@@ -5,7 +5,7 @@ namespace Amethyst.Model;
 public class YieldingScope : IDisposable
 {
     private readonly Compiler _compiler;
-    private readonly YieldingScope _previousYieldingScope;
+    private readonly YieldingScope _previousScope;
     private readonly Type _allowedType;
     
     public List<ParserRuleContext> Result { get; } = new();
@@ -14,7 +14,7 @@ public class YieldingScope : IDisposable
     {
         _compiler = compiler;
         _allowedType = allowedType;
-        _previousYieldingScope = compiler.YieldingScope;
+        _previousScope = compiler.YieldingScope;
     }
 
     public void Yield(ParserRuleContext context)
@@ -29,7 +29,7 @@ public class YieldingScope : IDisposable
 
     public void Dispose()
     {
-        _compiler.YieldingScope = _previousYieldingScope;
+        _compiler.YieldingScope = _previousScope;
         
         GC.SuppressFinalize(this);
     }

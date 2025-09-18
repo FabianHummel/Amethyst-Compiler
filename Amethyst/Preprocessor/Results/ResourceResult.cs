@@ -8,4 +8,6 @@ public class PreprocessorResourceResult : PreprocessorResult<string>
     {
         BasicType = BasicPreprocessorType.Resource
     };
+
+    public override bool AsBoolean => throw new SyntaxException("Cannot interpret a resource path to a boolean value.", Context);
 }

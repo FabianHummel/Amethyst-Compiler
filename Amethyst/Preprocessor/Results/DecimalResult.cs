@@ -8,4 +8,6 @@ public class PreprocessorDecimalResult : PreprocessorResult<double>
     {
         BasicType = BasicPreprocessorType.Dec
     };
+
+    public override bool AsBoolean => Value != 0.0d;
 }

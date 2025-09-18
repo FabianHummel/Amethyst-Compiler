@@ -8,4 +8,6 @@ public class PreprocessorStringResult : PreprocessorResult<string>
     {
         BasicType = BasicPreprocessorType.String
     };
+
+    public override bool AsBoolean => !Value.IsNullOrEmpty();
 }

@@ -8,4 +8,6 @@ public class PreprocessorIntegerResult : PreprocessorResult<int>
     {
         BasicType = BasicPreprocessorType.Int
     };
+
+    public override bool AsBoolean => Value != 0;
 }

@@ -8,4 +8,6 @@ public class PreprocessorBooleanResult : PreprocessorResult<bool>
     {
         BasicType = BasicPreprocessorType.Bool
     };
+
+    public override bool AsBoolean => Value;
 }
