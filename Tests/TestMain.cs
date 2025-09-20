@@ -13,7 +13,6 @@ namespace Tests;
 public static class TestMain
 {
     private static readonly Processor _amethyst = new();
-    private static readonly MinecraftServerSettings _settings = new();
     private static readonly Process _process;
     private static readonly MinecraftClient _rcon;
     public static readonly Random _random = new();
@@ -25,18 +24,18 @@ public static class TestMain
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .AddJsonFile("appsettings.Development.json", optional: true)
             .Build();
-        
-        configuration.GetSection("MinecraftServer").Bind(_settings);
+
+        var settings = configuration.GetValue<MinecraftServerSettings>("MinecraftServer");
         
         var serverProperties = Path.Combine(Environment.CurrentDirectory, "server.properties");
         File.WriteAllText(serverProperties, File.ReadAllText(serverProperties, Encoding.UTF8)
-            .Replace("{RCON_PASSWORD}", _settings.RconPassword)
-            .Replace("{RCON_PORT}", _settings.RconPort.ToString()));
+            .Replace("{RCON_PASSWORD}", settings.RconPassword)
+            .Replace("{RCON_PORT}", settings.RconPort.ToString()));
         
         var serverStartInfo = new ProcessStartInfo
         {
             FileName = "java",
-            Arguments = $"-Xmx1024M -Xms1024M -jar \"{_settings.JarPath}\" nogui",
+            Arguments = $"-Xmx1024M -Xms1024M -jar \"{settings.JarPath}\" nogui",
             WorkingDirectory = Environment.CurrentDirectory,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -52,7 +51,7 @@ public static class TestMain
         connect:
         try
         {
-            _rcon = new MinecraftClient(_settings.RconHost, _settings.RconPort);
+            _rcon = new MinecraftClient(settings.RconHost, settings.RconPort);
         }
         catch (SocketException e)
         {
@@ -61,7 +60,7 @@ public static class TestMain
             goto connect;
         }
 
-        if (!_rcon.Authenticate(_settings.RconPassword))
+        if (!_rcon.Authenticate(settings.RconPassword))
         {
             Console.Error.WriteLine("Failed to authenticate with RCON server.");
             throw new Exception("Failed to authenticate with RCON server.");

@@ -1,32 +1,25 @@
-using Antlr4.Runtime;
-
 namespace Amethyst.Model;
 
 public class LoopingScope : IDisposable
 {
-    private class BreakException : Exception
-    {
-        
-    }
+    private class BreakException : Exception;
 
     private readonly Compiler _compiler;
     private readonly LoopingScope _previousScope;
     
-    public LoopingScope(Compiler compiler)
+    public LoopingScope(Compiler compiler, Action cb)
     {
         _compiler = compiler;
         _previousScope = compiler.LoopingScope;
-    }
-
-    public void Run(Action cb)
-    {
+        compiler.LoopingScope = this;
+        
         try
         {
             cb();
         }
-        catch (BreakException ex)
+        catch (BreakException)
         {
-            return;
+            // Swallow
         }
     }
 

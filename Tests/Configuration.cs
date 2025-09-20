@@ -2,8 +2,8 @@ namespace Tests;
 
 public class MinecraftServerSettings
 {
-    public string JarPath { get; set; }
-    public string RconHost { get; set; }
-    public int RconPort { get; set; }
-    public string RconPassword { get; set; }
+    public required string JarPath { get; init; }
+    public required string RconHost { get; init; }
+    public required int RconPort { get; init; }
+    public required string RconPassword { get; init; }
 }

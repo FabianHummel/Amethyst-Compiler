@@ -10,4 +10,11 @@ public class PreprocessorBooleanResult : PreprocessorResult<bool>
     };
 
     public override bool AsBoolean => Value;
+    
+    public override int AsInteger => Value ? 1 : 0;
+
+    public override string ToString()
+    {
+        return Value ? "true" : "false";
+    }
 }

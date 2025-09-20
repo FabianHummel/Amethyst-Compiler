@@ -1,4 +1,5 @@
 using Amethyst.Language;
+using Amethyst.Model;
 
 namespace Amethyst;
 
@@ -6,11 +7,11 @@ public partial class Compiler
 {
     public override object? VisitPreprocessorForStatement(AmethystParser.PreprocessorForStatementContext context)
     {
-        if (context.preprocessorVariableDeclaration() is PreprocessorVariableDeclaration preprocessorVariableDeclarationContext)
+        if (context.preprocessorVariableDeclaration() is { } preprocessorVariableDeclarationContext)
         {
             VisitPreprocessorVariableDeclaration(preprocessorVariableDeclarationContext);
         }
-        else if (context.preprocessorExpressionStatement() is PreprocessorExpressionStatement preprocessorExpressionStatementContext)
+        else if (context.preprocessorExpressionStatement() is { } preprocessorExpressionStatementContext)
         {
             VisitPreprocessorExpressionStatement(preprocessorExpressionStatementContext);
         }
@@ -19,9 +20,7 @@ public partial class Compiler
 
         var maxIterations = 10_000_000;
 
-        using var scope = new LoopingScope(this);
-
-        scope.Run(() =>
+        using var scope = new LoopingScope(this, () =>
         {
             while(result.AsBoolean && maxIterations-- > 0)
             {

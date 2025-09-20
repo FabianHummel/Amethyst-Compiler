@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
 using Amethyst.Utility;
@@ -12,8 +11,8 @@ public partial class Compiler
         var expressionContexts = context.expression();
         var left = VisitExpression(expressionContexts[0]);
         var right = VisitExpression(expressionContexts[1]);
+        
         var operatorToken = context.GetChild(1).GetText();
-
         var op = Enum.GetValues<ArithmeticOperator>()
             .First(op => op.GetAmethystOperatorSymbol() == operatorToken);
 

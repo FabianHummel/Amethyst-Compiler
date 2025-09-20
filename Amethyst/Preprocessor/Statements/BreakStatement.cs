@@ -8,7 +8,7 @@ public partial class Compiler
     {
         if (LoopingScope is not { } scope)
         {
-            throw new SyntaxException("Can only break within a loop context.", context);
+            throw new SyntaxException("Can only break within enclosing loop.", context);
         }
 
         scope.Break();

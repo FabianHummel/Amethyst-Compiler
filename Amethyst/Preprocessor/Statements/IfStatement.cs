@@ -13,11 +13,13 @@ public partial class Compiler
         {
             return VisitBlock(blockContexts[0]);
         }
-        else if (blockContexts.Length == 2)
+        
+        if (blockContexts.Length == 2)
         {
             return VisitBlock(blockContexts[1]);
         }
-        else if (context.preprocessorIfStatement() is PreprocessorIfStatementContext preprocessorIfStatementContext)
+        
+        if (context.preprocessorIfStatement() is { } preprocessorIfStatementContext)
         {
             return VisitPreprocessorIfStatement(preprocessorIfStatementContext);
         }

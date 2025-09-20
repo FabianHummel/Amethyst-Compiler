@@ -9,5 +9,12 @@ public class PreprocessorStringResult : PreprocessorResult<string>
         BasicType = BasicPreprocessorType.String
     };
 
-    public override bool AsBoolean => !Value.IsNullOrEmpty();
+    public override bool AsBoolean => !string.IsNullOrEmpty(Value);
+
+    public override int AsInteger => Value.Length;
+
+    public override string ToString()
+    {
+        return Value;
+    }
 }
