@@ -41,6 +41,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Playground\output\" />
+      <Folder Include="Compiler\Utility\" />
+      <Folder Include="Playground\output\Test Project\data\test\" />
+      <Folder Include="Playground\src\" />
+      <Folder Include="Resources\resourcepack\assets\" />
     </ItemGroup>
 </Project>

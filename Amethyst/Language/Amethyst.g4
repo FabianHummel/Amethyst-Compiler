@@ -5,264 +5,333 @@ COMMENT: '#' ~[\r\n]* -> skip;
 IDENTIFIER: [a-zA-Z] [a-zA-Z0-9_]*;
 
 file
- : namespace_declaration? declaration* EOF
+ : preprocessor* EOF
  ;
  
-namespace_declaration
- : 'namespace' identifier ';'
+preprocessor
+ : preprocessorFromDeclaration
+ | preprocessorStatement
  ;
 
-declaration
- : function_declaration
+preprocessorFromDeclaration
+ : 'FROM' RESOURCE_LITERAL IDENTIFIER (',' IDENTIFIER)* ';'
+ ;
+
+preprocessorStatement
+ : preprocessorYieldingStatement
  | statement
  ;
  
-function_declaration
- : attribute_list 'function' identifier '(' parameter_list? ')' (':' type)? block
+preprocessorYieldingStatement
+ : preprocessorDeclaration
+ | preprocessorIfStatement
+ | preprocessorForStatement
+ | preprocessorReturnStatement
+ | preprocessorBreakStatement
+ | preprocessorYieldStatement
+ | preprocessorDebugStatement
+ | preprocessorExpressionStatement
  ;
  
-attribute_list
+preprocessorDeclaration
+ : preprocessorVariableDeclaration
+ ;
+ 
+preprocessorVariableDeclaration
+ : 'VAR' IDENTIFIER (':' preprocessorType)? ('=' preprocessorExpression)? ';'
+ ;
+ 
+preprocessorIfStatement
+ : 'IF' '(' preprocessorExpression ')' block ('ELSE' (block | preprocessorIfStatement))?
+ ;
+ 
+preprocessorForStatement
+ : 'FOR' '(' (preprocessorVariableDeclaration | preprocessorExpressionStatement)? preprocessorExpression? ';' preprocessorAssignment? ')' block
+ ;
+ 
+preprocessorReturnStatement
+ : 'RETURN' preprocessorExpression? ';'
+ ;
+
+preprocessorBreakStatement
+ : 'BREAK' ';'
+ ;
+
+preprocessorYieldStatement
+ : 'YIELD' (selectorElement | recordSelectorElement | objectElement | arrayElement) ';'
+ ;
+ 
+preprocessorDebugStatement
+ : 'DEBUG' preprocessorExpression ';'
+ ;
+ 
+preprocessorExpressionStatement
+ : preprocessorAssignment ';'
+ ;
+ 
+preprocessorAssignment
+ : preprocessorExpression ('=' | '+=' | '-=' | '*=' | '/=' | '%=') preprocessorExpression   # preprocessorAssignmentExpression
+ | preprocessorExpression '++'                                                              # preprocessorIncrementExpression
+ | preprocessorExpression '--'                                                              # preprocessorDecrementExpression
+ | preprocessorExpression                                                                   # preprocessorBaseExpression
+ ;
+
+preprocessorExpression
+ : IDENTIFIER '(' preprocessorArgumentList? ')'                                 # preprocessorCallExpression
+ | preprocessorExpression ('*' | '/' | '%') preprocessorExpression              # preprocessorFactorExpression
+ | preprocessorExpression ('+' | '-') preprocessorExpression                    # preprocessorTermExpression
+ | preprocessorExpression ('<' | '<=' | '>' | '>=') preprocessorExpression      # preprocessorComparisonExpression
+ | preprocessorExpression ('==' | '!=') preprocessorExpression                  # preprocessorEqualityExpression
+ | preprocessorExpression '&&' preprocessorExpression                           # preprocessorConjunctionExpression
+ | preprocessorExpression '||' preprocessorExpression                           # preprocessorDisjunctionExpression
+ | '-' preprocessorExpression                                                   # preprocessorNegationExpression
+ | '!' preprocessorExpression                                                   # preprocessorInversionExpression
+ | preprocessorGroup                                                            # preprocessorGroupedExpression
+ | preprocessorLiteral                                                          # preprocessorLiteralExpression
+ | IDENTIFIER                                                                   # preprocessorIdentifierExpression
+ ;
+ 
+preprocessorArgumentList
+ : preprocessorExpression (',' preprocessorExpression)*
+ ;
+ 
+preprocessorGroup
+ : '(' preprocessorExpression ')'
+ ;
+ 
+preprocessorLiteral
+ : booleanLiteral
+ | INTEGER_LITERAL
+ | DECIMAL_LITERAL
+ | STRING_LITERAL
+ | RESOURCE_LITERAL
+ ;
+
+preprocessorType
+ : 'BOOL' | 'INT' | 'DEC' | 'STRING' | 'RESOURCE'
+ ;
+
+declaration
+ : functionDeclaration
+ | variableDeclaration
+ | recordDeclaration
+ ;
+ 
+functionDeclaration
+ : attributeList 'function' IDENTIFIER '(' parameterList? ')' (':' type)? block
+ ;
+ 
+variableDeclaration
+ : attributeList 'var' IDENTIFIER (':' type)? ('=' expression)? ';'
+ ;
+ 
+recordDeclaration
+ : attributeList 'record' IDENTIFIER (':' type)? ('=' expression)? ';'
+ ;
+ 
+attributeList
  : ('[' attribute (',' attribute)* ']')*
  ;
  
 attribute
- : identifier
+ : IDENTIFIER
  ;
  
-parameter_list
+parameterList
  : parameter (',' parameter)*
  ;
  
 parameter
- : identifier ':' type
+ : IDENTIFIER ':' type
  ;
  
 block
- : '{' statement* '}'
+ : '{' preprocessorStatement* '}'
  ;
  
 statement
- : variable_declaration
- | record_declaration
- | for_statement
- | while_statement
- | foreach_statement
- | if_statement
- | debug_statement
- | comment_statement
- | return_statement
- | break_statement
- | continue_statement
+ : declaration
+ | forStatement
+ | whileStatement
+ | foreachStatement
+ | ifStatement
+ | debugStatement
+ | commentStatement
+ | returnStatement
+ | breakStatement
+ | continueStatement
  | block
- | expression_statement
- ;
- 
-variable_declaration
- : attribute_list 'var' identifier (':' type)? ('=' expression)? ';'
- ;
- 
-record_declaration
- : attribute_list 'record' identifier (':' type)? ('=' expression)? ';'
+ | expressionStatement
  ;
 
-for_statement
- : 'for' '(' (variable_declaration | expression_statement)? expression? ';' expression? ')' block
+forStatement
+ : 'for' '(' (variableDeclaration | expressionStatement)? expression? ';' assignment? ')' block
  ;
  
-while_statement
+whileStatement
  : 'while' '(' expression ')' block
  ;
  
-foreach_statement
- : 'foreach' '(' identifier ':' expression ')' block
+foreachStatement
+ : 'foreach' '(' IDENTIFIER ':' expression ')' block
  ;
 
-if_statement
- : 'if' '(' expression ')' block ('else' (block | if_statement))?
+ifStatement
+ : 'if' '(' expression ')' block ('else' (block | ifStatement))?
  ;
  
-debug_statement
+debugStatement
  : 'debug' expression ';'
  ;
  
-comment_statement
- : 'comment' String_Literal ';'
+commentStatement
+ : 'comment' STRING_LITERAL ';'
  ;
  
-return_statement
+returnStatement
  : 'return' expression? ';'
  ;
  
-break_statement
+breakStatement
  : 'break' ';'
  ;
 
-continue_statement
+continueStatement
  : 'continue' ';'
  ;
  
-expression_statement
- : expression ';'
+expressionStatement
+ : assignment ';'
+ ;
+
+assignment
+ : expression ('=' | '+=' | '-=' | '*=' | '/=' | '%=') expression            # assignmentExpression
+ | expression '++'                                                           # incrementExpression
+ | expression '--'                                                           # decrementExpression
+ | expression                                                                # baseExpression
  ;
 
 expression
- : conditional_expression
- | assignment_expression
+ : IDENTIFIER '(' argumentList? ')'                     # callExpression            // TODO:
+ | expression '.' IDENTIFIER                            # memberExpression
+ | expression '[' expression ']'                        # indexExpression
+ | expression ('*' | '/' | '%') expression              # factorExpression
+ | expression ('+' | '-') expression                    # termExpression
+ | expression ('<' | '<=' | '>' | '>=') expression      # comparisonExpression
+ | expression ('==' | '!=') expression                  # equalityExpression
+ | expression '&&' expression                           # conjunctionExpression
+ | expression '||' expression                           # disjunctionExpression
+ | '-' expression                                       # negationExpression        // TODO:
+ | '!' expression                                       # inversionExpression       // TODO:
+ | group                                                # groupedExpression
+ | literal                                              # literalExpression
+ | IDENTIFIER                                           # identifierExpression
  ;
  
-assignment_expression
- : unary_expression ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' ) expression
+argumentList
+ : expression (',' expression)*
  ;
  
-conditional_expression
- : or_expression
- ;
- 
-or_expression
- : and_expression ( '||' and_expression )*
- ;
- 
-and_expression
- : equality_expression ( '&&' equality_expression )*
- ;
- 
-equality_expression
- : comparison_expression ( ( '==' | '!=' ) comparison_expression )*
- ;
-
-comparison_expression
- : term_expression ( ( '<' | '<=' | '>' | '>=' ) term_expression )*
- ;
- 
-term_expression
- : factor_expression ( ( '+' | '-' ) factor_expression )*
- ;
- 
-factor_expression
- : unary_expression ( ( '*' | '/' | '%' ) unary_expression )*
- ;
- 
-unary_expression
- : primary_expression
- | '++' unary_expression
- | '--' unary_expression
- | ( '+' | '-' | '!' ) unary_expression
- ;
- 
-primary_expression
- : literal                                      # literal_expression
- | group                                        # group_expression
- | selector_type ('[' selector_query_list ']')? # selector_expression
- | primary_expression '.' identifier            # member_access
- | call                                         # call_expression
- | namespace_access                             # identifier_expression
- | primary_expression '[' expression ']'        # indexed_access
- | primary_expression '++'                      # post_increment
- | primary_expression '--'                      # post_decrement
- ;
- 
-literal
- : boolean_literal
- | Integer_Literal
- | Decimal_Literal
- | String_Literal
- | Resource_Literal
- | object_creation
- | array_creation
- ;
- 
-boolean_literal
- : 'true'
- | 'false'
- ;
- 
-Integer_Literal
- : '0'..'9'+
- ;
- 
-Decimal_Literal
- : '0'..'9'* '.' '0'..'9'+
- ;
- 
-String_Literal
- : '"' .*? '"'
- ;
- 
-Resource_Literal
- : '`' .*? '`'
- ;
-
 group
  : '(' expression ')'
  ;
  
-call
- : namespace_access '(' argument_list? ')'
+literal
+ : booleanLiteral
+ | INTEGER_LITERAL
+ | DECIMAL_LITERAL
+ | STRING_LITERAL
+ | selectorCreation
+ | objectCreation
+ | arrayCreation
  ;
  
-range_expression
+booleanLiteral
+ : 'true' | 'false'
+ ;
+ 
+INTEGER_LITERAL
+ : '0'..'9'+
+ ;
+ 
+DECIMAL_LITERAL
+ : '0'..'9'* '.' '0'..'9'+
+ ;
+ 
+STRING_LITERAL
+ : '"' .*? '"'
+ ;
+ 
+RESOURCE_LITERAL
+ : '`' .*? '`'
+ ;
+ 
+rangeExpression
  : expression '..' expression?
  | expression? '..' expression
  ;
- 
-namespace_access
- : identifier ('::' identifier)?
+
+selectorCreation
+ : selectorType ('[' ( selectorElement ','? )* ']')?
  ;
 
-selector_query_list
- : selector_query (',' selector_query)*
+selectorType
+ : '@s' | '@r' | '@a' | '@e' | '@p' | '@n'
+ ;
+
+selectorElement
+ : preprocessorYieldingStatement
+ | selectorKvp
  ;
  
-selector_query
- : identifier '=' expression            # expression_selector
- | identifier '=' range_expression      # range_selector
- | identifier '=' record_selector_list  # records_selector
+selectorKvp
+ : IDENTIFIER '=' expression                # expressionSelector
+ | IDENTIFIER '=' rangeExpression           # rangeSelector
+ | IDENTIFIER '=' recordSelectorCreation    # recordSelector
  ;
  
-record_selector_list
+recordSelectorCreation
  : '{}'
- | '{' (record_selector_element (',' record_selector_element)*)? '}'
+ | '{' ( recordSelectorElement ','? )* '}'
+ ;
+
+recordSelectorElement
+ : preprocessorYieldingStatement
+ | recordSelectorKvp
  ;
  
-record_selector_element
- : identifier ':' (expression | range_expression)
- ;
- 
-selector_type
- : '@s'
- | '@r'
- | '@a'
- | '@e'
- | '@p'
- | '@n'
- ;
- 
-argument_list
- : expression (',' expression)*
+recordSelectorKvp
+ : IDENTIFIER ':' (expression | rangeExpression)
  ;
   
-object_creation
+objectCreation
  : '{}'
- | '{' (object_element (',' object_element)*)? '}'
- ;
- 
-object_element
- : identifier ':' expression
+ | '{' ( objectElement ','? )* '}'
  ;
 
-array_creation
- : '[]'
- | '[' (expression (',' expression)*)? ']'
+objectElement
+ : preprocessorYieldingStatement
+ | objectKvp
  ;
- 
-identifier
- : IDENTIFIER
+
+objectKvp
+ : IDENTIFIER ':' expression
+ ;
+
+arrayCreation
+ : '[]'
+ | '[' ( arrayElement ','? )* ']'
+ ;
+
+arrayElement
+ : preprocessorYieldingStatement
+ | expression
  ;
  
 type
- : ('int' | decimal | 'string' | 'bool' | 'array' | 'object') ('[]' | '{}')?
+ : ('bool' | 'int' | decimal | 'string' | 'array' | 'object') ('[]' | '{}')?
  ;
  
 decimal
- : 'dec' ('(' Integer_Literal ')')?
+ : 'dec' ('(' INTEGER_LITERAL ')')?
  ;

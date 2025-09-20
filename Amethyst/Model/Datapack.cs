@@ -23,9 +23,4 @@ public class Datapack
     /// List of MCF function paths to be executed on load.
     /// </summary>
     public HashSet<string> LoadFunctions { get; set; } = new();
-    
-    /// <summary>
-    /// List of MCF function paths that are exported and to be used as public API.
-    /// </summary>
-    public Dictionary<string, string> ExportedFunctions { get; set; } = new();
 }

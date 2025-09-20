@@ -31,7 +31,7 @@ public class StaticObjectConstant : ObjectConstantBase, IMemberAccess
         };
     }
     
-    public new AbstractResult GetMember(string memberName, AmethystParser.IdentifierContext identifierContext)
+    public new AbstractResult GetMember(string memberName)
     {
         return memberName switch
         {
@@ -42,7 +42,7 @@ public class StaticObjectConstant : ObjectConstantBase, IMemberAccess
                 BasicType = BasicType,
                 Value = Value.Values.ToArray()
             },
-            _ => base.GetMember(memberName, identifierContext)
+            _ => base.GetMember(memberName)
         };
     }
 }

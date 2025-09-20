@@ -1,4 +1,3 @@
-using Amethyst.Language;
 using Amethyst.Model;
 
 namespace Amethyst;
@@ -28,7 +27,7 @@ public class DynObjectConstant : ObjectConstantBase, IMemberAccess
         };
     }
 
-    public new AbstractResult GetMember(string memberName, AmethystParser.IdentifierContext identifierContext)
+    public new AbstractResult GetMember(string memberName)
     {
         return memberName switch
         {
@@ -38,7 +37,7 @@ public class DynObjectConstant : ObjectConstantBase, IMemberAccess
                 Context = Context,
                 Value = Value.Values.ToArray()
             },
-            _ => base.GetMember(memberName, identifierContext)
+            _ => base.GetMember(memberName)
         };
     }
 }

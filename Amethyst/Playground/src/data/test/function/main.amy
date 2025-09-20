@@ -1,0 +1,8 @@
+[initializing]
+function main() {
+#    FOR (VAR i = 0; i < 10; i++) {
+#        debug $i;
+#    }
+
+    DEBUG "Hello " + " World!";
+}

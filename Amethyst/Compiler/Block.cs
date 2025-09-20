@@ -12,19 +12,19 @@ public partial class Compiler
         return null;
     }
     
-    private void VisitBlockInline(AmethystParser.BlockContext context)
-    {
-        foreach (var statementContext in context.statement())
-        {
-            VisitStatement(statementContext);
-        }
-    }
-
     private Scope VisitBlockNamed(AmethystParser.BlockContext context, string name)
     {
         return EvaluateScoped(name, _ =>
         {
             VisitBlockInline(context);
         });
+    }
+    
+    private void VisitBlockInline(AmethystParser.BlockContext context)
+    {
+        foreach (var preprocessorStatementContext in context.preprocessorStatement())
+        {
+            Visit(preprocessorStatementContext);
+        }
     }
 }

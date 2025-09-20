@@ -23,7 +23,7 @@ public partial class Compiler
         {
             var numDecimalPlaces = DecimalDataType.DEFAULT_DECIMAL_PLACES;
 
-            if (decimalContext.Integer_Literal() is { } integerLiteral)
+            if (decimalContext.INTEGER_LITERAL() is { } integerLiteral)
             {
                 numDecimalPlaces = int.Parse(integerLiteral.Symbol.Text);
             }
