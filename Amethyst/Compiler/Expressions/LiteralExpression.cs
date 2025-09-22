@@ -6,13 +6,13 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override AbstractResult VisitLiteralExpression(AmethystParser.LiteralExpressionContext context)
+    public override AbstractValue VisitLiteralExpression(AmethystParser.LiteralExpressionContext context)
     {
         var literalContext = context.literal();
         
         if (literalContext.STRING_LITERAL() is { } stringLiteral)
         {
-            return new StringConstant
+            return new ConstantString
             {
                 Compiler = this,
                 Context = literalContext,
@@ -34,7 +34,7 @@ public partial class Compiler
                 decimalPlaces = decimalPart.Length;
             }
 
-            return new DecimalConstant
+            return new ConstantDecimal
             {
                 Compiler = this,
                 Context = literalContext,
@@ -50,7 +50,7 @@ public partial class Compiler
                 throw new SyntaxException("Invalid integer literal", literalContext);
             }
             
-            return new IntegerConstant
+            return new ConstantInteger
             {
                 Compiler = this,
                 Context = literalContext,
@@ -62,7 +62,7 @@ public partial class Compiler
         {
             var value = booleanLiteral.GetText() == "true";
 
-            return new BooleanConstant
+            return new ConstantBoolean
             {
                 Compiler = this,
                 Context = literalContext,

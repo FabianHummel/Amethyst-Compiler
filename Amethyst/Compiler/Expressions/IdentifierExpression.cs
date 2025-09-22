@@ -38,7 +38,7 @@ public partial class Compiler
         }
     }
     
-    public override AbstractResult VisitIdentifierExpression(AmethystParser.IdentifierExpressionContext context)
+    public override AbstractValue VisitIdentifierExpression(AmethystParser.IdentifierExpressionContext context)
     {
         var symbolName = context.IDENTIFIER().GetText();
         Symbol? symbol;
@@ -57,14 +57,14 @@ public partial class Compiler
             {
                 return modifier switch
                 {
-                    Modifier.Array => new StaticArrayResult
+                    Modifier.Array => new RuntimeStaticArray
                     {
                         Compiler = this,
                         Context = context,
                         Location = variable.Location,
                         BasicType = variable.DataType.BasicType
                     },
-                    Modifier.Object => new StaticObjectResult
+                    Modifier.Object => new RuntimeStaticObject
                     { 
                         Compiler = this, 
                         Context = context, 
@@ -77,38 +77,38 @@ public partial class Compiler
 
             return variable.DataType.BasicType switch
             {
-                BasicType.Int => new IntegerResult
+                BasicType.Int => new RuntimeInteger
                 { 
                     Compiler = this, 
                     Context = context, 
                     Location = variable.Location
                 },
-                BasicType.Dec => new DecimalResult
+                BasicType.Dec => new RuntimeDecimal
                 { 
                     Compiler = this, 
                     Context = context, 
                     Location = variable.Location,
                     DecimalPlaces = (variable.DataType as DecimalDataType)!.DecimalPlaces
                 },
-                BasicType.Bool => new BooleanResult
+                BasicType.Bool => new RuntimeBoolean
                 { 
                     Compiler = this, 
                     Context = context, 
                     Location = variable.Location
                 },
-                BasicType.String => new StringResult
+                BasicType.String => new RuntimeString
                 { 
                     Compiler = this, 
                     Context = context, 
                     Location = variable.Location
                 },
-                BasicType.Array => new DynArrayResult
+                BasicType.Array => new RuntimeDynamicArray
                 { 
                     Compiler = this, 
                     Context = context, 
                     Location = variable.Location
                 },
-                BasicType.Object => new DynObjectResult
+                BasicType.Object => new RuntimeDynamicObject
                 { 
                     Compiler = this, 
                     Context = context, 

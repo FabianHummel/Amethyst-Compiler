@@ -7,12 +7,12 @@ namespace Amethyst;
 /// </summary>
 public interface IMemberAccess
 {
-    AbstractResult GetMember(string memberName);
+    AbstractValue GetMember(string memberName);
 }
 
 public partial class Compiler
 {
-    public override AbstractResult VisitMemberExpression(AmethystParser.MemberExpressionContext context)
+    public override AbstractValue VisitMemberExpression(AmethystParser.MemberExpressionContext context)
     {
         var expressionContext = context.expression();
         var result = VisitExpression(expressionContext);

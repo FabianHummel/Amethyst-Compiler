@@ -7,7 +7,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override AbstractResult VisitFactorExpression(AmethystParser.FactorExpressionContext context)
+    public override AbstractValue VisitFactorExpression(AmethystParser.FactorExpressionContext context)
     {
         var expressionContexts = context.expression();
         var left = VisitExpression(expressionContexts[0]);
@@ -16,20 +16,12 @@ public partial class Compiler
         var operatorToken = context.GetChild(1).GetText();
         var op = Enum.GetValues<ArithmeticOperator>()
             .First(op => op.GetAmethystOperatorSymbol() == operatorToken);
-
-        if (left.TryCalculateConstants(right, op, out var result))
-        {
-            return result;
-        }
-
-        var lhs = left.ToRuntimeValue();
-        var rhs = right.ToRuntimeValue();
         
         return op switch
         {
-            ArithmeticOperator.MULTIPLY => lhs * rhs,
-            ArithmeticOperator.DIVIDE => lhs / rhs,
-            ArithmeticOperator.MODULO => lhs % rhs,
+            ArithmeticOperator.MULTIPLY => left * right,
+            ArithmeticOperator.DIVIDE => left / right,
+            ArithmeticOperator.MODULO => left % right,
             _ => throw new SyntaxException("Expected operator.", context)
         };
     }
