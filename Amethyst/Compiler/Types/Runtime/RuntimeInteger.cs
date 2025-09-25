@@ -5,12 +5,21 @@ public partial class RuntimeInteger : AbstractInteger, IRuntimeValue
     public int Location { get; set; }
     
     public bool IsTemporary { get; set; }
+
+    protected override AbstractDecimal AsDecimal => new RuntimeDecimal
+    {
+        Compiler = Compiler,
+        Context = Context,
+        DecimalPlaces = 0,
+        IsTemporary = IsTemporary,
+        Location = Location
+    };
     
     public override AbstractString ToStringValue()
     {
         throw new NotImplementedException("Convert int to string with mcfunction and return RuntimeString");
     }
-    
+
     public AbstractBoolean MakeBoolean()
     {
         return new RuntimeBoolean

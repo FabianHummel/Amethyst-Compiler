@@ -5,33 +5,33 @@ namespace Amethyst;
 [ForwardDefaultInterfaceMethods]
 public interface IConstantValue : IEquatable<IConstantValue>
 {
-    public int AsInteger { get; }
+    int AsInteger { get; }
 
-    public bool AsBoolean { get; }
+    bool AsBoolean { get; }
 
     /// <summary>
     /// Converts this constant value to a string that can be used in NBT data.
     /// </summary>
     /// <returns>The NBT string representation of this constant value.</returns>
-    public string ToNbtString();
+    string ToNbtString();
     
     /// <summary>
     /// Converts this result to a string that can be used to display the value in Minecraft.
     /// </summary>
     /// <returns>A JSON text component that can be used with '/tellraw'.</returns>
-    public string ToTextComponent();
+    string ToTextComponent();
 
     /// <summary>
     /// Converts this constant value into a string representation that can be used in target selectors.
     /// </summary>
     /// <returns>The target selector's string value representation.</returns>
-    public string ToTargetSelectorString();
+    string ToTargetSelectorString();
     
     /// <summary>
     /// Converts a constant value to a variable by assigning it a fixed memory location.
     /// </summary>
     /// <returns>The result with a place in memory.</returns>
-    public IRuntimeValue ToRuntimeValue();
+    IRuntimeValue ToRuntimeValue();
 }
 
 public interface IConstantValue<T> : IConstantValue

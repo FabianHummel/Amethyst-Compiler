@@ -3,12 +3,12 @@ namespace Amethyst;
 public class ConstantDecimal : AbstractDecimal, IConstantValue<double>, IScoreboardValue
 {
     public required double Value { get; init; }
-    
-    public double AsDouble => Value;
 
-    public int AsInteger => (int)AsDouble;
+    public int AsInteger => (int)Value;
     
-    public bool AsBoolean => AsDouble != 0;
+    public bool AsBoolean => Value != 0;
+    
+    protected override AbstractDecimal AsDecimal => this;
     
     public int ScoreboardValue => (int)Math.Round(Value * DataType.Scale);
 
@@ -30,7 +30,7 @@ public class ConstantDecimal : AbstractDecimal, IConstantValue<double>, IScorebo
 
     public string ToNbtString()
     {
-        return $"{AsDouble.ToString("F" + DecimalPlaces)}d";
+        return $"{Value.ToString("F" + DecimalPlaces)}d";
     }
 
     public string ToTextComponent()

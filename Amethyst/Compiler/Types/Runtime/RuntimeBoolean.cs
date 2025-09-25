@@ -6,6 +6,22 @@ public partial class RuntimeBoolean : AbstractBoolean, IRuntimeValue
     
     public bool IsTemporary { get; set; }
 
+    protected override AbstractDecimal AsDecimal
+    {
+        get
+        {
+            var value = EnsureBackedUp();
+            return new RuntimeDecimal
+            {
+                Compiler = Compiler,
+                Context = Context,
+                DecimalPlaces = 0,
+                IsTemporary = true,
+                Location = value.Location
+            };
+        }
+    }
+
     public override AbstractString ToStringValue()
     {
         throw new NotImplementedException("Convert bool to string with mcfunction and return RuntimeString");

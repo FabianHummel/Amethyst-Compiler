@@ -11,5 +11,5 @@ public abstract class AbstractDecimal : AbstractNumericValue
         DecimalPlaces = DecimalPlaces
     };
     
-    public required int DecimalPlaces { get; init; }
+    public required int DecimalPlaces { get; set; }
 }

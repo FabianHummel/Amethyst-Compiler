@@ -36,13 +36,15 @@ public class ForwardDefaultInterfaceMethodGenerator : IIncrementalGenerator
                     {
                         continue;
                     }
+                    
+                    var interfaceName = @interface.ToDisplayString();
 
                     var sb = new StringBuilder($$"""
-                                                 namespace {{symbol.ContainingNamespace.ToDisplayString()}}
+                                                 namespace {{symbol.ContainingNamespace.ToDisplayString()}};
+                                                 
+                                                 partial class {{symbol.Name}} : {{interfaceName}}
                                                  {
-                                                     partial class {{symbol.Name}}
-                                                     {
-
+                                                 
                                                  """);
 
                     foreach (var m in @interface.GetMembers().OfType<IMethodSymbol>())
@@ -82,26 +84,26 @@ public class ForwardDefaultInterfaceMethodGenerator : IIncrementalGenerator
                         if (hasAbstractBase)
                         {
                             sb.AppendLine($$"""
-                                                public override {{returnType}} {{methodName}}({{@params}})
-                                                {
-                                                    return (({{@interface.ToDisplayString()}})this).{{methodName}}({{args}});
-                                                }
-                                                
+                                            public override {{returnType}} {{methodName}}({{@params}})
+                                            {
+                                                return (({{interfaceName}})this).{{methodName}}({{args}});
+                                            }
+                                            
                                         """);
                         }
                         else
                         {
                             sb.AppendLine($$"""
-                                                public {{returnType}} {{methodName}}({{@params}})
-                                                {
-                                                    return (({{@interface.ToDisplayString()}})this).{{methodName}}({{args}});
-                                                }
-                                                
+                                            public {{returnType}} {{methodName}}({{@params}})
+                                            {
+                                                return (({{interfaceName}})this).{{methodName}}({{args}});
+                                            }
+                                            
                                         """);
                         }
                     }
                     
-                    sb.AppendLine("    }\n}");
+                    sb.AppendLine("}");
                     spc.AddSource($"{symbol.Name}_Forwards.g.cs", sb.ToString());
                 }
             }

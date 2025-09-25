@@ -2,16 +2,6 @@ namespace Amethyst;
 
 public class ConstantInteger : AbstractInteger, IConstantValue<int>
 {
-    public override AbstractString ToStringValue()
-    {
-        return new ConstantString
-        {
-            Compiler = Compiler,
-            Context = Context,
-            Value = Value.ToString()
-        };
-    }
-    
     public int Value { get; init; }
     
     public int AsInteger => Value;
@@ -19,6 +9,14 @@ public class ConstantInteger : AbstractInteger, IConstantValue<int>
     public bool AsBoolean => AsInteger != 0;
     
     public int ScoreboardValue => Value;
+    
+    protected override AbstractDecimal AsDecimal => new ConstantDecimal
+    {
+        Compiler = Compiler,
+        Context = Context,
+        Value = Value,
+        DecimalPlaces = 0
+    };
 
     public IRuntimeValue ToRuntimeValue()
     {
@@ -53,6 +51,16 @@ public class ConstantInteger : AbstractInteger, IConstantValue<int>
         }
 
         return Value.Equals(integerConstant.Value);
+    }
+
+    public override AbstractString ToStringValue()
+    {
+        return new ConstantString
+        {
+            Compiler = Compiler,
+            Context = Context,
+            Value = Value.ToString()
+        };
     }
 
     public override string ToTargetSelectorString()

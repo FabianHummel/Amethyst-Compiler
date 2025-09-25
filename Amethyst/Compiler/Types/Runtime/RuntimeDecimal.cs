@@ -6,6 +6,8 @@ public partial class RuntimeDecimal : AbstractDecimal, IRuntimeValue
     
     public bool IsTemporary { get; set; }
     
+    protected override AbstractDecimal AsDecimal => this;
+    
     public override AbstractString ToStringValue()
     {
         throw new NotImplementedException();

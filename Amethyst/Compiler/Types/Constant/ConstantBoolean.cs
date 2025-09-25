@@ -7,9 +7,17 @@ public class ConstantBoolean : AbstractBoolean, IConstantValue<bool>, IScoreboar
 {
     public required bool Value { get; init; }
     
+    public bool AsBoolean => Value;
+    
     public int AsInteger => AsBoolean ? 1 : 0;
     
-    public bool AsBoolean => Value;
+    protected override AbstractDecimal AsDecimal => new ConstantDecimal
+    {
+        Compiler = Compiler,
+        Context = Context,
+        Value = AsInteger,
+        DecimalPlaces = 0
+    };
 
     public int ScoreboardValue => AsInteger;
     

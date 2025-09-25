@@ -37,7 +37,7 @@ public interface IRuntimeValue
     /// <returns>The number result.</returns>
     AbstractInteger MakeInteger();
 
-    public int NextFreeLocation()
+    public sealed int NextFreeLocation()
     {
         if (IsTemporary)
         {
@@ -51,7 +51,7 @@ public interface IRuntimeValue
     /// Ensures that the current value is backed up in a temporary variable, so it can be freely modified.
     /// </summary>
     /// <returns>A backup of the current value.</returns>
-    public IRuntimeValue EnsureBackedUp()
+    public sealed IRuntimeValue EnsureBackedUp()
     {
         if (IsTemporary)
         {
@@ -79,7 +79,7 @@ public interface IRuntimeValue
     /// Converts this runtime value into a constant substitute that can be used in places where a constant is required.
     /// </summary>
     /// <returns>A constant value representing this runtime value.</returns>
-    public ConstantSubstitute AsConstantSubstitute => new()
+    public sealed ConstantSubstitute AsConstantSubstitute => new()
     {
         Compiler = Compiler,
         Context = Context,
@@ -90,7 +90,7 @@ public interface IRuntimeValue
     /// Returns this value's representation as a target selector string. In this case only for use in macros.
     /// </summary>
     /// <returns>The target selector string.</returns>
-    public string ToTargetSelectorString()
+    public sealed string ToTargetSelectorString()
     {
         var storageValue = EnsureInStorage().EnsureBackedUp();
         return $"$({storageValue.Location})";
