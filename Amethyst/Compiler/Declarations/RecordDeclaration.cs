@@ -29,12 +29,12 @@ public partial class Compiler
         
         var name = GetRecordName();
         
-        RuntimeValue? result = null;
+        IRuntimeValue? result = null;
         DataType? type = null;
         
         if (context.expression() is { } expression)
         {
-            result = VisitExpression(expression).ToRuntimeValue();
+            result = VisitExpression(expression).EnsureRuntimeValue();
         }
         
         // if a type is defined, set the type to the defined type

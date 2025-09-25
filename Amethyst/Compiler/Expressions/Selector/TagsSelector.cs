@@ -12,7 +12,7 @@ public partial class Compiler
         string queryString;
         bool containsRuntimeValues = false;
 
-        if (result is StaticArrayConstant { BasicType: BasicType.String } arrayConstant)
+        if (result is ConstantStaticArray { BasicType: BasicType.String } arrayConstant)
         {
             if (arrayConstant.Value.Any(constantValue => constantValue is ConstantSubstitute))
             {
@@ -22,7 +22,7 @@ public partial class Compiler
             queryString = string.Join(",", arrayConstant.Value
                 .Select(constantValue => $"tag={constantValue.ToTargetSelectorString()}"));
         }
-        else if (result is StaticArrayResult { BasicType: BasicType.String } arrayResult)
+        else if (result is RuntimeStaticArray { BasicType: BasicType.String } and IRuntimeValue arrayResult)
         {
             var location = arrayResult.NextFreeLocation();
             

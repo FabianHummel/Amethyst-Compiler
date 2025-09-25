@@ -5,11 +5,11 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override AbstractResult VisitArrayCreation(AmethystParser.ArrayCreationContext context)
+    public override AbstractValue VisitArrayCreation(AmethystParser.ArrayCreationContext context)
     {
         DataType? dataType = null;
         var isDynamic = false;
-        var elements = new List<AbstractResult>();
+        var elements = new List<AbstractValue>();
 
         var arrayElementContexts = context.arrayElement();
         ProcessArrayElements(arrayElementContexts);
@@ -19,13 +19,13 @@ public partial class Compiler
             isDynamic = true;
         }
         
-        if (elements.All(element => element is ConstantValue))
+        if (elements.All(element => element is IConstantValue))
         {
-            var value = elements.Cast<ConstantValue>().ToArray();
+            var value = elements.Cast<IConstantValue>().ToArray();
             
             if (isDynamic)
             {
-                return new DynArrayConstant
+                return new ConstantDynamicArray
                 {
                     Compiler = this,
                     Context = context,
@@ -33,7 +33,7 @@ public partial class Compiler
                 };
             }
 
-            return new StaticArrayConstant
+            return new ConstantStaticArray
             {
                 Compiler = this,
                 Context = context,
@@ -42,28 +42,28 @@ public partial class Compiler
             };
         }
 
-        var parts = new List<ConstantValue>();
-        var substitutions = new List<KeyValuePair<object, RuntimeValue>>();
+        var parts = new List<IConstantValue>();
+        var substitutions = new List<KeyValuePair<object, IRuntimeValue>>();
 
         for (var i = 0; i < elements.Count; i++)
         {
             var element = elements[i];
             
-            if (element is ConstantValue constantValue)
+            if (element is IConstantValue constantValue)
             {
                 parts.Add(constantValue);
             }
-            if (element is RuntimeValue runtimeValue)
+            if (element is IRuntimeValue runtimeValue)
             {
-                parts.Add(runtimeValue.ToConstantSubstitute());
+                parts.Add(runtimeValue.AsConstantSubstitute);
 
-                substitutions.Add(new KeyValuePair<object, RuntimeValue>(i, runtimeValue));
+                substitutions.Add(new KeyValuePair<object, IRuntimeValue>(i, runtimeValue));
             }
         }
         
         if (isDynamic)
         {
-            return new DynArrayConstant
+            return new ConstantDynamicArray
             {
                 Compiler = this,
                 Context = context,
@@ -72,7 +72,7 @@ public partial class Compiler
             };
         }
 
-        return new StaticArrayConstant
+        return new ConstantStaticArray
         {
             Compiler = this,
             Context = context,

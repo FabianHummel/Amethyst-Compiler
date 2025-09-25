@@ -6,7 +6,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override AbstractResult VisitComparisonExpression(AmethystParser.ComparisonExpressionContext context)
+    public override AbstractValue VisitComparisonExpression(AmethystParser.ComparisonExpressionContext context)
     {
         var expressionContexts = context.expression();
         var left = VisitExpression(expressionContexts[0]);
@@ -15,21 +15,13 @@ public partial class Compiler
         
         var op = Enum.GetValues<ComparisonOperator>()
             .First(op => op.GetAmethystOperatorSymbol() == operatorToken);
-        
-        if (left.TryCalculateConstants(right, op, out var result))
-        {
-            return result;
-        }
-                
-        var lhs = left.ToRuntimeValue();
-        var rhs = right.ToRuntimeValue();
 
         return op switch
         {
-            ComparisonOperator.LESS_THAN => lhs < rhs,
-            ComparisonOperator.LESS_THAN_OR_EQUAL => lhs <= rhs,
-            ComparisonOperator.GREATER_THAN => lhs > rhs,
-            ComparisonOperator.GREATER_THAN_OR_EQUAL => lhs >= rhs,
+            ComparisonOperator.LESS_THAN => left < right,
+            ComparisonOperator.LESS_THAN_OR_EQUAL => left <= right,
+            ComparisonOperator.GREATER_THAN => left > right,
+            ComparisonOperator.GREATER_THAN_OR_EQUAL => left >= right,
             _ => throw new SyntaxException("Expected operator.", context)
         };
     }

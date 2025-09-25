@@ -11,12 +11,12 @@ public partial class Compiler
 
         string jsonComponent = null!;
         
-        if (result is ConstantValue constantValue)
+        if (result is IConstantValue constantValue)
         {
             jsonComponent = constantValue.ToTextComponent();
         }
 
-        if (result is RuntimeValue runtimeValue)
+        if (result is IRuntimeValue runtimeValue)
         {
             if (runtimeValue.DataType.Location == DataLocation.Scoreboard)
             {

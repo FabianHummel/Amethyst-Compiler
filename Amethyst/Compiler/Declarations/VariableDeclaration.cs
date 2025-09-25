@@ -24,7 +24,7 @@ public partial class Compiler
             throw new SyntaxException("Expected expression.", context);
         }
         
-        var result = VisitExpression(expressionContext).ToRuntimeValue();
+        var result = VisitExpression(expressionContext).EnsureRuntimeValue();
 
         var name = result.Location;
         

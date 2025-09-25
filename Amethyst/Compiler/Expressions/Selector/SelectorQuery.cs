@@ -9,9 +9,9 @@ public partial class Compiler
         public string QueryKey { get; }
         public string QueryString { get; }
         public bool ContainsRuntimeValues { get; }
-        public AbstractResult? LimitExpression { get; }
+        public AbstractValue? LimitExpression { get; }
 
-        public SelectorQueryResult(string queryKey, string queryString, bool containsRuntimeValues, AbstractResult? limitExpression = null)
+        public SelectorQueryResult(string queryKey, string queryString, bool containsRuntimeValues, AbstractValue? limitExpression = null)
         {
             QueryKey = queryKey;
             QueryString = queryString;
@@ -29,14 +29,14 @@ public partial class Compiler
     {
         var result = VisitExpression(context);
         
-        if (!allowDecimals && result is DecimalConstant or DecimalResult)
+        if (!allowDecimals && result is ConstantDecimal or RuntimeDecimal)
         {
             throw new SyntaxException("Unexpected decimal value.", context);
         }
 
         var queryResult = result.ToTargetSelectorString();
 
-        return new SelectorQueryResult(queryKey, $"{queryKey}={queryResult}", result is RuntimeValue);
+        return new SelectorQueryResult(queryKey, $"{queryKey}={queryResult}", result is IRuntimeValue);
     }
     
     public SelectorQueryResult VisitRangeSelector(string queryKey, AmethystParser.RangeExpressionContext context, bool allowDecimals)
@@ -55,6 +55,6 @@ public partial class Compiler
         
         var queryResult = result.ToTargetSelectorString();
         
-        return new SelectorQueryResult(queryKey, $"{queryKey}={queryResult}", result is RuntimeValue);
+        return new SelectorQueryResult(queryKey, $"{queryKey}={queryResult}", result is IRuntimeValue);
     }
 }

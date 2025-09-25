@@ -5,26 +5,26 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override AbstractResult VisitObjectCreation(AmethystParser.ObjectCreationContext context)
+    public override AbstractValue VisitObjectCreation(AmethystParser.ObjectCreationContext context)
     {
         DataType? dataType = null;
         var dynamic = false;
-        var map = new Dictionary<string, AbstractResult>();
+        var map = new Dictionary<string, AbstractValue>();
         
         var objectElementContexts = context.objectElement();
         ProcessObjectElements(objectElementContexts);
         
         var isDynamic = dynamic || dataType == null;
         
-        if (map.All(element => element.Value is ConstantValue))
+        if (map.All(element => element.Value is IConstantValue))
         {
             var value = map.ToDictionary(
                 kvp => kvp.Key, 
-                kvp => (ConstantValue)kvp.Value);
+                kvp => (IConstantValue)kvp.Value);
             
             if (isDynamic)
             {
-                return new DynObjectConstant
+                return new ConstantDynamicObject
                 {
                     Compiler = this,
                     Context = context,
@@ -32,7 +32,7 @@ public partial class Compiler
                 };
             }
 
-            return new StaticObjectConstant
+            return new ConstantStaticObject
             {
                 Compiler = this,
                 Context = context,
@@ -41,26 +41,26 @@ public partial class Compiler
             };
         }
         
-        var parts = new Dictionary<string, ConstantValue>();
-        var substitutions = new List<KeyValuePair<object, RuntimeValue>>();
+        var parts = new Dictionary<string, IConstantValue>();
+        var substitutions = new List<KeyValuePair<object, IRuntimeValue>>();
 
         foreach (var kvp in map)
         {
-            if (kvp.Value is ConstantValue constantValue)
+            if (kvp.Value is IConstantValue constantValue)
             {
                 parts.Add(kvp.Key, constantValue);
             }
-            if (kvp.Value is RuntimeValue runtimeValue)
+            if (kvp.Value is IRuntimeValue runtimeValue)
             {
-                parts.Add(kvp.Key, runtimeValue.ToConstantSubstitute());
+                parts.Add(kvp.Key, runtimeValue.AsConstantSubstitute);
 
-                substitutions.Add(new KeyValuePair<object, RuntimeValue>(kvp.Key, runtimeValue));
+                substitutions.Add(new KeyValuePair<object, IRuntimeValue>(kvp.Key, runtimeValue));
             }
         }
         
         if (isDynamic)
         {
-            return new DynObjectConstant
+            return new ConstantDynamicObject
             {
                 Compiler = this,
                 Context = context,
@@ -69,7 +69,7 @@ public partial class Compiler
             };
         }
 
-        return new StaticObjectConstant
+        return new ConstantStaticObject
         {
             Compiler = this,
             Context = context,

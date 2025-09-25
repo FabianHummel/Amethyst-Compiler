@@ -4,12 +4,12 @@ namespace Amethyst;
 
 public interface IIndexable
 {
-    AbstractResult GetIndex(AbstractResult index);
+    AbstractValue GetIndex(AbstractValue index);
 }
 
 public partial class Compiler
 {
-    public override AbstractResult VisitIndexExpression(AmethystParser.IndexExpressionContext context)
+    public override AbstractValue VisitIndexExpression(AmethystParser.IndexExpressionContext context)
     {
         var expressionContexts = context.expression();
         var result = VisitExpression(expressionContexts[0]);

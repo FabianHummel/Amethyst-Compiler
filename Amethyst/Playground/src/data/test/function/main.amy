@@ -1,8 +1,5 @@
 [initializing]
 function main() {
-#    FOR (VAR i = 0; i < 10; i++) {
-#        debug $i;
-#    }
-
-    DEBUG "Hello " + " World!";
+    var nice = 40.4;
+    debug nice + 2.41;
 }

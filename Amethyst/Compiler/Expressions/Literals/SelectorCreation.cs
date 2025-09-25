@@ -6,14 +6,14 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override AbstractResult VisitSelectorCreation(AmethystParser.SelectorCreationContext context)
+    public override AbstractValue VisitSelectorCreation(AmethystParser.SelectorCreationContext context)
     {
         var selectorTypeContext = context.selectorType();
         var selector = VisitSelectorType(selectorTypeContext);
         
         var queryList = new Dictionary<string, string>();
         var containsRuntimeValues = false;
-        AbstractResult? limitExpression = null;
+        AbstractValue? limitExpression = null;
 
         var sp = StackPointer;
 
@@ -26,16 +26,16 @@ public partial class Compiler
 
         if (containsRuntimeValues)
         {
-            AbstractResult result = null!;
+            AbstractValue value = null!;
             
             var scope = EvaluateScoped("_create_selector", _ =>
             {
-                result = CreateSelector(isMacroInvocation: true);
+                value = CreateSelector(isMacroInvocation: true);
             });
             
             AddCode($"function {scope.McFunctionPath} with storage amethyst:");
 
-            return result;
+            return value;
         }
 
         return CreateSelector();
@@ -65,7 +65,7 @@ public partial class Compiler
             }
         }
 
-        AbstractResult CreateSelector(bool isMacroInvocation = false)
+        AbstractValue CreateSelector(bool isMacroInvocation = false)
         {
             var prefix = isMacroInvocation ? "$" : string.Empty;
             
@@ -76,7 +76,7 @@ public partial class Compiler
                 AddCode($"{prefix}execute as {selectorString} run function amethyst:libraries/gu/generate");
                 AddCode($"data modify storage amethyst: {location} set from storage gu:main out");
             
-                return new EntityResult
+                return new RuntimeEntity
                 {
                     Compiler = this,
                     Context = context,
@@ -95,7 +95,7 @@ public partial class Compiler
         
             AddCode($"{prefix}execute as {selectorString} run function {scope.McFunctionPath}");
 
-            return new StaticArrayResult
+            return new RuntimeStaticArray
             {
                 Compiler = this,
                 Context = context,
@@ -164,10 +164,10 @@ public partial class Compiler
         return EnumExtension.GetEnumFromMcfOperator<TargetSelector>(selector);
     }
     
-    private static bool IsSelectorSingleTarget(TargetSelector selector, AbstractResult? selectorLimit)
+    private static bool IsSelectorSingleTarget(TargetSelector selector, AbstractValue? selectorLimit)
     {
         // if the selector limit is not known at compile time, assume it's a multi-selector
-        if (selectorLimit is RuntimeValue)
+        if (selectorLimit is IRuntimeValue)
         {
             return false;
         }
@@ -179,7 +179,7 @@ public partial class Compiler
          · @p, @r without limit argument or with limit=1
          */
         
-        if (selector is TargetSelector.AllPlayers or TargetSelector.AllEntities && selectorLimit is IntegerConstant { Value: 1 })
+        if (selector is TargetSelector.AllPlayers or TargetSelector.AllEntities && selectorLimit is ConstantInteger { Value: 1 })
         {
             return true;
         }
@@ -189,7 +189,7 @@ public partial class Compiler
             return true;
         }
         
-        if (selector is TargetSelector.NearestPlayer or TargetSelector.NearestEntity or TargetSelector.RandomPlayer && selectorLimit is null or IntegerConstant { Value: 1 })
+        if (selector is TargetSelector.NearestPlayer or TargetSelector.NearestEntity or TargetSelector.RandomPlayer && selectorLimit is null or ConstantInteger { Value: 1 })
         {
             return true;
         }
