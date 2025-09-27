@@ -33,18 +33,12 @@ public partial class Compiler
                     throw new SyntaxException("Expected boolean result.", expressionContext);
                 }
 
-                if (booleanResult is ConstantBoolean booleanConstant)
+                if (booleanResult is ConstantBoolean { Value: false })
                 {
-                    if (!booleanConstant.Value)
-                    {
-                        cancel();
-                        isAlwaysFalse = true;
-                        return;
-                    }
-
-                    continue;
+                    cancel();
+                    isAlwaysFalse = true;
+                    return;
                 }
-
                 if (booleanResult is IRuntimeValue runtimeValue)
                 {
                     // Early return if the current expression is false (we don't need to check the rest).

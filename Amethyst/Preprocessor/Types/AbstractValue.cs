@@ -18,4 +18,6 @@ public abstract partial class AbstractPreprocessorValue : IPreprocessorValue
     public abstract bool AsBoolean { get; }
     
     public abstract int AsInteger { get; }
+    
+    public abstract double AsDecimal { get; }
 }

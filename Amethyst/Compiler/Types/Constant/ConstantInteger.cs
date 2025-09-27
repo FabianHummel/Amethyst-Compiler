@@ -53,16 +53,6 @@ public class ConstantInteger : AbstractInteger, IConstantValue<int>
         return Value.Equals(integerConstant.Value);
     }
 
-    public override AbstractString ToStringValue()
-    {
-        return new ConstantString
-        {
-            Compiler = Compiler,
-            Context = Context,
-            Value = Value.ToString()
-        };
-    }
-
     public override string ToTargetSelectorString()
     {
         return $"{Value}";

@@ -13,18 +13,13 @@ public partial class RuntimeEntity : AbstractValue, IRuntimeValue
         BasicType = BasicType.Entity
     };
 
-    public override AbstractString ToStringValue()
-    {
-        throw new NotImplementedException();
-    }
-
     public AbstractBoolean MakeBoolean()
     {
-        throw new NotImplementedException("If the entity(s) exist");
+        throw new NotImplementedException("TODO: true, if the entity(s) exist");
     }
 
     public AbstractInteger MakeInteger()
     {
-        throw new NotImplementedException("Amount of entities");
+        throw new NotImplementedException("TODO: Amount of entities in the selector");
     }
 }

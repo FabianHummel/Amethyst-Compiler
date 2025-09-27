@@ -14,6 +14,8 @@ public partial class PreprocessorString : AbstractPreprocessorValue, IPreprocess
     public override bool AsBoolean => !string.IsNullOrEmpty(Value);
 
     public override int AsInteger => Value.Length;
+    
+    public override double AsDecimal => AsInteger;
 
     public override string ToString()
     {

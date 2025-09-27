@@ -48,11 +48,6 @@ public class ConstantDecimal : AbstractDecimal, IConstantValue<double>, IScorebo
         return Value.Equals(decimalConstant.Value);
     }
 
-    public override AbstractString ToStringValue()
-    {
-        throw new NotImplementedException();
-    }
-
     public override string ToTargetSelectorString()
     {
         return $"{Value}";

@@ -24,7 +24,7 @@ public partial class Compiler
         {
             if (Start is null && Stop is null)
             {
-                throw new SyntaxException("Invalid range expression.", _context);
+                throw new SyntaxException("Invalid range expression. At least one of the range bounds must be specified.", _context);
             }
             
             if (!_allowDecimals && (Start is ConstantDecimal or RuntimeDecimal || Stop is ConstantDecimal or RuntimeDecimal))

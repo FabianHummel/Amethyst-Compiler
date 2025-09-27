@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Amethyst.Utility;
 
 public static class NbtUtility
@@ -33,7 +35,7 @@ public static class NbtUtility
             double value => (int) (value * 100),
             int value => value,
             object[] value => value.Length,
-            _ => throw new ArgumentException("Invalid type for NBT number conversion.")
+            _ => throw new ArgumentException("Invalid type for NBT number conversion.", nameof(obj))
         };
     }
     
@@ -46,7 +48,7 @@ public static class NbtUtility
             2 => random.Next(10) - 5,
             3 => string.Join("", Enumerable.Range(0, new Random().Next(10))
                 .Select(_ => (char) random.Next(32, 127))),
-            _ => throw new InvalidOperationException()
+            _ => throw new UnreachableException()
         };
     }
 }

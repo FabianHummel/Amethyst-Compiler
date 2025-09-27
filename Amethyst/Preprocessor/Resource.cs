@@ -1,10 +1,11 @@
 using Amethyst.Model;
+using Antlr4.Runtime;
 
 namespace Amethyst;
 
 public partial class Compiler
 {
-    public SourceFile VisitResource(string resourcePath, string registryName)
+    public SourceFile VisitResource(string resourcePath, string registryName, ParserRuleContext context)
     {
         var ns = Namespace;
 
@@ -14,12 +15,12 @@ public partial class Compiler
             var nsName = parts[0];
             if (!Context.Namespaces.TryGetValue(nsName, out ns))
             {
-                throw new SemanticException($"Namespace '{nsName}' does not exist in the project.");
+                throw new SemanticException($"Namespace '{nsName}' does not exist in the project.", context);
             }
             resourcePath = parts[1];
             if (resourcePath == null)
             {
-                throw new SemanticException("Resource path cannot be empty.");
+                throw new SyntaxException("Resource path cannot be empty.", context);
             }
         }
         
@@ -29,20 +30,20 @@ public partial class Compiler
 
         if (!ns.Registries.TryGetValue(registryName, out var sourceFolder))
         {
-            throw new SemanticException($"No symbols have been defined in the '{registryName}' registry.");
+            throw new SemanticException($"No symbols have been defined in the '{registryName}' registry.", context);
         }
         
         foreach (var sourceFolderName in paths)
         {
             if (!sourceFolder.Children.TryGetValue(sourceFolderName, out sourceFolder))
             {
-                throw new SemanticException($"The folder '{sourceFolderName}' does not exist for the specified path.");
+                throw new SemanticException($"The folder '{sourceFolderName}' does not exist for the specified path.", context);
             }
         }
         
         if (!sourceFolder.SourceFiles.TryGetValue(name, out var sourceFile))
         {
-            throw new SemanticException($"The file '{name}' does not exist for the specified path.");
+            throw new SemanticException($"The file '{name}' does not exist for the specified path.", context);
         }
 
         return sourceFile;

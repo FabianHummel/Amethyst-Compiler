@@ -22,14 +22,14 @@ public partial class Compiler
         
         if (literalContext.DECIMAL_LITERAL() is { } decimalLiteral)
         {
-            if (!double.TryParse(decimalLiteral.Symbol.Text, out var result))
+            if (!double.TryParse(decimalLiteral.GetText(), out var result))
             {
-                throw new SyntaxException("Invalid decimal literal", literalContext);
+                throw new SyntaxException($"Invalid decimal literal '{decimalLiteral.GetText()}'.", literalContext);
             }
 
             var decimalPlaces = DecimalDataType.DEFAULT_DECIMAL_PLACES;
             
-            if (decimalLiteral.Symbol.Text.Split('.').LastOrDefault() is { } decimalPart)
+            if (decimalLiteral.GetText().Split('.').LastOrDefault() is { } decimalPart)
             {
                 decimalPlaces = decimalPart.Length;
             }
@@ -45,9 +45,9 @@ public partial class Compiler
         
         if (literalContext.INTEGER_LITERAL() is { } integerLiteral)
         {
-            if (!int.TryParse(integerLiteral.Symbol.Text, out var result))
+            if (!int.TryParse(integerLiteral.GetText(), out var result))
             {
-                throw new SyntaxException("Invalid integer literal", literalContext);
+                throw new SyntaxException($"Invalid integer literal '{integerLiteral.GetText()}'.", literalContext);
             }
             
             return new ConstantInteger
@@ -61,6 +61,10 @@ public partial class Compiler
         if (literalContext.booleanLiteral() is { } booleanLiteral)
         {
             var value = booleanLiteral.GetText() == "true";
+            if (!value && booleanLiteral.GetText() != "false")
+            {
+                throw new SyntaxException($"Invalid boolean literal '{booleanLiteral.GetText()}'.", literalContext);
+            }
 
             return new ConstantBoolean
             {
@@ -80,6 +84,6 @@ public partial class Compiler
             return VisitObjectCreation(objectCreation);
         }
         
-        throw new UnreachableException();
+        throw new InvalidOperationException($"Invalid literal '{literalContext}'.");
     }
 }

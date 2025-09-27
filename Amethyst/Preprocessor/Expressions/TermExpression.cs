@@ -20,7 +20,7 @@ public partial class Compiler
         {
             ArithmeticOperator.ADD => lhs + rhs,
             ArithmeticOperator.SUBTRACT => lhs - rhs,
-            _ => throw new ArgumentOutOfRangeException(operatorToken, nameof(operatorToken))
+            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
         };
     }
 }

@@ -14,8 +14,6 @@ public abstract partial class AbstractValue
     /// The type of the underlying data.
     /// </summary>
     public abstract DataType DataType { get; }
-    
-    public abstract AbstractString ToStringValue();
 
     protected void AddCode(string code)
     {
@@ -27,7 +25,7 @@ public abstract partial class AbstractValue
         Compiler.AddInitCode(code);
     }
 
-    public AbstractValue ToBoolean()
+    public AbstractBoolean ToBoolean()
     {
         if (this is IConstantValue constantValue)
         {
@@ -38,12 +36,13 @@ public abstract partial class AbstractValue
                 Value = constantValue.AsBoolean
             };
         }
+        
         if (this is IRuntimeValue runtimeValue)
         {
             return runtimeValue.MakeBoolean();
         }
         
-        throw new UnreachableException($"Cannot convert {GetType().Name} to boolean.");
+        throw new InvalidOperationException($"Invalid value type '{GetType()}' to convert to a boolean.");
     }
     
     public static (IRuntimeValue, IConstantValue) EnsureConstantValueIsLast(AbstractValue lhs, AbstractValue rhs)
@@ -53,6 +52,7 @@ public abstract partial class AbstractValue
         {
             return (runtimeValue, constantValue);
         }
+        
         if (lhs is IRuntimeValue runtimeValue2 && rhs is IConstantValue constantValue2)
         {
             return (runtimeValue2, constantValue2);
@@ -69,12 +69,13 @@ public abstract partial class AbstractValue
         {
             return runtimeValue;
         }
+        
         if (this is IConstantValue constantValue)
         {
             return constantValue.ToRuntimeValue();
         }
         
-        throw new UnreachableException();
+        throw new InvalidOperationException($"Invalid value type '{GetType()}' to convert to a runtime value.");
     }
 
     public AbstractValue Clone()

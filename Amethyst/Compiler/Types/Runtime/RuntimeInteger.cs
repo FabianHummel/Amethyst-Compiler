@@ -14,11 +14,6 @@ public partial class RuntimeInteger : AbstractInteger, IRuntimeValue
         IsTemporary = IsTemporary,
         Location = Location
     };
-    
-    public override AbstractString ToStringValue()
-    {
-        throw new NotImplementedException("Convert int to string with mcfunction and return RuntimeString");
-    }
 
     public AbstractBoolean MakeBoolean()
     {

@@ -22,11 +22,6 @@ public partial class RuntimeBoolean : AbstractBoolean, IRuntimeValue
         }
     }
 
-    public override AbstractString ToStringValue()
-    {
-        throw new NotImplementedException("Convert bool to string with mcfunction and return RuntimeString");
-    }
-
     public AbstractBoolean MakeBoolean()
     {
         return this;

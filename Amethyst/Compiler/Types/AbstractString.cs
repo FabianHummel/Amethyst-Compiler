@@ -18,9 +18,4 @@ public abstract class AbstractString : AbstractAmethystValue
     {
         throw new NotImplementedException("? + String");
     }
-
-    public override AbstractString ToStringValue()
-    {
-        return this;
-    }
 }

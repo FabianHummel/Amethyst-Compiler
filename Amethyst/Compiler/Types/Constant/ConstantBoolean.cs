@@ -27,16 +27,6 @@ public class ConstantBoolean : AbstractBoolean, IConstantValue<bool>, IScoreboar
         Modifier = null
     };
 
-    public override AbstractString ToStringValue()
-    {
-        return new ConstantString
-        {
-            Compiler = Compiler,
-            Context = Context,
-            Value = Value ? "true" : "false"
-        };
-    }
-
     public IRuntimeValue ToRuntimeValue()
     {
         var location = ++Compiler.StackPointer;

@@ -20,7 +20,7 @@ public partial class Compiler
         {
             ArithmeticOperator.ADD => left + right,
             ArithmeticOperator.SUBTRACT => left - right,
-            _ => throw new SyntaxException("Expected operator.", context)
+            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
         };
     }
 }

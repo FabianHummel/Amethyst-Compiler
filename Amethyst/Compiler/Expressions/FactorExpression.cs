@@ -22,7 +22,7 @@ public partial class Compiler
             ArithmeticOperator.MULTIPLY => left * right,
             ArithmeticOperator.DIVIDE => left / right,
             ArithmeticOperator.MODULO => left % right,
-            _ => throw new SyntaxException("Expected operator.", context)
+            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
         };
     }
 }

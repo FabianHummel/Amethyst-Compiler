@@ -17,8 +17,7 @@ public partial class Compiler
         var op = Enum.GetValues<ComparisonOperator>()
             .First(op => op.GetAmethystOperatorSymbol() == operatorToken);
 
-        // check data type
-        if (!left.DataType.Equals(right.DataType))
+        if (left.DataType != right.DataType)
         {
             throw new SyntaxException($"Cannot compare values of type '{left.DataType}' and '{right.DataType}'.", context);
         }
@@ -41,7 +40,7 @@ public partial class Compiler
         {
             ComparisonOperator.EQUAL => "if",
             ComparisonOperator.NOT_EQUAL => "unless",
-            _ => throw new UnreachableException()
+            _ => throw new SyntaxException($"Invalid equality operator '{op}'.", context)
         };
         
         if (left is IRuntimeValue lhsRuntime && right is IRuntimeValue rhsRuntime)

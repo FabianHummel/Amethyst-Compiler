@@ -24,7 +24,7 @@ public partial class Compiler
             ComparisonOperator.GREATER_THAN_OR_EQUAL => lhs >= rhs,
             ComparisonOperator.EQUAL => lhs == rhs,
             ComparisonOperator.NOT_EQUAL => lhs != rhs,
-            _ => throw new ArgumentOutOfRangeException(operatorToken, nameof(operatorToken))
+            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
         };
     }
 }

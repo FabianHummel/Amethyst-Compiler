@@ -29,7 +29,7 @@ public partial class Compiler
             AssignmentOperator.MULTIPLY => lhs * rhs,
             AssignmentOperator.DIVIDE => lhs / rhs,
             AssignmentOperator.MODULO => lhs % rhs,
-            _ => throw new ArgumentOutOfRangeException(operatorToken, nameof(operatorToken))
+            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
         };
         
         AssignPreprocessorValue(lhs, result);

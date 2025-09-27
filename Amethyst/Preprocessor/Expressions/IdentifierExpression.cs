@@ -8,15 +8,7 @@ public partial class Compiler
     public override object VisitPreprocessorIdentifierExpression(AmethystParser.PreprocessorIdentifierExpressionContext context)
     {
         var symbolName = context.IDENTIFIER().GetText();
-        Symbol? symbol;
-        try
-        {
-            symbol = VisitIdentifierSymbol(symbolName);
-        }
-        catch (SemanticException e)
-        {
-            throw new SyntaxException(e.Message, context);
-        }
+        var symbol = GetSymbol(symbolName, context);
         
         if (symbol is PreprocessorVariable variable)
         {

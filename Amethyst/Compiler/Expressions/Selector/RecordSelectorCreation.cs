@@ -38,10 +38,11 @@ public partial class Compiler
     {
         var identifier = context.IDENTIFIER();
         var recordName = identifier.GetText();
+        var symbol = GetSymbol(recordName, context);
 
-        if (!Scope.TryGetSymbol(recordName, out var symbol) || symbol is not Record record)
+        if (symbol is not Record record)
         {
-            throw new SyntaxException($"The record '{recordName}' does not exist in the current context.", context);
+            throw new SyntaxException($"Symbol '{recordName}' is not a record.", context);
         }
 
         SelectorQueryResult queryResult;

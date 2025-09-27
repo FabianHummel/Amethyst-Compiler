@@ -50,17 +50,14 @@ public class ConstantString : AbstractString, IConstantValue<string>, IMemberAcc
         return Value;
     }
 
-    public AbstractValue GetMember(string memberName)
+    public AbstractValue? GetMember(string memberName) => memberName switch
     {
-        return memberName switch
+        "length" => new ConstantInteger
         {
-            "length" => new ConstantInteger
-            {
-                Compiler = Compiler,
-                Context = Context,
-                Value = Value.Length
-            },
-            _ => throw new SemanticException($"Member '{memberName}' not found in string.")
-        };
-    }
+            Compiler = Compiler,
+            Context = Context,
+            Value = Value.Length
+        },
+        _ => null
+    };
 }

@@ -19,20 +19,6 @@ public abstract class AbstractConstantObject : AbstractObject, IConstantValue<Di
     
     public abstract IRuntimeValue ToRuntimeValue();
 
-    public override AbstractString ToStringValue()
-    {
-        var content = string.Join(", ", Value.Select(kvp => {
-            return $"{kvp.Key}: {((AbstractValue)kvp.Value).ToStringValue()}";
-        }));
-        
-        return new ConstantString
-        {
-            Compiler = Compiler,
-            Context = Context,
-            Value = $"{{{content}}}"
-        };
-    }
-
     public void SubstituteRecursively(Compiler compiler, string substitutionModifierPrefix = "")
     {
         foreach (var (key, constantValue) in Value)
@@ -140,10 +126,10 @@ public abstract class AbstractConstantObject : AbstractObject, IConstantValue<Di
     
     public override string ToTargetSelectorString()
     {
-        throw new UnreachableException("Object cannot be converted to a target selector's value.");
+        throw new SyntaxException("Objects cannot be used as a value in target selectors.", Context);
     }
 
-    public AbstractValue GetMember(string memberName)
+    public AbstractValue? GetMember(string memberName)
     {
         if (Value.TryGetValue(memberName, out var value))
         {
@@ -165,7 +151,7 @@ public abstract class AbstractConstantObject : AbstractObject, IConstantValue<Di
                 BasicType = BasicType.String,
                 Value = GetKeysAsStringConstants().Cast<IConstantValue>().ToArray()
             },
-            _ => throw new SemanticException($"Member '{memberName}' not found in object.")
+            _ => null
         };
     }
 }

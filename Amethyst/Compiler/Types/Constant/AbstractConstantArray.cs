@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Amethyst.Model;
 
 namespace Amethyst;
@@ -17,19 +18,6 @@ public abstract class AbstractConstantArray : AbstractArray, IConstantValue<ICon
     public bool AsBoolean => AsInteger > 0;
     
     public abstract IRuntimeValue ToRuntimeValue();
-
-    public override AbstractString ToStringValue()
-    {
-        var abstractValues = Value.OfType<AbstractValue>();
-        var content = string.Join(", ", abstractValues.Select(v => v.ToStringValue()));
-        
-        return new ConstantString
-        {
-            Compiler = Compiler,
-            Context = Context,
-            Value = $"[{content}]"
-        };
-    }
 
     public void SubstituteRecursively(Compiler compiler, string substitutionModifierPrefix = "")
     {
@@ -122,20 +110,17 @@ public abstract class AbstractConstantArray : AbstractArray, IConstantValue<ICon
 
     public override string ToTargetSelectorString()
     {
-        throw new UnreachableException("Array cannot be converted to a target selector's value.");
+        throw new SyntaxException("Arrays cannot be used as a value in target selectors.", Context);
     }
 
-    public AbstractValue GetMember(string memberName)
+    public AbstractValue? GetMember(string memberName) => memberName switch
     {
-        return memberName switch
+        "length" => new ConstantInteger
         {
-            "length" => new ConstantInteger
-            {
-                Compiler = Compiler,
-                Context = Context,
-                Value = Value.Length,
-            },
-            _ => throw new SemanticException($"Array does not have a member named '{memberName}'.")
-        };
-    }
+            Compiler = Compiler,
+            Context = Context,
+            Value = Value.Length,
+        },
+        _ => null
+    };
 }

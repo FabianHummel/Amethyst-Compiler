@@ -22,7 +22,7 @@ public partial class Compiler
             ComparisonOperator.LESS_THAN_OR_EQUAL => left <= right,
             ComparisonOperator.GREATER_THAN => left > right,
             ComparisonOperator.GREATER_THAN_OR_EQUAL => left >= right,
-            _ => throw new SyntaxException("Expected operator.", context)
+            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
         };
     }
 }

@@ -100,12 +100,12 @@ public class Processor
 
         if (projectId == null)
         {
-            throw new Exception($"Project ID not specified in '{CONFIG_FILE}'. Please set the 'id' field to a unique identifier for your project.");
+            throw new InvalidOperationException($"Project ID not specified in '{CONFIG_FILE}'. Please set the 'id' field to a unique identifier for your project.");
         }
 
         if (!Regex.IsMatch(projectId, @"^[a-z0-9_]+$"))
         {
-            throw new Exception("Project ID must contain only lowercase letters, digits, or underscores.");
+            throw new InvalidOperationException("Project ID must contain only lowercase letters, digits, or underscores.");
         }
 
         Context.ProjectId = projectId;

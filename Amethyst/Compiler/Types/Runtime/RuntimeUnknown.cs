@@ -13,23 +13,13 @@ public partial class RuntimeUnknown : AbstractValue, IRuntimeValue
         BasicType = BasicType.Unknown
     };
 
-    public override AbstractString ToStringValue()
-    {
-        throw new NotImplementedException("Cannot convert unknown result to string.");
-    }
-
     public AbstractBoolean MakeBoolean()
     {
-        throw new NotImplementedException("Cannot convert unknown result to boolean.");
+        throw new InvalidOperationException("Cannot convert unknown results to a boolean value.");
     }
 
     public AbstractInteger MakeInteger()
     {
-        throw new NotImplementedException("Cannot convert unknown result to integer.");
-    }
-
-    public IRuntimeValue ToRuntimeValue()
-    {
-        throw new SyntaxException("Cannot convert unknown result to runtime value.", Context);
+        throw new InvalidOperationException("Cannot convert unknown results to an integer value.");
     }
 }

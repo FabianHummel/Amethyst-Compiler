@@ -17,7 +17,7 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
     {
         if (this is not IRuntimeValue runtimeValue)
         {
-            throw new UnreachableException("Cannot call this on a constant value");
+            throw new InvalidOperationException("Call of this method is not allowed on constant values.");
         }
         
         var location = runtimeValue.NextFreeLocation();
@@ -76,7 +76,7 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
                 ArithmeticOperator.MULTIPLY => constantDecimalLhs.Value * constantDecimalRhs.Value,
                 ArithmeticOperator.DIVIDE => constantDecimalLhs.Value / constantDecimalRhs.Value,
                 ArithmeticOperator.MODULO => constantDecimalLhs.Value % constantDecimalRhs.Value,
-                _ => throw new UnreachableException("Unknown operator")
+                _ => throw new SyntaxException($"Invalid operator '{op}'.", Context)
             };
             
             result = new ConstantDecimal
@@ -97,7 +97,7 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
             ArithmeticOperator.MULTIPLY => lhs.AsInteger * rhs.AsInteger,
             ArithmeticOperator.DIVIDE => lhs.AsInteger / rhs.AsInteger,
             ArithmeticOperator.MODULO => lhs.AsInteger % rhs.AsInteger,
-            _ => throw new UnreachableException("Unknown operator")
+            _ => throw new SyntaxException($"Invalid operator '{op}'.", Context)
         };
         
         result = new ConstantInteger
@@ -141,7 +141,7 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
     /// <summary>
     /// Tries to calculate the result of two constant numeric values with the given operator.
     /// </summary>
-    private static bool TryCalculateConstants(AbstractNumericValue anvLhs, AbstractNumericValue anvRhs, ComparisonOperator op, [NotNullWhen(true)] out bool? result)
+    private bool TryCalculateConstants(AbstractNumericValue anvLhs, AbstractNumericValue anvRhs, ComparisonOperator op, [NotNullWhen(true)] out bool? result)
     {
         result = null;
         if (anvLhs is not IConstantValue lhs || anvRhs is not IConstantValue rhs)
@@ -160,7 +160,7 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
                 ComparisonOperator.LESS_THAN_OR_EQUAL => constantDecimalLhs.Value <= constantDecimalRhs.Value,
                 ComparisonOperator.GREATER_THAN => constantDecimalLhs.Value > constantDecimalRhs.Value,
                 ComparisonOperator.GREATER_THAN_OR_EQUAL => constantDecimalLhs.Value >= constantDecimalRhs.Value,
-                _ => throw new UnreachableException("Unknown operator")
+                _ => throw new SyntaxException($"Invalid operator '{op}'.", Context)
             };
             
             return true;
@@ -172,7 +172,7 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
             ComparisonOperator.LESS_THAN_OR_EQUAL => lhs.AsInteger <= rhs.AsInteger,
             ComparisonOperator.GREATER_THAN => lhs.AsInteger > rhs.AsInteger,
             ComparisonOperator.GREATER_THAN_OR_EQUAL => lhs.AsInteger >= rhs.AsInteger,
-            _ => throw new UnreachableException("Unknown operator")
+            _ => throw new SyntaxException($"Invalid operator '{op}'.", Context)
         };
         
         return true;

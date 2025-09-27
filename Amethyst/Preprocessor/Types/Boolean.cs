@@ -13,7 +13,9 @@ public partial class PreprocessorBoolean : AbstractNumericPreprocessorValue, IPr
 
     public override bool AsBoolean => Value;
     
-    public override int AsInteger => Value ? 1 : 0;
+    public override int AsInteger => AsBoolean ? 1 : 0;
+    
+    public override double AsDecimal => AsInteger;
 
     public override string ToString()
     {

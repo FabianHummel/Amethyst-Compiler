@@ -81,17 +81,13 @@ public class AmethystParseListener : AmethystBaseListener
         if (!Parser.SourceFile!.ExportedSymbols.TryAdd(symbolName, context) && 
             !Parser.SourceFile!.ImportedSymbols.ContainsKey(symbolName))
         {
-            throw new SyntaxException($"Symbol '{symbolName}' is already declared in this scope.", context);
+            throw new SemanticException($"Symbol '{symbolName}' is already declared in this scope.", context);
         }
     }
 
     public override void ExitFunctionDeclaration(AmethystParser.FunctionDeclarationContext context)
     {
         var fnName = context.IDENTIFIER().GetText();
-        if (fnName == null)
-        {
-            throw new SyntaxException("Expected function name.", context);
-        }
 
         var attributesListContext = context.attributeList();
         var attributes = attributesListContext.attribute()

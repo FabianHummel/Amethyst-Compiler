@@ -21,7 +21,7 @@ public partial class Compiler
             ArithmeticOperator.MULTIPLY => lhs * rhs,
             ArithmeticOperator.DIVIDE => lhs / rhs,
             ArithmeticOperator.MODULO => lhs % rhs,
-            _ => throw new ArgumentOutOfRangeException(operatorToken, nameof(operatorToken))
+            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
         };
     }
 }

@@ -1,5 +1,6 @@
 using Amethyst.Language;
 using Amethyst.Model;
+using Antlr4.Runtime;
 
 namespace Amethyst;
 
@@ -11,11 +12,12 @@ public partial class Compiler
         
         if (context.GetChild(1) is { } modifierContext)
         {
-            modifier = modifierContext.GetText() switch
+            var modifierString = modifierContext.GetText();
+            modifier = modifierString switch
             {
                 "[]" => Modifier.Array,
                 "{}" => Modifier.Object,
-                _ => throw new SyntaxException("Expected modifier.", context)
+                _ => throw new SyntaxException($"Invalid type modifier '{modifierString}'.", context)
             };
         }
         
@@ -36,14 +38,15 @@ public partial class Compiler
             };
         }
 
-        var basicType = context.GetChild(0).GetText() switch
+        var basicTypeString = context.GetChild(0).GetText();
+        var basicType = basicTypeString switch
         {
             "int" => BasicType.Int,
             "string" => BasicType.String,
             "bool" => BasicType.Bool,
             "array" => BasicType.Array,
             "object" => BasicType.Object,
-            _ => throw new SyntaxException("Expected basic type.", context)
+            _ => throw new SyntaxException($"Invalid basic type '{basicTypeString}'.", context)
         };
         
         return new DataType
@@ -51,5 +54,27 @@ public partial class Compiler
             BasicType = basicType,
             Modifier = modifier
         };
+    }
+    
+    private DataType GetOrInferTypeResult(IRuntimeValue result, AmethystParser.TypeContext? typeContext, ParserRuleContext context)
+    {
+        DataType? type = null;
+        
+        if (typeContext != null)
+        {
+            type = VisitType(typeContext);
+        }
+        // if two types are defined, check if they match
+        if (type != null && type != result.DataType)
+        {
+            throw new SyntaxException($"The type '{type}' does not match the inferred type '{result.DataType}'.", context);
+        }
+        // if no type is defined, we infer it
+        if (type == null)
+        {
+            type = result.DataType;
+        }
+        
+        return type;
     }
 }

@@ -27,17 +27,14 @@ public class ConstantDynamicObject : AbstractConstantObject, IMemberAccess
         };
     }
 
-    public new AbstractValue GetMember(string memberName)
+    public new AbstractValue? GetMember(string memberName) => memberName switch
     {
-        return memberName switch
+        "values" => new ConstantDynamicArray
         {
-            "values" => new ConstantDynamicArray
-            {
-                Compiler = Compiler,
-                Context = Context,
-                Value = Value.Values.ToArray()
-            },
-            _ => base.GetMember(memberName)
-        };
-    }
+            Compiler = Compiler,
+            Context = Context,
+            Value = Value.Values.ToArray()
+        },
+        _ => base.GetMember(memberName)
+    };
 }

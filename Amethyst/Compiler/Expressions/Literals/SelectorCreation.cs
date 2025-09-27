@@ -155,7 +155,7 @@ public partial class Compiler
             }
         }
 
-        throw new SyntaxException("Invalid selector.", context);
+        throw new InvalidOperationException($"Invalid selector '{context}'.");
     }
 
     public new static TargetSelector VisitSelectorType(AmethystParser.SelectorTypeContext context)

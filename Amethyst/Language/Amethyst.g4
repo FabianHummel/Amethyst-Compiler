@@ -38,7 +38,7 @@ preprocessorDeclaration
  ;
  
 preprocessorVariableDeclaration
- : 'VAR' IDENTIFIER (':' preprocessorType)? ('=' preprocessorExpression)? ';'
+ : 'VAR' IDENTIFIER (':' preprocessorType)? ('=' preprocessorExpression) ';'
  ;
  
 preprocessorIfStatement
@@ -129,11 +129,11 @@ functionDeclaration
  ;
  
 variableDeclaration
- : attributeList 'var' IDENTIFIER (':' type)? ('=' expression)? ';'
+ : attributeList 'var' IDENTIFIER (':' type)? ('=' expression) ';'
  ;
  
 recordDeclaration
- : attributeList 'record' IDENTIFIER (':' type)? ('=' expression)? ';'
+ : attributeList 'record' IDENTIFIER (':' type)? ('=' expression) ';'
  ;
  
 attributeList

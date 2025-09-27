@@ -6,11 +6,6 @@ public abstract partial class AbstractRuntimeArray : AbstractArray, IRuntimeValu
     
     public bool IsTemporary { get; set; }
 
-    public override AbstractString ToStringValue()
-    {
-        throw new NotImplementedException();
-    }
-
     public AbstractBoolean MakeBoolean()
     {
         var location = ++Compiler.StackPointer;

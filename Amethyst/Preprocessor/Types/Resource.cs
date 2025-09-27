@@ -10,10 +10,14 @@ public partial class PreprocessorResource : AbstractPreprocessorValue, IPreproce
     {
         BasicType = BasicPreprocessorType.Resource
     };
-
-    public override bool AsBoolean => throw new SyntaxException("Cannot interpret a resource path as a boolean value.", Context);
     
-    public override int AsInteger => throw new SyntaxException("Cannot interpret a resource path as an integer value.", Context);
+    private SyntaxException _cannotInterpretException => new("Cannot interpret resource paths as an arithmetic value.", Context);
+    
+    public override bool AsBoolean => throw _cannotInterpretException;
+    
+    public override int AsInteger => throw _cannotInterpretException;
+    
+    public override double AsDecimal => throw _cannotInterpretException;
 
     public override string ToString()
     {
