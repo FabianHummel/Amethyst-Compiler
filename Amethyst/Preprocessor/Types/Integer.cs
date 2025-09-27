@@ -2,8 +2,10 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
-public class PreprocessorIntegerResult : PreprocessorResult<int>
+public partial class PreprocessorInteger : AbstractNumericPreprocessorValue, IPreprocessorValue<int>
 {
+    public required int Value { get; set; }
+    
     public override PreprocessorDataType DataType => new()
     {
         BasicType = BasicPreprocessorType.Int

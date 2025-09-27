@@ -2,8 +2,10 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
-public class PreprocessorDecimalResult : PreprocessorResult<double>
+public partial class PreprocessorDecimal : AbstractNumericPreprocessorValue, IPreprocessorValue<double>
 {
+    public required double Value { get; set; }
+    
     public override PreprocessorDataType DataType => new()
     {
         BasicType = BasicPreprocessorType.Dec
@@ -17,4 +19,5 @@ public class PreprocessorDecimalResult : PreprocessorResult<double>
     {
         return Value.ToString("G", System.Globalization.CultureInfo.InvariantCulture);
     }
+
 }

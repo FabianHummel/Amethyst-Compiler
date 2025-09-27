@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -42,7 +43,9 @@ public class ForwardDefaultInterfaceMethodGenerator : IIncrementalGenerator
                     var sb = new StringBuilder($$"""
                                                  namespace {{symbol.ContainingNamespace.ToDisplayString()}};
                                                  
-                                                 partial class {{symbol.Name}} : {{interfaceName}}
+                                                 #nullable enable
+                                                 
+                                                 partial class {{symbol.Name}}
                                                  {
                                                  
                                                  """);
@@ -52,54 +55,51 @@ public class ForwardDefaultInterfaceMethodGenerator : IIncrementalGenerator
                         if (m.MethodKind != MethodKind.Ordinary) continue;
                         if (m.IsAbstract) continue;
                         if (m.DeclaredAccessibility is not Accessibility.Public) continue;
-                        // Check if there is an abstract method in any base class with the same name and parameters
-                        bool hasAbstractBase = false;
-                        var baseType = symbol.BaseType;
-                        while (baseType != null)
-                        {
-                            foreach (var baseMember in baseType.GetMembers(m.Name).OfType<IMethodSymbol>())
-                            {
-                                if (baseMember.IsAbstract && baseMember.Parameters.Length == m.Parameters.Length)
-                                {
-                                    // Check parameter types match
-                                    bool paramsMatch = !m.Parameters
-                                        .Where((t, i) => !SymbolEqualityComparer.Default.Equals(t.Type, baseMember.Parameters[i].Type))
-                                        .Any();
-                                    
-                                    if (paramsMatch)
-                                    {
-                                        hasAbstractBase = true;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (hasAbstractBase) break;
-                            baseType = baseType.BaseType;
-                        }
                         var returnType = m.ReturnType.ToDisplayString();
+                        var returnKeyword = returnType == "void" ? "" : "return ";
                         var methodName = m.Name;
-                        var @params = string.Join(", ", m.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
-                        var args = string.Join(", ", m.Parameters.Select(p => p.Name));
+                        var overrideKeyword = HasAbstractBaseDefinition(m, symbol) ? "override " : "";
+                        
+                        var methodParams = string.Join(", ", m.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
+                        var methodArgs = string.Join(", ", m.Parameters.Select(p => p.Name));
+                        
+                        sb.AppendLine($$"""
+                                            public {{overrideKeyword}}{{returnType}} {{methodName}}({{methodParams}})
+                                            {
+                                                {{returnKeyword}}(({{interfaceName}})this).{{methodName}}({{methodArgs}});
+                                            }
+                                            
+                                        """);
+                    }
+                    
+                    foreach (var p in @interface.GetMembers().OfType<IPropertySymbol>())
+                    {
+                        if (p.DeclaredAccessibility is not Accessibility.Public) continue;
+                        if (p.IsAbstract) continue;
+                        var propertyType = p.Type.ToDisplayString();
+                        var propertyName = p.Name;
+                        var overrideKeyword = HasAbstractBaseDefinition(p, symbol) ? "override " : "";
 
-                        if (hasAbstractBase)
+                        if (p.GetMethod is not null)
                         {
                             sb.AppendLine($$"""
-                                            public override {{returnType}} {{methodName}}({{@params}})
-                                            {
-                                                return (({{interfaceName}})this).{{methodName}}({{args}});
-                                            }
-                                            
-                                        """);
+                                                public {{overrideKeyword}}{{propertyType}} {{propertyName}}
+                                                {
+                                                    get => (({{interfaceName}})this).{{propertyName}};
+                                                }
+                                                
+                                            """);
                         }
-                        else
+
+                        if (p.SetMethod is not null)
                         {
                             sb.AppendLine($$"""
-                                            public {{returnType}} {{methodName}}({{@params}})
-                                            {
-                                                return (({{interfaceName}})this).{{methodName}}({{args}});
-                                            }
-                                            
-                                        """);
+                                                public {{overrideKeyword}}{{propertyType}} {{propertyName}}
+                                                {
+                                                    set => (({{interfaceName}})this).{{propertyName}} = value;
+                                                }
+                                                
+                                            """);
                         }
                     }
                     
@@ -108,5 +108,47 @@ public class ForwardDefaultInterfaceMethodGenerator : IIncrementalGenerator
                 }
             }
         });
+    }
+
+    private static bool HasAbstractBaseDefinition(IMethodSymbol m, INamedTypeSymbol symbol)
+    {
+        bool hasAbstractBase = false;
+        var baseType = symbol.BaseType;
+        while (baseType != null)
+        {
+            if ((from baseMember in baseType.GetMembers(m.Name).OfType<IMethodSymbol>() 
+                where baseMember.IsAbstract && baseMember.Parameters.Length == m.Parameters.Length 
+                select !m.Parameters
+                    .Where((t, i) => !SymbolEqualityComparer.Default.Equals(t.Type, baseMember.Parameters[i].Type))
+                    .Any())
+                .Any())
+            {
+                hasAbstractBase = true;
+            }
+            if (hasAbstractBase) break;
+            baseType = baseType.BaseType;
+        }
+        return hasAbstractBase;
+    }
+    
+    private static bool HasAbstractBaseDefinition(IPropertySymbol m, INamedTypeSymbol symbol)
+    {
+        bool hasAbstractBase = false;
+        var baseType = symbol.BaseType;
+        while (baseType != null)
+        {
+            if ((from baseMember in baseType.GetMembers(m.Name).OfType<IPropertySymbol>() 
+                    where baseMember.IsAbstract && baseMember.Parameters.Length == m.Parameters.Length 
+                    select !m.Parameters
+                        .Where((t, i) => !SymbolEqualityComparer.Default.Equals(t.Type, baseMember.Parameters[i].Type))
+                        .Any())
+                .Any())
+            {
+                hasAbstractBase = true;
+            }
+            if (hasAbstractBase) break;
+            baseType = baseType.BaseType;
+        }
+        return hasAbstractBase;
     }
 }

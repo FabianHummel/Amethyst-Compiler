@@ -2,8 +2,10 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
-public class PreprocessorBooleanResult : PreprocessorResult<bool>
+public partial class PreprocessorBoolean : AbstractNumericPreprocessorValue, IPreprocessorValue<bool>
 {
+    public required bool Value { get; set; }
+    
     public override PreprocessorDataType DataType => new()
     {
         BasicType = BasicPreprocessorType.Bool

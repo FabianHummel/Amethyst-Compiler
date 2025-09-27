@@ -16,6 +16,11 @@ public partial class Compiler
         var op = Enum.GetValues<ArithmeticOperator>()
             .First(op => op.GetAmethystOperatorSymbol() == operatorToken);
 
-        return lhs.Calculate(rhs, op);
+        return op switch
+        {
+            ArithmeticOperator.ADD => lhs + rhs,
+            ArithmeticOperator.SUBTRACT => lhs - rhs,
+            _ => throw new ArgumentOutOfRangeException(operatorToken, nameof(operatorToken))
+        };
     }
 }

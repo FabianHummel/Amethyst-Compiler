@@ -2,8 +2,10 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
-public class PreprocessorResourceResult : PreprocessorResult<string>
+public partial class PreprocessorResource : AbstractPreprocessorValue, IPreprocessorValue<string>
 {
+    public required string Value { get; set; }
+    
     public override PreprocessorDataType DataType => new()
     {
         BasicType = BasicPreprocessorType.Resource

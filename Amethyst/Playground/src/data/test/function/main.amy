@@ -1,5 +1,4 @@
 [initializing]
 function main() {
-    var nice = 40.4;
-    debug nice + 2.41;
+    DEBUG 10 + "nice";
 }

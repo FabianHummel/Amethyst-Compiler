@@ -6,13 +6,13 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override PreprocessorResult VisitPreprocessorLiteralExpression(AmethystParser.PreprocessorLiteralExpressionContext context)
+    public override AbstractPreprocessorValue VisitPreprocessorLiteralExpression(AmethystParser.PreprocessorLiteralExpressionContext context)
     {
         var literalContext = context.preprocessorLiteral();
         
         if (literalContext.STRING_LITERAL() is { } stringLiteral)
         {
-            return new PreprocessorStringResult
+            return new PreprocessorString
             {
                 Compiler = this,
                 Context = literalContext,
@@ -22,7 +22,7 @@ public partial class Compiler
         
         if (literalContext.RESOURCE_LITERAL() is { } resourceLiteral)
         {
-            return new PreprocessorResourceResult
+            return new PreprocessorResource
             {
                 Compiler = this,
                 Context = literalContext,
@@ -37,7 +37,7 @@ public partial class Compiler
                 throw new SyntaxException("Invalid decimal literal", literalContext);
             }
 
-            return new PreprocessorDecimalResult
+            return new PreprocessorDecimal
             {
                 Compiler = this,
                 Context = literalContext,
@@ -52,7 +52,7 @@ public partial class Compiler
                 throw new SyntaxException("Invalid integer literal", literalContext);
             }
             
-            return new PreprocessorIntegerResult
+            return new PreprocessorInteger
             {
                 Compiler = this,
                 Context = literalContext,
@@ -64,7 +64,7 @@ public partial class Compiler
         {
             var value = booleanLiteral.GetText() == "true";
 
-            return new PreprocessorBooleanResult
+            return new PreprocessorBoolean
             {
                 Compiler = this,
                 Context = literalContext,
