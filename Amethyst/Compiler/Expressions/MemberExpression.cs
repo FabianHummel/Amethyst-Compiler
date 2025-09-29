@@ -7,30 +7,29 @@ namespace Amethyst;
 /// </summary>
 public interface IMemberAccess
 {
-    AbstractResult GetMember(string memberName);
+    AbstractValue? GetMember(string memberName);
 }
 
 public partial class Compiler
 {
-    public override AbstractResult VisitMemberExpression(AmethystParser.MemberExpressionContext context)
+    public override AbstractValue VisitMemberExpression(AmethystParser.MemberExpressionContext context)
     {
         var expressionContext = context.expression();
         var result = VisitExpression(expressionContext);
         
         if (result is not IMemberAccess memberAccess)
         {
-            throw new SyntaxException($"Type '{result.DataType}' does not support member access.", expressionContext);
+            throw new SyntaxException($"Type '{result.DataType}' does not support accessing members.", expressionContext);
         }
 
-        try
+        var identifier = context.IDENTIFIER();
+        var memberName = identifier.GetText();
+
+        if (memberAccess.GetMember(memberName) is not { } member)
         {
-            var identifier = context.IDENTIFIER();
-            var memberName = identifier.GetText();
-            return memberAccess.GetMember(memberName);
+            throw new SyntaxException($"No member '{memberName}' found on type '{result.DataType}'.", context);
         }
-        catch (SemanticException e)
-        {
-            throw new SyntaxException(e.Message, context);
-        }
+
+        return member;
     }
 }

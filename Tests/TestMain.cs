@@ -25,7 +25,7 @@ public static class TestMain
             .AddJsonFile("appsettings.Development.json", optional: true)
             .Build();
 
-        var settings = configuration.GetValue<MinecraftServerSettings>("MinecraftServer");
+        var settings = configuration.GetValue<MinecraftServerSettings>("MinecraftServer")!;
         
         var serverProperties = Path.Combine(Environment.CurrentDirectory, "server.properties");
         File.WriteAllText(serverProperties, File.ReadAllText(serverProperties, Encoding.UTF8)

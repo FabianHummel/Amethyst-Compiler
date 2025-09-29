@@ -6,13 +6,13 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override PreprocessorResult VisitPreprocessorLiteralExpression(AmethystParser.PreprocessorLiteralExpressionContext context)
+    public override AbstractPreprocessorValue VisitPreprocessorLiteralExpression(AmethystParser.PreprocessorLiteralExpressionContext context)
     {
         var literalContext = context.preprocessorLiteral();
         
         if (literalContext.STRING_LITERAL() is { } stringLiteral)
         {
-            return new PreprocessorStringResult
+            return new PreprocessorString
             {
                 Compiler = this,
                 Context = literalContext,
@@ -22,7 +22,7 @@ public partial class Compiler
         
         if (literalContext.RESOURCE_LITERAL() is { } resourceLiteral)
         {
-            return new PreprocessorResourceResult
+            return new PreprocessorResource
             {
                 Compiler = this,
                 Context = literalContext,
@@ -34,10 +34,10 @@ public partial class Compiler
         {
             if (!double.TryParse(decimalLiteral.Symbol.Text, out var result))
             {
-                throw new SyntaxException("Invalid decimal literal", literalContext);
+                throw new SyntaxException($"Invalid decimal literal '{decimalLiteral}'.", literalContext);
             }
 
-            return new PreprocessorDecimalResult
+            return new PreprocessorDecimal
             {
                 Compiler = this,
                 Context = literalContext,
@@ -49,10 +49,10 @@ public partial class Compiler
         {
             if (!int.TryParse(integerLiteral.Symbol.Text, out var result))
             {
-                throw new SyntaxException("Invalid integer literal", literalContext);
+                throw new SyntaxException($"Invalid integer literal '{integerLiteral}'.", literalContext);
             }
             
-            return new PreprocessorIntegerResult
+            return new PreprocessorInteger
             {
                 Compiler = this,
                 Context = literalContext,
@@ -63,8 +63,12 @@ public partial class Compiler
         if (literalContext.booleanLiteral() is { } booleanLiteral)
         {
             var value = booleanLiteral.GetText() == "true";
+            if (!value && booleanLiteral.GetText() != "false")
+            {
+                throw new SyntaxException($"Invalid boolean literal '{booleanLiteral}'.", literalContext);
+            }
 
-            return new PreprocessorBooleanResult
+            return new PreprocessorBoolean
             {
                 Compiler = this,
                 Context = literalContext,
@@ -72,6 +76,6 @@ public partial class Compiler
             };
         }
         
-        throw new UnreachableException();
+        throw new InvalidOperationException($"Invalid literal '{literalContext}'.");
     }
 }

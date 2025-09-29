@@ -10,19 +10,13 @@ public partial class Compiler
     {
         if (Context.Datapack is null)
         {
-            throw new Exception($"Consider configuring the datapack in '{CONFIG_FILE}' in order to use functions.");
+            throw new SyntaxException($"Consider configuring a datapack in '{CONFIG_FILE}' in order to use functions.", context);
         }
         
-        if (context.IDENTIFIER() is not { } functionNameContext)
-        {
-            throw new SyntaxException("Expected function name.", context);
-        }
-        
-        var functionName = functionNameContext.GetText();
-        
+        var functionName = context.IDENTIFIER().GetText();
         if (Scope.TryGetSymbol(functionName, out _))
         {
-            throw new SyntaxException($"The symbol '{functionName}' has already been declared.", context);
+            throw new SymbolAlreadyDeclaredException(functionName, context);
         }
         
         var scope = VisitBlockNamed(context.block(), "_func");

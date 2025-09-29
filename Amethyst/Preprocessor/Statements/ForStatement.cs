@@ -7,25 +7,38 @@ public partial class Compiler
 {
     public override object? VisitPreprocessorForStatement(AmethystParser.PreprocessorForStatementContext context)
     {
-        if (context.preprocessorVariableDeclaration() is { } preprocessorVariableDeclarationContext)
+        if (context.preprocessorForStatementInitializer() is { } forStatementInitializerContext)
         {
-            VisitPreprocessorVariableDeclaration(preprocessorVariableDeclarationContext);
-        }
-        else if (context.preprocessorExpressionStatement() is { } preprocessorExpressionStatementContext)
-        {
-            VisitPreprocessorExpressionStatement(preprocessorExpressionStatementContext);
+            Visit(forStatementInitializerContext);
         }
 
-        var result = VisitPreprocessorExpression(context.preprocessorExpression());
-
+        AbstractPreprocessorValue value;
+        if (context.preprocessorExpression() is { } expressionContext)
+        {
+            value = VisitPreprocessorExpression(expressionContext);
+        }
+        else
+        {
+            value = new PreprocessorBoolean
+            {
+                Compiler = this,
+                Context = context,
+                Value = true
+            };
+        }
+        
         var maxIterations = 10_000_000;
 
         using var scope = new LoopingScope(this, () =>
         {
-            while(result.AsBoolean && maxIterations-- > 0)
+            while(value.AsBoolean && maxIterations-- > 0)
             {
                 VisitBlock(context.block());
-                result = VisitPreprocessorExpression(context.preprocessorExpression());
+                if (context.preprocessorExpressionStatement() is { } preprocessorExpressionStatementContext)
+                {
+                    VisitPreprocessorExpressionStatement(preprocessorExpressionStatementContext);
+                }
+                value = VisitPreprocessorExpression(context.preprocessorExpression());
             }
         });
 

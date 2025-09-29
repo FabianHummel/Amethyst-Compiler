@@ -28,15 +28,15 @@ public static class EnumExtension
     public static string GetMcfOperatorSymbol(this Enum op)
     {
         var field = op.GetType().GetField(op.ToString());
-        var attribute = (McfOperatorAttribute)Attribute.GetCustomAttribute(field, typeof(McfOperatorAttribute));
-        return attribute!.Operator;
+        var attribute = (McfOperatorAttribute)Attribute.GetCustomAttribute(field!, typeof(McfOperatorAttribute))!;
+        return attribute.Operator;
     }
     
     public static string GetAmethystOperatorSymbol(this Enum op)
     {
         var field = op.GetType().GetField(op.ToString());
-        var attribute = (AmethystOperatorAttribute)Attribute.GetCustomAttribute(field, typeof(AmethystOperatorAttribute));
-        return attribute!.Operator;
+        var attribute = (AmethystOperatorAttribute)Attribute.GetCustomAttribute(field!, typeof(AmethystOperatorAttribute))!;
+        return attribute.Operator;
     }
     
     public static T GetEnumFromMcfOperator<T>(string mcfOperator) where T : Enum

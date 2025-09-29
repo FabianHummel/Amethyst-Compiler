@@ -1,55 +1,48 @@
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Amethyst.Language;
 using Amethyst.Model;
+using Antlr4.Runtime;
 
 namespace Amethyst;
 
 public partial class Compiler
 {
-    public Symbol VisitIdentifierSymbol(string symbolName)
+    private Symbol GetSymbol(string symbolName, ParserRuleContext context)
     {
         var sourceFile = SourceFile;
+        return FindSymbolRecursive();
 
-        return SearchSymbol();
-
-        Symbol SearchSymbol()
+        Symbol FindSymbolRecursive()
         {
             if (Scope.TryGetSymbol(symbolName, out var symbol))
             {
                 return symbol;
             }
 
-            if (sourceFile.ExportedSymbols.TryGetValue(symbolName, out var context))
+            if (sourceFile.ExportedSymbols.TryGetValue(symbolName, out var declarationContext))
             {
-                VisitDeclaration(context);
-                return SearchSymbol();
+                VisitDeclaration(declarationContext);
+                return FindSymbolRecursive();
             }
 
             if (sourceFile.ImportedSymbols.TryGetValue(symbolName, out var resourcePath))
             {
-                sourceFile = VisitResource(resourcePath, Constants.DATAPACK_FUNCTIONS_DIRECTORY);
+                sourceFile = VisitResource(resourcePath, Constants.DATAPACK_FUNCTIONS_DIRECTORY, context);
                 var previousScope = Scope;
                 Scope = sourceFile.RootScope;
-                SearchSymbol();
+                symbol = FindSymbolRecursive();
                 Scope = previousScope;
+                return symbol;
             }
-            
-            throw new SemanticException($"The symbol '{symbolName}' does not exist in the current scope.");
+
+            throw new SemanticException($"Symbol '{symbolName}' does not exist in the current scope.", context);
         }
     }
     
-    public override AbstractResult VisitIdentifierExpression(AmethystParser.IdentifierExpressionContext context)
+    public override AbstractValue VisitIdentifierExpression(AmethystParser.IdentifierExpressionContext context)
     {
         var symbolName = context.IDENTIFIER().GetText();
-        Symbol? symbol;
-        try
-        {
-            symbol = VisitIdentifierSymbol(symbolName);
-        }
-        catch (SemanticException e)
-        {
-            throw new SyntaxException(e.Message, context);
-        }
+        var symbol = GetSymbol(symbolName, context);
         
         if (symbol is Variable variable)
         {
@@ -57,77 +50,77 @@ public partial class Compiler
             {
                 return modifier switch
                 {
-                    Modifier.Array => new StaticArrayResult
+                    Modifier.Array => new RuntimeStaticArray
                     {
                         Compiler = this,
                         Context = context,
                         Location = variable.Location,
                         BasicType = variable.DataType.BasicType
                     },
-                    Modifier.Object => new StaticObjectResult
+                    Modifier.Object => new RuntimeStaticObject
                     { 
                         Compiler = this, 
                         Context = context, 
                         Location = variable.Location, 
                         BasicType = variable.DataType.BasicType
                     },
-                    _ => throw new UnreachableException()
+                    _ => throw new InvalidOperationException($"Invalid type modifier '{modifier}'.")
                 };
             }
 
             return variable.DataType.BasicType switch
             {
-                BasicType.Int => new IntegerResult
+                BasicType.Int => new RuntimeInteger
                 { 
                     Compiler = this, 
                     Context = context, 
                     Location = variable.Location
                 },
-                BasicType.Dec => new DecimalResult
+                BasicType.Dec => new RuntimeDecimal
                 { 
                     Compiler = this, 
                     Context = context, 
                     Location = variable.Location,
                     DecimalPlaces = (variable.DataType as DecimalDataType)!.DecimalPlaces
                 },
-                BasicType.Bool => new BooleanResult
+                BasicType.Bool => new RuntimeBoolean
                 { 
                     Compiler = this, 
                     Context = context, 
                     Location = variable.Location
                 },
-                BasicType.String => new StringResult
+                BasicType.String => new RuntimeString
                 { 
                     Compiler = this, 
                     Context = context, 
                     Location = variable.Location
                 },
-                BasicType.Array => new DynArrayResult
+                BasicType.Array => new RuntimeDynamicArray
                 { 
                     Compiler = this, 
                     Context = context, 
                     Location = variable.Location
                 },
-                BasicType.Object => new DynObjectResult
+                BasicType.Object => new RuntimeDynamicObject
                 { 
                     Compiler = this, 
                     Context = context, 
                     Location = variable.Location
                 },
-                _ => throw new UnreachableException()
+                _ => throw new InvalidOperationException($"Invalid basic type '{variable.DataType.BasicType}'.")
             };
         }
 
         if (symbol is Record record)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("TODO: Create record from datatype");
         }
 
         if (symbol is Function function)
         {
-            
+            throw new NotImplementedException("TODO: What to do here?");
         }
 
-        throw new UnreachableException();
+        throw new InvalidOperationException($"Invalid symbol '{symbol.GetType()}'.");
     }
 }

@@ -13,7 +13,7 @@ public partial class Compiler
             context, target => target.expression());
     }
     
-    public override AbstractResult VisitDisjunctionExpression(AmethystParser.DisjunctionExpressionContext context)
+    public override AbstractValue VisitDisjunctionExpression(AmethystParser.DisjunctionExpressionContext context)
     {
         var expressionContexts = FlattenDisjunctionExpressions(context);
 
@@ -33,22 +33,18 @@ public partial class Compiler
                     throw new SyntaxException("Expected boolean result.", expressionContext);
                 }
 
-                if (booleanResult is BooleanConstant booleanConstant)
+                if (booleanResult is ConstantBoolean { Value: true })
                 {
-                    if (booleanConstant.Value)
-                    {
-                        cancel();
-                        isAlwaysTrue = true;
-                        return;
-                    }
-
-                    continue;
+                    cancel();
+                    isAlwaysTrue = true;
+                    return;
                 }
-
-                var current = booleanResult.ToRuntimeValue();
                 
-                // Early return if the current expression is true (we don't need to check the rest).
-                AddCode($"execute unless score {current.Location} amethyst matches 0 run return 1");
+                if (booleanResult is IRuntimeValue runtimeValue)
+                {
+                    // Early return if the current expression is true (we don't need to check the rest).
+                    AddCode($"execute unless score {runtimeValue.Location} amethyst matches 0 run return 1");
+                }
             }
             
             AddCode("return fail");
@@ -68,7 +64,7 @@ public partial class Compiler
             AddCode($"execute store success score {location} amethyst run function {scope.McFunctionPath}");
         }
 
-        return new BooleanResult
+        return new RuntimeBoolean
         {
             Location = location,
             Compiler = this,

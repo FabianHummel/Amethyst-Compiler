@@ -9,7 +9,7 @@ public partial class Compiler
         var blockContexts = context.block();
         var result = VisitExpression(context.expression());
 
-        if (result is BooleanConstant booleanConstant)
+        if (result is ConstantBoolean booleanConstant)
         {
             if (booleanConstant.Value)
             {
@@ -19,7 +19,7 @@ public partial class Compiler
             return null;
         }
         
-        if (result is BooleanResult booleanResult)
+        if (result is RuntimeBoolean booleanResult)
         {
             var scope = VisitBlockNamed(blockContexts[0], "_func");
             AddCode($"execute if score {booleanResult.Location} amethyst matches 1 run function {scope.McFunctionPath}");

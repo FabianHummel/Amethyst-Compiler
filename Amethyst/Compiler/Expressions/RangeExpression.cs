@@ -15,19 +15,19 @@ public partial class Compiler
             _allowDecimals = allowDecimals;
         }
 
-        public AbstractResult? Start { get; set; }
-        public AbstractResult? Stop { get; set; }
+        public AbstractValue? Start { get; set; }
+        public AbstractValue? Stop { get; set; }
         
-        public bool ContainsRuntimeValues => Start is RuntimeValue || Stop is RuntimeValue;
+        public bool ContainsRuntimeValues => Start is IRuntimeValue || Stop is IRuntimeValue;
 
         public override string ToString()
         {
             if (Start is null && Stop is null)
             {
-                throw new SyntaxException("Invalid range expression.", _context);
+                throw new SyntaxException("Invalid range expression. At least one of the range bounds must be specified.", _context);
             }
             
-            if (!_allowDecimals && (Start is DecimalConstant or DecimalResult || Stop is DecimalConstant or DecimalResult))
+            if (!_allowDecimals && (Start is ConstantDecimal or RuntimeDecimal || Stop is ConstantDecimal or RuntimeDecimal))
             {
                 throw new SyntaxException("Unexpected decimal value.", _context);
             }

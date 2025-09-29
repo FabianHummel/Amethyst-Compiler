@@ -26,9 +26,14 @@ public static class Program
                 if (o.Watch)
                 {
                     _amethyst.Context.CompilerFlags |= CompilerFlags.Watch;
-                    ClearConsole();
+                }
+
+                if (o.ReduceColors)
+                {
+                    IsReducedColors = true;
                 }
                 
+                ClearConsole();
                 _amethyst.PrintAmethystLogoAndVersion();
                 _amethyst.ReinitializeProject();
                 

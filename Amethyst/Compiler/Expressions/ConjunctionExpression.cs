@@ -13,7 +13,7 @@ public partial class Compiler
             context, target => target.expression());
     }
     
-    public override AbstractResult VisitConjunctionExpression(AmethystParser.ConjunctionExpressionContext context)
+    public override AbstractValue VisitConjunctionExpression(AmethystParser.ConjunctionExpressionContext context)
     {
         var expressionContexts = FlattenConjunctionExpressions(context);
         
@@ -33,22 +33,17 @@ public partial class Compiler
                     throw new SyntaxException("Expected boolean result.", expressionContext);
                 }
 
-                if (booleanResult is BooleanConstant booleanConstant)
+                if (booleanResult is ConstantBoolean { Value: false })
                 {
-                    if (!booleanConstant.Value)
-                    {
-                        cancel();
-                        isAlwaysFalse = true;
-                        return;
-                    }
-
-                    continue;
+                    cancel();
+                    isAlwaysFalse = true;
+                    return;
                 }
-                
-                var current = booleanResult.ToRuntimeValue();
-                
-                // Early return if the current expression is false (we don't need to check the rest).
-                AddCode($"execute if score {current.Location} amethyst matches 0 run return fail");
+                if (booleanResult is IRuntimeValue runtimeValue)
+                {
+                    // Early return if the current expression is false (we don't need to check the rest).
+                    AddCode($"execute if score {runtimeValue.Location} amethyst matches 0 run return fail");
+                }
             }
             
             AddCode("return 1");
@@ -68,7 +63,7 @@ public partial class Compiler
             AddCode($"execute store success score {location} amethyst run function {scope.McFunctionPath}");
         }
         
-        return new BooleanResult
+        return new RuntimeBoolean
         {
             Location = location,
             Compiler = this,

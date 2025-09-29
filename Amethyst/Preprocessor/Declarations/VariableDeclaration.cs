@@ -8,24 +8,14 @@ public partial class Compiler
 {
     public override object? VisitPreprocessorVariableDeclaration(AmethystParser.PreprocessorVariableDeclarationContext context)
     {
-        if (context.IDENTIFIER() is not { } variableNameContext)
-        {
-            throw new SyntaxException("Expected variable name.", context);
-        }
-        
-        var variableName = variableNameContext.GetText();
+        var variableName = context.IDENTIFIER().GetText();
         
         if (Scope.TryGetSymbol(variableName, out _))
         {
-            throw new SyntaxException($"The symbol '{variableName}' has already been declared.", context);
-        }
-        
-        if (context.preprocessorExpression() is not { } preprocessorExpressionContext)
-        {
-            throw new SyntaxException("Expected preprocessor expression.", context);
+            throw new SemanticException($"The symbol '{variableName}' has already been declared.", context);
         }
 
-        var result = VisitPreprocessorExpression(preprocessorExpressionContext);
+        var result = VisitPreprocessorExpression(context.preprocessorExpression());
         
         PreprocessorDataType? type = null;
         

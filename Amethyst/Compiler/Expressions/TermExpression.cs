@@ -6,7 +6,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override AbstractResult VisitTermExpression(AmethystParser.TermExpressionContext context)
+    public override AbstractValue VisitTermExpression(AmethystParser.TermExpressionContext context)
     {
         var expressionContexts = context.expression();
         var left = VisitExpression(expressionContexts[0]);
@@ -16,19 +16,11 @@ public partial class Compiler
         var op = Enum.GetValues<ArithmeticOperator>()
             .First(op => op.GetAmethystOperatorSymbol() == operatorToken);
 
-        if (left.TryCalculateConstants(right, op, out var result))
-        {
-            return result;
-        }
-
-        var lhs = left.ToRuntimeValue();
-        var rhs = right.ToRuntimeValue();
-
         return op switch
         {
-            ArithmeticOperator.ADD => lhs + rhs,
-            ArithmeticOperator.SUBTRACT => lhs - rhs,
-            _ => throw new SyntaxException("Expected operator.", context)
+            ArithmeticOperator.ADD => left + right,
+            ArithmeticOperator.SUBTRACT => left - right,
+            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
         };
     }
 }

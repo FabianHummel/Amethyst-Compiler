@@ -38,7 +38,7 @@ preprocessorDeclaration
  ;
  
 preprocessorVariableDeclaration
- : 'VAR' IDENTIFIER (':' preprocessorType)? ('=' preprocessorExpression)? ';'
+ : 'VAR' IDENTIFIER (':' preprocessorType)? ('=' preprocessorExpression) ';'
  ;
  
 preprocessorIfStatement
@@ -46,7 +46,12 @@ preprocessorIfStatement
  ;
  
 preprocessorForStatement
- : 'FOR' '(' (preprocessorVariableDeclaration | preprocessorExpressionStatement)? preprocessorExpression? ';' preprocessorAssignment? ')' block
+ : 'FOR' '(' preprocessorForStatementInitializer? ';' preprocessorExpression? ';' preprocessorExpressionStatement? ')' block
+ ;
+ 
+preprocessorForStatementInitializer
+ : preprocessorVariableDeclaration
+ | preprocessorExpressionStatement
  ;
  
 preprocessorReturnStatement
@@ -67,17 +72,19 @@ preprocessorDebugStatement
  
 preprocessorExpressionStatement
  : preprocessorAssignment ';'
+ | preprocessorExpression ';'
  ;
  
 preprocessorAssignment
- : preprocessorExpression ('=' | '+=' | '-=' | '*=' | '/=' | '%=') preprocessorExpression   # preprocessorAssignmentExpression
- | preprocessorExpression '++'                                                              # preprocessorIncrementExpression
- | preprocessorExpression '--'                                                              # preprocessorDecrementExpression
- | preprocessorExpression                                                                   # preprocessorBaseExpression
+ : preprocessorExpression ('=' | '+=' | '-=' | '*=' | '/=' | '%=') preprocessorExpression
  ;
 
 preprocessorExpression
  : IDENTIFIER '(' preprocessorArgumentList? ')'                                 # preprocessorCallExpression
+ | '++' preprocessorExpression                                                  # preprocessorPreIncrementExpression
+ | '--' preprocessorExpression                                                  # preprocessorPreDecrementExpression
+ | preprocessorExpression '++'                                                  # preprocessorPostIncrementExpression
+ | preprocessorExpression '--'                                                  # preprocessorPostDecrementExpression
  | preprocessorExpression ('*' | '/' | '%') preprocessorExpression              # preprocessorFactorExpression
  | preprocessorExpression ('+' | '-') preprocessorExpression                    # preprocessorTermExpression
  | preprocessorExpression ('<' | '<=' | '>' | '>=') preprocessorExpression      # preprocessorComparisonExpression
@@ -122,11 +129,11 @@ functionDeclaration
  ;
  
 variableDeclaration
- : attributeList 'var' IDENTIFIER (':' type)? ('=' expression)? ';'
+ : attributeList 'var' IDENTIFIER (':' type)? ('=' expression) ';'
  ;
  
 recordDeclaration
- : attributeList 'record' IDENTIFIER (':' type)? ('=' expression)? ';'
+ : attributeList 'record' IDENTIFIER (':' type)? ('=' expression) ';'
  ;
  
 attributeList
@@ -165,7 +172,12 @@ statement
  ;
 
 forStatement
- : 'for' '(' (variableDeclaration | expressionStatement)? expression? ';' assignment? ')' block
+ : 'for' '(' forStatementInitializer? ';' expression? ';' expressionStatement? ')' block
+ ;
+ 
+forStatementInitializer
+ : variableDeclaration
+ | expressionStatement
  ;
  
 whileStatement
@@ -202,17 +214,19 @@ continueStatement
  
 expressionStatement
  : assignment ';'
+ | expression ';'
  ;
 
 assignment
- : expression ('=' | '+=' | '-=' | '*=' | '/=' | '%=') expression            # assignmentExpression
- | expression '++'                                                           # incrementExpression
- | expression '--'                                                           # decrementExpression
- | expression                                                                # baseExpression
+ : expression ('=' | '+=' | '-=' | '*=' | '/=' | '%=') expression
  ;
 
 expression
  : IDENTIFIER '(' argumentList? ')'                     # callExpression            // TODO:
+ | '++' expression                                      # preIncrementExpression
+ | '--' expression                                      # preDecrementExpression
+ | expression '++'                                      # postIncrementExpression
+ | expression '--'                                      # postDecrementExpression
  | expression '.' IDENTIFIER                            # memberExpression
  | expression '[' expression ']'                        # indexExpression
  | expression ('*' | '/' | '%') expression              # factorExpression

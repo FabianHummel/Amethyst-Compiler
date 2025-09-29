@@ -7,7 +7,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override AbstractResult VisitEqualityExpression(AmethystParser.EqualityExpressionContext context)
+    public override AbstractValue VisitEqualityExpression(AmethystParser.EqualityExpressionContext context)
     {
         var expressionContexts = context.expression();
         var left = VisitExpression(expressionContexts[0]);
@@ -17,17 +17,16 @@ public partial class Compiler
         var op = Enum.GetValues<ComparisonOperator>()
             .First(op => op.GetAmethystOperatorSymbol() == operatorToken);
 
-        // check data type
-        if (!left.DataType.Equals(right.DataType))
+        if (left.DataType != right.DataType)
         {
             throw new SyntaxException($"Cannot compare values of type '{left.DataType}' and '{right.DataType}'.", context);
         }
 
-        if (left is ConstantValue lhsConstant && right is ConstantValue rhsConstant)
+        if (left is IConstantValue lhsConstant && right is IConstantValue rhsConstant)
         {
             var result = lhsConstant.Equals(rhsConstant);
 
-            return new BooleanConstant
+            return new ConstantBoolean
             {
                 Compiler = this,
                 Context = context,
@@ -41,10 +40,10 @@ public partial class Compiler
         {
             ComparisonOperator.EQUAL => "if",
             ComparisonOperator.NOT_EQUAL => "unless",
-            _ => throw new UnreachableException()
+            _ => throw new SyntaxException($"Invalid equality operator '{op}'.", context)
         };
         
-        if (left is RuntimeValue lhsRuntime && right is RuntimeValue rhsRuntime)
+        if (left is IRuntimeValue lhsRuntime && right is IRuntimeValue rhsRuntime)
         {
             var backup = lhsRuntime.EnsureBackedUp();
             
@@ -56,20 +55,20 @@ public partial class Compiler
         else
         {
             // switch operands so that the constant value is always on the right side for optimization
-            var (lhs, rhs) = AbstractResult.EnsureConstantValueIsLast(left, right);
+            var (lhs, rhs) = AbstractValue.EnsureConstantValueIsLast(left, right);
         
             location = lhs.NextFreeLocation();
             
-            if (lhs.DataType.Location == DataLocation.Scoreboard && rhs is INumericConstant numericConstant)
+            if (lhs.DataType.Location == DataLocation.Scoreboard && rhs is IScoreboardValue numericConstant)
             {
                 // if both sides are a decimal type, coerce the right side to the left side's decimal places.
                 // this allows syntax like this, where the number of decimal places don't exactly match:
                 //  1 | var x = 0.1234;
                 //  2 | if (x == 1.0) { }
                 //  3 | if (x == 0.12345678) { }
-                if (lhs is DecimalResult lhsDecimal && numericConstant is DecimalConstant rhsDecimal)
+                if (lhs is RuntimeDecimal lhsDecimal && numericConstant is ConstantDecimal rhsDecimal)
                 {
-                    numericConstant = new DecimalConstant
+                    numericConstant = new ConstantDecimal
                     {
                         Compiler = rhsDecimal.Compiler,
                         Context = rhsDecimal.Context,
@@ -86,7 +85,7 @@ public partial class Compiler
             }
         }
         
-        return new BooleanResult
+        return new RuntimeBoolean
         {
             Compiler = this,
             Context = context,

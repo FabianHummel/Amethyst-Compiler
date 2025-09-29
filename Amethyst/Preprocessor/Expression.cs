@@ -5,8 +5,8 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override PreprocessorResult VisitPreprocessorExpression(AmethystParser.PreprocessorExpressionContext context)
+    public override AbstractPreprocessorValue VisitPreprocessorExpression(AmethystParser.PreprocessorExpressionContext context)
     {
-        return (PreprocessorResult)Visit(context)!;
+        return (AbstractPreprocessorValue)Visit(context)!;
     }
 }

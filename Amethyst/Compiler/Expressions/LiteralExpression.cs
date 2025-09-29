@@ -6,13 +6,13 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override AbstractResult VisitLiteralExpression(AmethystParser.LiteralExpressionContext context)
+    public override AbstractValue VisitLiteralExpression(AmethystParser.LiteralExpressionContext context)
     {
         var literalContext = context.literal();
         
         if (literalContext.STRING_LITERAL() is { } stringLiteral)
         {
-            return new StringConstant
+            return new ConstantString
             {
                 Compiler = this,
                 Context = literalContext,
@@ -22,19 +22,19 @@ public partial class Compiler
         
         if (literalContext.DECIMAL_LITERAL() is { } decimalLiteral)
         {
-            if (!double.TryParse(decimalLiteral.Symbol.Text, out var result))
+            if (!double.TryParse(decimalLiteral.GetText(), out var result))
             {
-                throw new SyntaxException("Invalid decimal literal", literalContext);
+                throw new SyntaxException($"Invalid decimal literal '{decimalLiteral.GetText()}'.", literalContext);
             }
 
             var decimalPlaces = DecimalDataType.DEFAULT_DECIMAL_PLACES;
             
-            if (decimalLiteral.Symbol.Text.Split('.').LastOrDefault() is { } decimalPart)
+            if (decimalLiteral.GetText().Split('.').LastOrDefault() is { } decimalPart)
             {
                 decimalPlaces = decimalPart.Length;
             }
 
-            return new DecimalConstant
+            return new ConstantDecimal
             {
                 Compiler = this,
                 Context = literalContext,
@@ -45,12 +45,12 @@ public partial class Compiler
         
         if (literalContext.INTEGER_LITERAL() is { } integerLiteral)
         {
-            if (!int.TryParse(integerLiteral.Symbol.Text, out var result))
+            if (!int.TryParse(integerLiteral.GetText(), out var result))
             {
-                throw new SyntaxException("Invalid integer literal", literalContext);
+                throw new SyntaxException($"Invalid integer literal '{integerLiteral.GetText()}'.", literalContext);
             }
             
-            return new IntegerConstant
+            return new ConstantInteger
             {
                 Compiler = this,
                 Context = literalContext,
@@ -61,8 +61,12 @@ public partial class Compiler
         if (literalContext.booleanLiteral() is { } booleanLiteral)
         {
             var value = booleanLiteral.GetText() == "true";
+            if (!value && booleanLiteral.GetText() != "false")
+            {
+                throw new SyntaxException($"Invalid boolean literal '{booleanLiteral.GetText()}'.", literalContext);
+            }
 
-            return new BooleanConstant
+            return new ConstantBoolean
             {
                 Compiler = this,
                 Context = literalContext,
@@ -80,6 +84,6 @@ public partial class Compiler
             return VisitObjectCreation(objectCreation);
         }
         
-        throw new UnreachableException();
+        throw new InvalidOperationException($"Invalid literal '{literalContext}'.");
     }
 }

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
 
@@ -14,51 +13,18 @@ public partial class Compiler
     public override object? VisitRecordDeclaration(AmethystParser.RecordDeclarationContext context)
     {
         TotalRecordCount++;
-
-        if (context.IDENTIFIER() is not { } recordNameContext)
-        {
-            throw new SyntaxException("Expected record name.", context);
-        }
         
-        var recordName = recordNameContext.GetText();
-        
+        var recordName = context.IDENTIFIER().GetText();
         if (Scope.TryGetSymbol(recordName, out _))
         {
-            throw new SyntaxException($"The symbol '{recordName}' has already been declared.", context);
+            throw new SymbolAlreadyDeclaredException(recordName, context);
         }
         
         var name = GetRecordName();
         
-        RuntimeValue? result = null;
-        DataType? type = null;
+        var result = VisitExpression(context.expression()).EnsureRuntimeValue();
         
-        if (context.expression() is { } expression)
-        {
-            result = VisitExpression(expression).ToRuntimeValue();
-        }
-        
-        // if a type is defined, set the type to the defined type
-        if (context.type() is { } typeContext)
-        {
-            type = VisitType(typeContext);
-        }
-        // if both types are defined, check if they match
-        if (type != null && result != null && type != result.DataType)
-        {
-            throw new SyntaxException($"The type of the record '{type}' does not match the inferred type '{result.DataType}'.", context);
-        }
-        // if no type is defined or inferred, throw an error
-        if (type == null && result == null)
-        {
-            throw new SyntaxException("Record declarations must have specified a type or an expression to infer the type from.", context);
-        }
-        // if no type is defined, but inferred, set the type to the inferred type
-        if (type == null && result != null)
-        {
-            type = result.DataType;
-        }
-        
-        Debug.Assert(type != null, nameof(type) + " != null");
+        var type = GetOrInferTypeResult(result, context.type(), context);
         
         var attributes = VisitAttributeList(context.attributeList());
 
@@ -80,16 +46,13 @@ public partial class Compiler
             }
         }
 
-        if (result != null)
+        if (result.DataType.Location == DataLocation.Scoreboard)
         {
-            if (result.DataType.Location == DataLocation.Scoreboard)
-            {
-                AddCode($"scoreboard players operation {name} amethyst_record_initializers = {result.Location} amethyst");
-            }
-            else
-            {
-                AddCode($"data modify storage amethyst:record_initializers {name} set from storage amethyst:stack {result.Location}");
-            }
+            AddCode($"scoreboard players operation {name} amethyst_record_initializers = {result.Location} amethyst");
+        }
+        else
+        {
+            AddCode($"data modify storage amethyst:record_initializers {name} set from storage amethyst:stack {result.Location}");
         }
 
         return null;
