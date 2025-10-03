@@ -16,7 +16,7 @@ public class Scope : IDisposable
     private readonly TextWriter _writer = new StringWriter();
     
     public string FilePath => Path.Combine(
-        Context.Datapack!.OutputDir, 
+        Context.Configuration.Datapack!.OutputDir, 
         GetDataSubpath(DATAPACK_FUNCTIONS_DIRECTORY) + MCFUNCTION_FILE_EXTENSION);
     
     public string McFunctionPath

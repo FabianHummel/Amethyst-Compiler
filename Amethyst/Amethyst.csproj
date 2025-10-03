@@ -22,7 +22,7 @@
       <PackageReference Include="CommandLineParser" Version="2.9.1" />
       <PackageReference Include="Crayon" Version="2.0.69" />
       <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
-      <PackageReference Include="Tommy" Version="3.1.2" />
+      <PackageReference Include="Samboy063.Tomlet" Version="6.1.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -42,7 +42,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Playground\output\Test Project\data\test\" />
       <Folder Include="Playground\src\" />
       <Folder Include="Resources\resourcepack\assets\" />
     </ItemGroup>

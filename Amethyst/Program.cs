@@ -1,5 +1,4 @@
 ﻿using Amethyst.Model;
-using Amethyst.Utility;
 using CommandLine;
 using static Amethyst.Constants;
 using static Amethyst.Utility.ConsoleUtility;
@@ -10,85 +9,84 @@ public static class Program
 {
     private static FileSystemWatcher _srcWatcher = null!;
     private static FileSystemWatcher _configWatcher = null!;
+    private static Processor _amethyst = null!;
     private static CancellationTokenSource? _onChangedSourceTokenSource;
-    private static readonly Processor _amethyst = new();
     
     private static void Main(string[] args)
     {
-        CommandLine.Parser.Default.ParseArguments<Options>(args)
-            .WithParsed(o =>
-            {
-                if (o.Debug)
-                {
-                    _amethyst.Context.CompilerFlags |= CompilerFlags.Debug;
-                }
-    
-                if (o.Watch)
-                {
-                    _amethyst.Context.CompilerFlags |= CompilerFlags.Watch;
-                }
+        CommandLine.Parser.Default.ParseArguments<Options>(args).WithParsed(o =>
+        {
+            CompilerFlags compilerFlags = 0;
+            if (o.Debug) compilerFlags |= CompilerFlags.Debug;
+            if (o.Watch) compilerFlags |= CompilerFlags.Watch;
+            if (o.ReduceColors) IsReducedColors = true;
 
-                if (o.ReduceColors)
-                {
-                    IsReducedColors = true;
-                }
-                
-                ClearConsole();
-                _amethyst.PrintAmethystLogoAndVersion();
-                _amethyst.ReinitializeProject();
-                
-                if (o.Watch)
-                {
-                    var thread = new Thread(() =>
-                    {
-                        _srcWatcher = new FileSystemWatcher();
-                        _srcWatcher.Path = Path.Combine(Environment.CurrentDirectory, SOURCE_DIRECTORY);
-                        _srcWatcher.NotifyFilter = NotifyFilters.Attributes |
-                                                NotifyFilters.CreationTime |
-                                                NotifyFilters.FileName |
-                                                NotifyFilters.LastAccess |
-                                                NotifyFilters.LastWrite |
-                                                NotifyFilters.Size |
-                                                NotifyFilters.Security;
-                        _srcWatcher.Filters.Add("*.*");
-                        _srcWatcher.Changed += OnChangedSource;
-                        _srcWatcher.Created += OnChangedSource;
-                        _srcWatcher.Deleted += OnChangedSource;
-                        _srcWatcher.Renamed += OnChangedSource;
-                        _srcWatcher.EnableRaisingEvents = true;
-                        _srcWatcher.IncludeSubdirectories = true;
-                        
-                        _configWatcher = new FileSystemWatcher();
-                        _configWatcher.Path = Environment.CurrentDirectory;
-                        _configWatcher.NotifyFilter = NotifyFilters.Attributes |
-                                                     NotifyFilters.CreationTime |
-                                                     NotifyFilters.FileName |
-                                                     NotifyFilters.LastAccess |
-                                                     NotifyFilters.LastWrite |
-                                                     NotifyFilters.Size |
-                                                     NotifyFilters.Security;
-                        _configWatcher.Filters.Add(CONFIG_FILE);
-                        _configWatcher.Changed += OnChangedConfig;
-                        _configWatcher.Created += OnChangedConfig;
-                        _configWatcher.Deleted += OnChangedConfig;
-                        _configWatcher.Renamed += OnChangedConfig;
-                        _configWatcher.EnableRaisingEvents = true;
-                    });
-                    thread.Start();
-    
-                    while (Console.ReadLine() != "exit")
-                    {
-                        
-                    }
-                }
-            })
-            .WithNotParsed(errors =>
+            var rootDir = o.Path != null
+                ? Path.Combine(Environment.CurrentDirectory, o.Path)
+                : Environment.CurrentDirectory;
+            
+            ClearConsole();
+            Processor.PrintAmethystLogoAndVersion(IsReducedColors, compilerFlags);
+            _amethyst = new Processor(rootDir, compilerFlags);
+            
+            if (o.Watch)
             {
-                foreach (var error in errors)
-                {
-                    PrintError($"Invalid argument {error.Tag}");
-                }
-            });
+                SetupFileWatchers(rootDir);
+            }
+        })
+        .WithNotParsed(errors =>
+        {
+            foreach (var error in errors)
+            {
+                PrintError($"Invalid argument {error.Tag}");
+            }
+        });
+    }
+
+    private static void SetupFileWatchers(string rootDir)
+    {
+        var thread = new Thread(() =>
+        {
+            _srcWatcher = new FileSystemWatcher();
+            _srcWatcher.Path = Path.Combine(rootDir, SOURCE_DIRECTORY);
+            _srcWatcher.NotifyFilter = NotifyFilters.Attributes |
+                                    NotifyFilters.CreationTime |
+                                    NotifyFilters.FileName |
+                                    NotifyFilters.LastAccess |
+                                    NotifyFilters.LastWrite |
+                                    NotifyFilters.Size |
+                                    NotifyFilters.Security;
+            _srcWatcher.Filters.Add("*.*");
+            _srcWatcher.Changed += OnChangedSource;
+            _srcWatcher.Created += OnChangedSource;
+            _srcWatcher.Deleted += OnChangedSource;
+            _srcWatcher.Renamed += OnChangedSource;
+            _srcWatcher.EnableRaisingEvents = true;
+            _srcWatcher.IncludeSubdirectories = true;
+            
+            _configWatcher = new FileSystemWatcher();
+            _configWatcher.Path = rootDir;
+            _configWatcher.NotifyFilter = NotifyFilters.Attributes |
+                                         NotifyFilters.CreationTime |
+                                         NotifyFilters.FileName |
+                                         NotifyFilters.LastAccess |
+                                         NotifyFilters.LastWrite |
+                                         NotifyFilters.Size |
+                                         NotifyFilters.Security;
+            _configWatcher.Filters.Add(CONFIG_FILE);
+            _configWatcher.Changed += OnChangedConfig;
+            _configWatcher.Created += OnChangedConfig;
+            _configWatcher.Deleted += OnChangedConfig;
+            _configWatcher.Renamed += OnChangedConfig;
+            _configWatcher.EnableRaisingEvents = true;
+        });
+        
+        thread.Start();
+
+        while (Console.ReadLine() != "exit")
+        {
+            
+        }
     }
     
     private static void OnChangedSource(object sender, FileSystemEventArgs e)
@@ -99,8 +97,8 @@ public static class Program
             if (t.IsCompletedSuccessfully)
             {
                 ClearConsole();
-                _amethyst.PrintAmethystLogoAndVersion();
-                _amethyst.RecompileProject();
+                Processor.PrintAmethystLogoAndVersion(IsReducedColors, _amethyst.Context.CompilerFlags);
+                _amethyst = new Processor(_amethyst.Context);
             }
         }, TaskScheduler.Default);
     }
@@ -113,9 +111,9 @@ public static class Program
             if (t.IsCompletedSuccessfully)
             {
                 ClearConsole();
-                _amethyst.PrintAmethystLogoAndVersion();
+                Processor.PrintAmethystLogoAndVersion(IsReducedColors, _amethyst.Context.CompilerFlags);
                 Console.WriteLine("Configuration changed, reinitializing project...");
-                _amethyst.ReinitializeProject();
+                _amethyst = new Processor(_amethyst.Context.RootDir, _amethyst.Context.CompilerFlags);
             }
         }, TaskScheduler.Default);
     }
