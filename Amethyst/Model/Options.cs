@@ -14,4 +14,7 @@ public class Options
     
     [Option("reduce-colors", Required = false, HelpText = "Reduce colors in console output")]
     public bool ReduceColors { get; set; }
+    
+    [Option('p', "path", Required = false, HelpText = "Path to the project directory")]
+    public string? Path { get; set; }
 }

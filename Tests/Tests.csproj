@@ -10,7 +10,8 @@
       <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.0-preview.7.24405.7" />
       <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0-preview.7.24405.7" />
       <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
-      <PackageReference Include="NUnit" Version="4.1.0" />
+      <PackageReference Include="NUnit" Version="3.14.0" />
+      <PackageReference Include="RconSharp" Version="2.0.1" />
       <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
     </ItemGroup>
 
@@ -29,16 +30,27 @@
       <None Update="appsettings.Development.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Remove=".gitignore" />
+      <None Remove="Tests.csproj.DotSettings" />
+      <Folder Include="Assets\Arithmetic\" />
     </ItemGroup>
 
-    <Target Name="CopyTemplateProject" AfterTargets="AfterBuild">
+    <ItemGroup>
+      <Compile Remove="Tests\Boolean\TestAnd.cs" />
+      <Compile Remove="Tests\Boolean\TestComparison.cs" />
+      <Compile Remove="Tests\Boolean\TestNot.cs" />
+      <Compile Remove="Tests\TestArithmetic.cs" />
+      <Compile Remove="Tests\TestAssignment.cs" />
+    </ItemGroup>
+
+    <Target Name="CopyAssets" AfterTargets="AfterBuild">
         <RemoveDir Directories="$(OutputPath)/src" />
         
-        <CreateItem Include="Project/**">
-            <Output TaskParameter="Include" ItemName="TemplateProject" />
+        <CreateItem Include="Assets/**">
+            <Output TaskParameter="Include" ItemName="Assets" />
         </CreateItem>
         
-        <Copy SourceFiles="@(TemplateProject)" DestinationFolder="$(OutputPath)/%(RecursiveDir)" />
+        <Copy SourceFiles="@(Assets)" DestinationFolder="$(OutputPath)/Assets/%(RecursiveDir)" />
     </Target>
 
     <Target Name="CopyMinecraftServer" AfterTargets="AfterBuild">

@@ -1,6 +1,0 @@
-id = "test"
-
-[datapack]
-name = "Unit Tests"
-description = "Unit Tests for the Amethyst Language"
-output = "./output"

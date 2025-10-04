@@ -1,26 +1,60 @@
+using JetBrains.Annotations;
+using Tomlet.Attributes;
+
 namespace Amethyst.Model;
 
 public class Datapack
 {
-    public required Context Context { get; init; }
-    
     /// <summary>
     /// The name of the datapack.
     /// </summary>
-    public string Name { get; set; } = null!;
+    [TomlProperty("name")]
+    public required string Name { get; init; } = Constants.DEFAULT_DATAPACK_NAME;
     
     /// <summary>
     /// The output directory of the resulting datapack. Already includes the datapack name.
     /// </summary>
+    [TomlProperty("output")]
+    public required string? Output { get; init; }
+
+    /// <summary>
+    /// The description of the datapack.
+    /// </summary>
+    [TomlProperty("description")]
+    public required string? Description { get; init; } = Constants.DEFAULT_DATAPACK_DESCRIPTION;
+
+    /// <summary>
+    /// The format version of the datapack.
+    /// </summary>
+    [TomlProperty("pack_format")]
+    public required int? PackFormat { get; init; } = Constants.DEFAULT_DATAPACK_FORMAT;
+
+    /// <summary>
+    /// Whether to exclude the standard library from the compiled datapack.
+    /// </summary>
+    [TomlProperty("exclude_stdlib")]
+    public required bool ExcludeStdLib { get; init; } = false;
+    
+    /// <summary>
+    /// The absolute path to the output directory where files will be generated into.
+    /// </summary>
+    [TomlNonSerialized]
     public string OutputDir { get; set; } = null!;
 
     /// <summary>
     /// List of MCF function paths to be executed every tick.
     /// </summary>
-    public HashSet<string> TickFunctions { get; set; } = new();
+    [TomlNonSerialized]
+    public HashSet<string> TickFunctions { get; } = new();
     
     /// <summary>
     /// List of MCF function paths to be executed on load.
     /// </summary>
-    public HashSet<string> LoadFunctions { get; set; } = new();
+    [TomlNonSerialized]
+    public HashSet<string> LoadFunctions { get; } = new();
+    
+    [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
+    public Datapack()
+    {
+    }
 }

@@ -8,7 +8,7 @@ public partial class Compiler
 {
     public override object? VisitFunctionDeclaration(AmethystParser.FunctionDeclarationContext context)
     {
-        if (Context.Datapack is null)
+        if (Context.Configuration.Datapack is null)
         {
             throw new SyntaxException($"Consider configuring a datapack in '{CONFIG_FILE}' in order to use functions.", context);
         }
@@ -25,12 +25,12 @@ public partial class Compiler
         
         if (attributes.Contains(ATTRIBUTE_TICK_FUNCTION))
         {
-            Context.Datapack.TickFunctions.Add(scope.McFunctionPath);
+            Context.Configuration.Datapack.TickFunctions.Add(scope.McFunctionPath);
         }
         
         if (attributes.Contains(ATTRIBUTE_LOAD_FUNCTION))
         {
-            Context.Datapack.LoadFunctions.Add(scope.McFunctionPath);
+            Context.Configuration.Datapack.LoadFunctions.Add(scope.McFunctionPath);
         }
         
         Scope.Symbols.Add(functionName, new Function

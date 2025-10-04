@@ -1,11 +1,12 @@
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Amethyst.Model;
 
 namespace Amethyst.Utility;
 
 public static class AssemblyUtility
 {
-    public static void CopyAssemblyFolder(string assemblyPath, string outputDir)
+    public static void CopyAssemblyFolder(string assemblyPath, string outputDir, Regex? pattern = null)
     {
         var assembly = Assembly.GetExecutingAssembly();
         var templateFiles = assembly.GetManifestResourceNames()
