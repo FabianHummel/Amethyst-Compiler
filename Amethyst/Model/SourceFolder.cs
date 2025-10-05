@@ -18,7 +18,7 @@ public class SourceFolder
             {
                 folder = new SourceFolder
                 {
-                    Context = Context,
+                    Context = Context
                 };
                 current.Children.Add(parts[i], folder);
             }

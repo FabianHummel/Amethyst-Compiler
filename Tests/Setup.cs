@@ -72,7 +72,7 @@ public static partial class TestMain
         if (!await Rcon.AuthenticateAsync(_settings.RconPassword))
         {
             await Console.Error.WriteLineAsync("Failed to authenticate with RCON server.");
-            throw new Exception("Failed to authenticate with RCON server.");
+            throw new InvalidOperationException("Failed to authenticate with RCON server.");
         }
     }
 }

@@ -210,7 +210,7 @@ public partial class Compiler
             "type", "level", "gamemode", "team",
             "tag", "name", "records", "distance",
             "x_rotation", "y_rotation", "advancement",
-            "predicate", "nbt", "limit", "sort",
+            "predicate", "nbt", "limit", "sort"
         };
         
         var queryString = new List<string>();

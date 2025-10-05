@@ -38,7 +38,7 @@ public class ConstantBoolean : AbstractBoolean, IConstantValue<bool>, IScoreboar
             Compiler = Compiler,
             Context = Context,
             Location = location,
-            IsTemporary = true,
+            IsTemporary = true
         };
     }
 

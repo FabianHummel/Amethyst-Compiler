@@ -1,9 +1,8 @@
-using Amethyst.Language;
 using Amethyst.Model;
 
 namespace Amethyst;
 
-public class ConstantStaticObject : AbstractConstantObject, IMemberAccess, IStaticCollection
+public class ConstantStaticObject : AbstractConstantObject, IMemberAccess
 {
     public required BasicType BasicType { get; init; }
 
@@ -31,7 +30,7 @@ public class ConstantStaticObject : AbstractConstantObject, IMemberAccess, IStat
         };
     }
     
-    public new AbstractValue GetMember(string memberName)
+    public new AbstractValue? GetMember(string memberName)
     {
         return memberName switch
         {

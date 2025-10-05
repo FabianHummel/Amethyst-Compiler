@@ -6,8 +6,8 @@ namespace Amethyst;
 public partial class Compiler : AmethystBaseVisitor<object?>
 {
     internal Context Context { get; }
-    internal int TotalRecordCount { get; set; } = 0;
-    internal int StackPointer { get; set; } = 0;
+    internal int TotalRecordCount { get; set; }
+    internal int StackPointer { get; set; }
     
     internal Namespace Namespace { get; set; } = null!;
     internal SourceFile SourceFile { get; set; } = null!;

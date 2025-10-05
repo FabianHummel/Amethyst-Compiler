@@ -14,7 +14,7 @@ public class Context
         RootDir = rootDir;
         CompilerFlags = compilerFlags;
         Configuration = configuration;
-        SourcePath = Path.Combine(RootDir, Constants.SOURCE_DIRECTORY);
+        SourcePath = Path.Combine(RootDir, Constants.SourceDirectory);
     }
 
     public Context(Context copy)

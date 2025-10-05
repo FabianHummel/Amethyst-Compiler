@@ -2,7 +2,7 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
-public class RuntimeStaticObject : AbstractRuntimeObject, IStaticCollection
+public class RuntimeStaticObject : AbstractRuntimeObject
 {
     public required BasicType BasicType { get; init; }
     

@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Amethyst.Language;
 using Amethyst.Model;
 using Antlr4.Runtime;
@@ -27,7 +26,7 @@ public partial class Compiler
 
             if (sourceFile.ImportedSymbols.TryGetValue(symbolName, out var resourcePath))
             {
-                sourceFile = VisitResource(resourcePath, Constants.DATAPACK_FUNCTIONS_DIRECTORY, context);
+                sourceFile = VisitResource(resourcePath, Constants.DatapackFunctionsDirectory, context);
                 var previousScope = Scope;
                 Scope = sourceFile.RootScope;
                 symbol = FindSymbolRecursive();

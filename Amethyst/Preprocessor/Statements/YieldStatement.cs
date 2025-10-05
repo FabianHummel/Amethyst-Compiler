@@ -19,7 +19,7 @@ public partial class Compiler
         rule ??= context.arrayElement();
         rule ??= context.objectElement();
         
-        scope.Result.Add(rule);
+        scope.Yield(rule);
         
         return null;
     }

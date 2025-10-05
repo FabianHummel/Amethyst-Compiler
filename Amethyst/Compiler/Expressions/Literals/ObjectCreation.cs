@@ -28,7 +28,7 @@ public partial class Compiler
                 {
                     Compiler = this,
                     Context = context,
-                    Value = value,
+                    Value = value
                 };
             }
 

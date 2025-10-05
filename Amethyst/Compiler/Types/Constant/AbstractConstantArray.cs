@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Amethyst.Model;
 
@@ -120,7 +118,7 @@ public abstract class AbstractConstantArray : AbstractArray, IConstantValue<ICon
         {
             Compiler = Compiler,
             Context = Context,
-            Value = Value.Length,
+            Value = Value.Length
         },
         _ => null
     };

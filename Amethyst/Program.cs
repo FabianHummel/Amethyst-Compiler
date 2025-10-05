@@ -48,7 +48,7 @@ public static class Program
         var thread = new Thread(() =>
         {
             _srcWatcher = new FileSystemWatcher();
-            _srcWatcher.Path = Path.Combine(rootDir, SOURCE_DIRECTORY);
+            _srcWatcher.Path = Path.Combine(rootDir, SourceDirectory);
             _srcWatcher.NotifyFilter = NotifyFilters.Attributes |
                                     NotifyFilters.CreationTime |
                                     NotifyFilters.FileName |
@@ -73,7 +73,7 @@ public static class Program
                                          NotifyFilters.LastWrite |
                                          NotifyFilters.Size |
                                          NotifyFilters.Security;
-            _configWatcher.Filters.Add(CONFIG_FILE);
+            _configWatcher.Filters.Add(ConfigFile);
             _configWatcher.Changed += OnChangedConfig;
             _configWatcher.Created += OnChangedConfig;
             _configWatcher.Deleted += OnChangedConfig;

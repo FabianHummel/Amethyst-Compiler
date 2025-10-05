@@ -8,8 +8,10 @@ public class YieldingScope : IDisposable
     private readonly YieldingScope _previousScope;
     private readonly Type _allowedType;
     
-    public List<ParserRuleContext> Result { get; } = new();
-    
+    private readonly List<ParserRuleContext> _result = new();
+
+    public IReadOnlyList<ParserRuleContext> Result => _result;
+
     public YieldingScope(Compiler compiler, Type allowedType)
     {
         _compiler = compiler;
@@ -24,7 +26,7 @@ public class YieldingScope : IDisposable
             throw new SyntaxException($"Cannot yield '{context.GetType().Name}' in this context. Expected '{_allowedType.Name}'.", context);
         }
 
-        Result.Add(context);
+        _result.Add(context);
     }
 
     public void Dispose()

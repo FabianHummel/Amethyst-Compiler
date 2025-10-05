@@ -24,7 +24,7 @@ public partial class Compiler
         Scope.Symbols.Add(variableName, new Variable
         {
             Location = name,
-            DataType = type!,
+            DataType = type,
             Attributes = attributes
         });
         

@@ -2,7 +2,7 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
-public class ConstantStaticArray : AbstractConstantArray, IStaticCollection
+public class ConstantStaticArray : AbstractConstantArray
 {
     public required BasicType BasicType { get; init; }
     

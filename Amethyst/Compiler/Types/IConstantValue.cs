@@ -1,6 +1,6 @@
-using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using Amethyst.Utility;
+using JetBrains.Annotations;
 
 namespace Amethyst;
 
@@ -77,5 +77,6 @@ public interface IConstantValue<T> : IConstantValue
     /// The constant value of the result that can be directly incorporated into another result without storing it in a variable.
     /// Literals are always stored as constants first and only turn into variables if they are assigned to a variable. 
     /// </summary>
-    public T Value { get; init; }
+    [UsedImplicitly(Reason = "For type safety and clarity.")]
+    T Value { get; init; }
 }

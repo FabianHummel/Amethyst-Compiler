@@ -49,9 +49,9 @@ public class AmethystParseListener : AmethystBaseListener
     
     public override void ExitDeclaration(AmethystParser.DeclarationContext context)
     {
-        if (Parser.RegistryName != Constants.DATAPACK_FUNCTIONS_DIRECTORY)
+        if (Parser.RegistryName != Constants.DatapackFunctionsDirectory)
         {
-            throw new SyntaxException($"Runtime declarations must go inside the '{Constants.DATAPACK_FUNCTIONS_DIRECTORY}' registry.", context);
+            throw new SyntaxException($"Runtime declarations must go inside the '{Constants.DatapackFunctionsDirectory}' registry.", context);
         }
 
         string? symbolName = null;
@@ -96,8 +96,8 @@ public class AmethystParseListener : AmethystBaseListener
         
         var entryPointAttributes = new HashSet<string>
         {
-            Constants.ATTRIBUTE_LOAD_FUNCTION,
-            Constants.ATTRIBUTE_TICK_FUNCTION
+            Constants.AttributeLoadFunction,
+            Constants.AttributeTickFunction
         };
         if (attributes.Overlaps(entryPointAttributes))
         {

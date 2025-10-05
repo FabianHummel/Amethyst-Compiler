@@ -31,12 +31,6 @@ public interface IRuntimeValue
     /// <returns>The boolean result (numeric value of 0 or 1).</returns>
     AbstractBoolean MakeBoolean();
 
-    /// <summary>
-    /// Turns this result into a number result by converting it to its numeric equivalent.
-    /// </summary>
-    /// <returns>The number result.</returns>
-    AbstractInteger MakeInteger();
-
     public sealed int NextFreeLocation()
     {
         if (IsTemporary)

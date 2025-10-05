@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using Amethyst;
 using Microsoft.Extensions.Configuration;
@@ -34,6 +35,6 @@ public static partial class TestMain
         var serverProperties = Path.Combine(Environment.CurrentDirectory, "server.properties");
         File.WriteAllText(serverProperties, File.ReadAllText(serverPropertiesTemplate, Encoding.UTF8)
             .Replace("{RCON_PASSWORD}", _settings.RconPassword)
-            .Replace("{RCON_PORT}", _settings.RconPort.ToString()));
+            .Replace("{RCON_PORT}", _settings.RconPort.ToString(NumberFormatInfo.InvariantInfo)));
     }
 }

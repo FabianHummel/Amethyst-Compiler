@@ -9,25 +9,25 @@ public class Datapack
     /// The name of the datapack.
     /// </summary>
     [TomlProperty("name")]
-    public required string Name { get; init; } = Constants.DEFAULT_DATAPACK_NAME;
+    public required string Name { get; [UsedImplicitly] init; } = Constants.DefaultDatapackName;
     
     /// <summary>
     /// The output directory of the resulting datapack. Already includes the datapack name.
     /// </summary>
     [TomlProperty("output")]
-    public required string? Output { get; init; }
+    public required string? Output { get; [UsedImplicitly] init; }
 
     /// <summary>
     /// The description of the datapack.
     /// </summary>
     [TomlProperty("description")]
-    public required string? Description { get; init; } = Constants.DEFAULT_DATAPACK_DESCRIPTION;
+    public required string? Description { get; [UsedImplicitly] init; } = Constants.DefaultDatapackDescription;
 
     /// <summary>
     /// The format version of the datapack.
     /// </summary>
     [TomlProperty("pack_format")]
-    public required int? PackFormat { get; init; } = Constants.DEFAULT_DATAPACK_FORMAT;
+    public required int? PackFormat { get; [UsedImplicitly] init; } = Constants.DefaultDatapackFormat;
     
     /// <summary>
     /// The absolute path to the output directory where files will be generated into.

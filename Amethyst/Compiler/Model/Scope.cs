@@ -17,7 +17,7 @@ public class Scope : IDisposable
     
     public string FilePath => Path.Combine(
         Context.Configuration.Datapack!.OutputDir, 
-        GetDataSubpath(DATAPACK_FUNCTIONS_DIRECTORY) + MCFUNCTION_FILE_EXTENSION);
+        GetDataSubpath(DatapackFunctionsDirectory) + McfunctionFileExtension);
     
     public string McFunctionPath
     {
@@ -76,8 +76,8 @@ public class Scope : IDisposable
         using var stream = assembly.GetManifestResourceStream("Amethyst.Resources.template.mcfunction")!;
         using var reader = new StreamReader(stream);
         var template = reader.ReadToEnd();
-        template = template.Replace(SUBSTITUTIONS["amethyst_version"], SUBSTITUTION_VALUES["amethyst_version"].ToString());
-        template = template.Replace(SUBSTITUTIONS["date"], SUBSTITUTION_VALUES["date"].ToString());
+        template = template.Replace(Substitutions["amethyst_version"], SubstitutionValues["amethyst_version"].ToString());
+        template = template.Replace(Substitutions["date"], SubstitutionValues["date"].ToString());
         writer.Write(template);
     }
     

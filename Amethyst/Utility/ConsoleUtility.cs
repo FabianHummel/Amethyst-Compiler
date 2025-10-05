@@ -1,6 +1,4 @@
 using System.Diagnostics;
-using Amethyst.Model;
-using static Amethyst.Constants;
 using static Crayon.Output;
 
 namespace Amethyst.Utility;

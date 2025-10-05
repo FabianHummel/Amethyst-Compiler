@@ -13,7 +13,7 @@ public enum BasicPreprocessorType
     [Description("BOOL")]
     Bool,
     [Description("RESOURCE")]
-    Resource,
+    Resource
 }
 
 public class PreprocessorDataType

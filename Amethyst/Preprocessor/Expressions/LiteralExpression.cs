@@ -1,6 +1,4 @@
-using System.Diagnostics;
 using Amethyst.Language;
-using Amethyst.Model;
 
 namespace Amethyst;
 
@@ -41,7 +39,7 @@ public partial class Compiler
             {
                 Compiler = this,
                 Context = literalContext,
-                Value = result,
+                Value = result
             };
         }
         

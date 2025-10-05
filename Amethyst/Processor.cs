@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Reflection;
 using Amethyst.Model;
@@ -11,7 +12,7 @@ using static ConsoleUtility;
 
 public class Processor
 {
-    private readonly bool _rethrowErrors = false;
+    private readonly bool _rethrowErrors;
     
     public Context Context { get; }
     
@@ -62,14 +63,14 @@ public class Processor
     {
         try
         {
-            var configPath = Path.Combine(rootDir, CONFIG_FILE);
+            var configPath = Path.Combine(rootDir, ConfigFile);
             using var reader = File.OpenText(configPath);
             var tomlConfiguration = reader.ReadToEnd();
             return TomletMain.To<Configuration>(tomlConfiguration);
         }
         catch (Exception)
         {
-            PrintError($"Missing or invalid configuration file '{CONFIG_FILE}' found in project directory '{rootDir}'");
+            PrintError($"Missing or invalid configuration file '{ConfigFile}' found in project directory '{rootDir}'");
             throw;
         }
     }
@@ -79,7 +80,7 @@ public class Processor
         var minecraftRootFolder = GetMinecraftRootFolder(config.MinecraftRoot);
         if (!Directory.Exists(minecraftRootFolder))
         {
-            var defaultPath = Path.Combine(Context.RootDir, SOURCE_DIRECTORY, DEFAULT_OUTPUT_DIRECTORY);
+            var defaultPath = Path.Combine(Context.RootDir, SourceDirectory, DefaultOutputDirectory);
             PrintWarning($"Minecraft root not found at default locations, using current directory as source if a world name has been specified for the output. ({defaultPath})");
         }
         
@@ -113,15 +114,15 @@ public class Processor
             Environment.OSVersion.Platform == PlatformID.Win32Windows ||
             Environment.OSVersion.Platform == PlatformID.WinCE)
         {
-            return MINECRAFT_ROOT_WINDOWS;
+            return MinecraftRootWindows;
         }
         if (Environment.OSVersion.Platform == PlatformID.MacOSX ||
                  Environment.OSVersion.Platform == PlatformID.Unix)
         {
-            return MINECRAFT_ROOT_MACOS;
+            return MinecraftRootMacos;
         }
         
-        return MINECRAFT_ROOT_LINUX;
+        return MinecraftRootLinux;
     }
 
     private void SetDatapackOutputDirectory(Datapack datapack, string? minecraftRoot)
@@ -139,7 +140,7 @@ public class Processor
         
         if (datapack.Output == null)
         {
-            actualOutDir = Path.Combine(Context.RootDir, DEFAULT_OUTPUT_DIRECTORY);
+            actualOutDir = Path.Combine(Context.RootDir, DefaultOutputDirectory);
         }
         else if (minecraftRoot == null)
         {
@@ -150,7 +151,7 @@ public class Processor
             var minecraftRootFolder = GetMinecraftRootFolder(minecraftRoot);
             if (!Path.Exists(Path.Combine(minecraftRootFolder, "saves", datapack.Output)))
             {
-                throw new Exception(
+                throw new InvalidOperationException(
                     $"World '{datapack.Output}' not found in Minecraft saves directory '{Path.Combine(minecraftRootFolder, "saves")}'\n" +
                     "Available worlds: " + string.Join(", ", Directory.GetDirectories(Path.Combine(minecraftRootFolder, "saves")).Select(Path.GetFileName)));
 
@@ -184,7 +185,7 @@ public class Processor
         
         if (resourcepack.Output == null)
         {
-            actualOutDir = Path.Combine(Context.RootDir, DEFAULT_OUTPUT_DIRECTORY);
+            actualOutDir = Path.Combine(Context.RootDir, DefaultOutputDirectory);
         }
         else if (minecraftRoot == null)
         {
@@ -217,11 +218,11 @@ public class Processor
 
     private void CreateMeta(string outputDir, string datapackOrResourcepack, Func<string, string> substitutions)
     {
-        var cts = PrintLongTask($"Creating {datapackOrResourcepack.ToLower()} meta file", out var getElapsed);
+        var cts = PrintLongTask($"Creating {datapackOrResourcepack.ToLower(CultureInfo.InvariantCulture)} meta file", out var getElapsed);
         var mcMeta = Path.Combine(outputDir, "pack.mcmeta");
     
         var assembly = Assembly.GetExecutingAssembly();
-        using var stream = assembly.GetManifestResourceStream($"Amethyst.Resources.{datapackOrResourcepack.ToLower()}.pack.mcmeta")!;
+        using var stream = assembly.GetManifestResourceStream($"Amethyst.Resources.{datapackOrResourcepack.ToLower(CultureInfo.InvariantCulture)}.pack.mcmeta")!;
         using var reader = new StreamReader(stream);
         
         var mcMetaContents = reader.ReadToEnd();
@@ -239,17 +240,17 @@ public class Processor
     {
         var cts = PrintLongTask("Creating function tags", out var getElapsed);
         {
-            var path = Path.Combine(datapack.OutputDir, $"data/minecraft/tags/{DATAPACK_FUNCTIONS_DIRECTORY}/load.json");
+            var path = Path.Combine(datapack.OutputDir, $"data/minecraft/tags/{DatapackFunctionsDirectory}/load.json");
             var content = File.ReadAllText(path);
             var loadFunctionsText = string.Join("", datapack.LoadFunctions.Select(f => $",\n    \"{f}\""));
-            content = content.Replace(SUBSTITUTIONS["loading_functions"], loadFunctionsText);
+            content = content.Replace(Substitutions["loading_functions"], loadFunctionsText);
             File.WriteAllText(path, content);
         }
         {
-            var path = Path.Combine(datapack.OutputDir, $"data/minecraft/tags/{DATAPACK_FUNCTIONS_DIRECTORY}/tick.json");
+            var path = Path.Combine(datapack.OutputDir, $"data/minecraft/tags/{DatapackFunctionsDirectory}/tick.json");
             var content = File.ReadAllText(path);
             var tickFunctionsText = string.Join("", datapack.TickFunctions.Select(f => $",\n    \"{f}\""));
-            content = content.Replace(SUBSTITUTIONS["ticking_functions"], tickFunctionsText);
+            content = content.Replace(Substitutions["ticking_functions"], tickFunctionsText);
             File.WriteAllText(path, content);
         }
         
@@ -263,9 +264,9 @@ public class Processor
     
     private void CopyTemplate(string outputDir, string datapackOrResourcepack)
     {
-        var cts = PrintLongTask($"Copying {datapackOrResourcepack.ToLower()} template", out var getElapsed);
+        var cts = PrintLongTask($"Copying {datapackOrResourcepack.ToLower(CultureInfo.InvariantCulture)} template", out var getElapsed);
         
-        AssemblyUtility.CopyAssemblyFolder($"Amethyst.Resources.{datapackOrResourcepack.ToLower()}", outputDir);
+        AssemblyUtility.CopyAssemblyFolder($"Amethyst.Resources.{datapackOrResourcepack.ToLower(CultureInfo.InvariantCulture)}", outputDir);
         
         cts.Cancel();
 
@@ -285,8 +286,8 @@ public class Processor
             CreateOutputFolder(datapack.OutputDir);
             CopyTemplate(datapack.OutputDir, "Datapack");
             CreateMeta(datapack.OutputDir, "Datapack", content => content
-                .Replace(SUBSTITUTIONS["description"], $"\"{datapack.Description}\"")
-                .Replace(SUBSTITUTIONS["pack_format"], datapack.PackFormat.ToString()));
+                .Replace(Substitutions["description"], $"\"{datapack.Description}\"")
+                .Replace(Substitutions["pack_format"], datapack.PackFormat.ToString(), StringComparison.InvariantCulture));
         }
         if (configuration.Resourcepack is { } resourcepack)
         {
@@ -294,8 +295,8 @@ public class Processor
             CreateOutputFolder(resourcepack.OutputDir);
             CopyTemplate(resourcepack.OutputDir, "Resourcepack");
             CreateMeta(resourcepack.OutputDir, "Datapack", content => content
-                .Replace(SUBSTITUTIONS["description"], $"\"{resourcepack.Description}\"")
-                .Replace(SUBSTITUTIONS["pack_format"], resourcepack.PackFormat.ToString()));
+                .Replace(Substitutions["description"], $"\"{resourcepack.Description}\"")
+                .Replace(Substitutions["pack_format"], resourcepack.PackFormat.ToString(), StringComparison.InvariantCulture));
         }
         
         cts.Cancel();
@@ -311,24 +312,25 @@ public class Processor
             {
                 ProcessDatapackOrResourcepack(true, datapack.OutputDir);
             }
+
             if (configuration.Resourcepack is { } resourcepack)
             {
                 ProcessDatapackOrResourcepack(false, resourcepack.OutputDir);
             }
-        
+
             var compiler = new Compiler(Context);
             compiler.CompileProject();
         }
-        catch (SyntaxException e)
+        catch (AmethystException e)
         {
             cts.Cancel();
-            PrintError($"Syntax error: {e.File} ({e.Line}:{e.Column}): {e.Message}");
+            PrintError(e.Message);
 
             if (_rethrowErrors)
             {
                 throw;
             }
-            
+
             return;
         }
         
@@ -349,7 +351,7 @@ public class Processor
         
         // Copy everything except amethyst source code to output folder
         FilesystemUtility.CopyDirectory(sourceDir, dataOrAssetsDir, filePath => {
-            return Path.GetExtension(filePath) != SOURCE_FILE_EXTENSION;
+            return Path.GetExtension(filePath) != SourceFileExtension;
         });
 
         // Scan namespaces
@@ -385,13 +387,13 @@ public class Processor
             parser.RegistryName = registryName;
             
             // Scan amethyst source code files in each registry
-            foreach (var filePath in Directory.GetFiles(registryPath, SOURCE_FILE, SearchOption.AllDirectories))
+            foreach (var filePath in Directory.GetFiles(registryPath, SourceFile, SearchOption.AllDirectories))
             {
                 if (!ns.Registries.TryGetValue(registryName, out var registry))
                 {
                     ns.Registries.Add(registryName, registry = new SourceFolder
                     {
-                        Context = Context,
+                        Context = Context
                     });
                 }
                 
@@ -433,11 +435,11 @@ public class Processor
                           $"\e[38;5;{183}my" +
                           $"\e[38;5;{183}ms" +
                           $"\e[38;5;{183}mt" +
-                          $"\e[22m ");
+                          "\e[22m ");
         }
         
         Console.ForegroundColor = ConsoleColor.DarkGray;
-        Console.Write("v" + AMETHYST_VERSION);
+        Console.Write("v" + AmethystVersion);
         if (compilerFlags.HasFlag(CompilerFlags.Watch))
         {
             Console.ForegroundColor = ConsoleColor.DarkCyan;

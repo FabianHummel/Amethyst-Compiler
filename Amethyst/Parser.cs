@@ -9,7 +9,7 @@ public class Parser
     public string? RegistryName { get; set; }
     public SourceFile? SourceFile { get; set; }
     
-    public AmethystParser.FileContext Parse(SourceFile sourceFile)
+    public void Parse(SourceFile sourceFile)
     {
         SourceFile = sourceFile;
         var stream = File.OpenRead(sourceFile.Path);
@@ -19,6 +19,6 @@ public class Parser
         var parser = new AmethystParser(tokenStream);
         parser.AddErrorListener(new AmethystErrorListener(this));
         parser.AddParseListener(new AmethystParseListener(this));
-        return parser.file();
+        parser.file();
     }
 }

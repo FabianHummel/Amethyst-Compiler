@@ -26,7 +26,7 @@ public class AbstractNumericPreprocessorValueGenerator : ISourceGenerator
             new("Subtract", "SUBTRACT"),
             new("Multiply", "MULTIPLY"),
             new("Divide", "DIVIDE"),
-            new("Modulo", "MODULO"),
+            new("Modulo", "MODULO")
         })
         {
             sb.AppendLine($$"""
@@ -48,7 +48,7 @@ public class AbstractNumericPreprocessorValueGenerator : ISourceGenerator
             new("LessThan", "LESS_THAN"),
             new("LessThanOrEqual", "LESS_THAN_OR_EQUAL"),
             new("GreaterThan", "GREATER_THAN"),
-            new("GreaterThanOrEqual", "GREATER_THAN_OR_EQUAL"),
+            new("GreaterThanOrEqual", "GREATER_THAN_OR_EQUAL")
         })
         {
             sb.AppendLine($$"""

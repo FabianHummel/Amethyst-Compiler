@@ -27,7 +27,7 @@ public enum BasicType
     [Description("unknown")]
     Unknown,
     [Description("entity")]
-    Entity,
+    Entity
 }
 
 public enum Modifier

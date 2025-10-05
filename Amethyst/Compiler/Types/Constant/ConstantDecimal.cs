@@ -24,7 +24,7 @@ public class ConstantDecimal : AbstractDecimal, IConstantValue<double>, IScorebo
             Compiler = Compiler,
             Context = Context,
             Location = location,
-            IsTemporary = true,
+            IsTemporary = true
         };
     }
 

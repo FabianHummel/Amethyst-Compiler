@@ -10,7 +10,7 @@ public partial class Compiler
     {
         if (Context.Configuration.Datapack is null)
         {
-            throw new SyntaxException($"Consider configuring a datapack in '{CONFIG_FILE}' in order to use functions.", context);
+            throw new SyntaxException($"Consider configuring a datapack in '{ConfigFile}' in order to use functions.", context);
         }
         
         var functionName = context.IDENTIFIER().GetText();
@@ -22,24 +22,24 @@ public partial class Compiler
         var attributes = VisitAttributeList(context.attributeList());
 
         var scopeName = "_func";
-        if (attributes.Contains(ATTRIBUTE_UNIT_TEST_FUNCTION))
+        if (attributes.Contains(AttributeUnitTestFunction))
         {
             scopeName = functionName;
         }
         
         var scope = VisitBlockNamed(context.block(), scopeName);
         
-        if (attributes.Contains(ATTRIBUTE_TICK_FUNCTION))
+        if (attributes.Contains(AttributeTickFunction))
         {
             Context.Configuration.Datapack.TickFunctions.Add(scope.McFunctionPath);
         }
         
-        if (attributes.Contains(ATTRIBUTE_LOAD_FUNCTION))
+        if (attributes.Contains(AttributeLoadFunction))
         {
             Context.Configuration.Datapack.LoadFunctions.Add(scope.McFunctionPath);
         }
 
-        if (attributes.Contains(ATTRIBUTE_UNIT_TEST_FUNCTION))
+        if (attributes.Contains(AttributeUnitTestFunction))
         {
             Context.UnitTests.Add(scope.McFunctionPath, scope);
         }
