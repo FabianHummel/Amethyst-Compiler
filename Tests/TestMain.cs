@@ -9,9 +9,10 @@ namespace Tests;
 public static partial class TestMain
 {
     private static readonly MinecraftServerSettings _settings;
-    private static Processor _amethyst = null!;
     private static Process _process = null!;
-    private static RconClient _rcon = null!;
+    
+    public static RconClient Rcon { get; private set; } = null!;
+    public static Processor Amethyst { get; private set; } = null!;
 
     static TestMain()
     {

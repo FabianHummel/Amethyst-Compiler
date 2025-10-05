@@ -7,6 +7,7 @@ public class Context
     public string SourcePath { get; }
     public Configuration Configuration { get; }
     public Dictionary<string, Namespace> Namespaces { get; } = new();
+    public Dictionary<string, Scope> UnitTests { get; } = new();
 
     public Context(string rootDir, CompilerFlags compilerFlags, Configuration configuration)
     {

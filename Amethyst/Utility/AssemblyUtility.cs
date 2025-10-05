@@ -6,7 +6,7 @@ namespace Amethyst.Utility;
 
 public static class AssemblyUtility
 {
-    public static void CopyAssemblyFolder(string assemblyPath, string outputDir, Regex? pattern = null)
+    public static void CopyAssemblyFolder(string assemblyPath, string outputDir)
     {
         var assembly = Assembly.GetExecutingAssembly();
         var templateFiles = assembly.GetManifestResourceNames()

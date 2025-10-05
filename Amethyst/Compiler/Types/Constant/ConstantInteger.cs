@@ -1,6 +1,6 @@
 namespace Amethyst;
 
-public class ConstantInteger : AbstractInteger, IConstantValue<int>
+public class ConstantInteger : AbstractInteger, IConstantValue<int>, IScoreboardValue
 {
     public int Value { get; init; }
     

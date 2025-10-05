@@ -28,12 +28,6 @@ public class Datapack
     /// </summary>
     [TomlProperty("pack_format")]
     public required int? PackFormat { get; init; } = Constants.DEFAULT_DATAPACK_FORMAT;
-
-    /// <summary>
-    /// Whether to exclude the standard library from the compiled datapack.
-    /// </summary>
-    [TomlProperty("exclude_stdlib")]
-    public required bool ExcludeStdLib { get; init; } = false;
     
     /// <summary>
     /// The absolute path to the output directory where files will be generated into.

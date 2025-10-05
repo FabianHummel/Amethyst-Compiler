@@ -1,4 +1,6 @@
+using System.Collections;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Amethyst.Model;
 using Amethyst.Utility;
 
@@ -153,5 +155,29 @@ public abstract class AbstractConstantObject : AbstractObject, IConstantValue<Di
             },
             _ => null
         };
+    }
+
+    public static bool TryParse(IDictionary<string, object> dictionary, [NotNullWhen(true)] out AbstractConstantObject? result)
+    {
+        var pairs = new Dictionary<string, IConstantValue>();
+        
+        foreach (var (key, value) in dictionary)
+        {
+            if (!IConstantValue.TryParse(value, out var constantValue))
+            {
+                result = null;
+                return false;
+            }
+
+            pairs.Add(key, constantValue);
+        }
+        
+        result = new ConstantDynamicObject
+        {
+            Context = null!,
+            Compiler = null!,
+            Value = pairs
+        };
+        return true;
     }
 }

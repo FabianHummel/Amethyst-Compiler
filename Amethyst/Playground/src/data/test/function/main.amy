@@ -1,4 +1,4 @@
 [initializing]
 function main() {
-    DEBUG 10 + "nice"
+    DEBUG 10 + "nice";
 }

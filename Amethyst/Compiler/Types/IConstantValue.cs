@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using Amethyst.Utility;
 
 namespace Amethyst;
@@ -32,6 +34,41 @@ public interface IConstantValue : IEquatable<IConstantValue>
     /// </summary>
     /// <returns>The result with a place in memory.</returns>
     IRuntimeValue ToRuntimeValue();
+
+    public static bool TryParse(object value, [NotNullWhen(true)] out IConstantValue? result)
+    {
+        if (IScoreboardValue.TryParse(value, out var scoreboardValue))
+        {
+            result = scoreboardValue;
+            return true;
+        }
+
+        if (value is string stringValue)
+        {
+            result = new ConstantString
+            {
+                Context = null!,
+                Compiler = null!,
+                Value = stringValue
+            };
+            return true;
+        }
+
+        if (value is IEnumerable<object> enumerable && AbstractConstantArray.TryParse(enumerable, out var arrayResult))
+        {
+            result = arrayResult;
+            return true;
+        }
+        
+        if (value is IDictionary<string, object> dictionary && AbstractConstantObject.TryParse(dictionary, out var objectResult))
+        {
+            result = objectResult;
+            return true;
+        }
+        
+        result = null;
+        return false;
+    }
 }
 
 public interface IConstantValue<T> : IConstantValue

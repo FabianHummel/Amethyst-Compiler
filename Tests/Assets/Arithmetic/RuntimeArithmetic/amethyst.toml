@@ -1,6 +1,0 @@
-id = "runtime_arithmetic"
-
-[datapack]
-name = "Runtime Arithmetic Tests"
-description = "Unit tests for runtime arithmetic"
-exclude_stdlib = true

@@ -21,6 +21,7 @@ public static class Constants
 
     public const string ATTRIBUTE_LOAD_FUNCTION = "initializing";
     public const string ATTRIBUTE_TICK_FUNCTION = "ticking";
+    public const string ATTRIBUTE_UNIT_TEST_FUNCTION = "test";
     public const string ATTRIBUTE_FUNCTION_NO_MANGLE = "no_mangle";
     public const string ATTRIBUTE_ASSIGN_ON_LEAVE = "assign_on_leave";
     public const string ATTRIBUTE_ASSIGN_ON_JOIN = "assign_on_join";

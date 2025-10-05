@@ -1,5 +1,5 @@
 {
-    "id": "test",
+    "id": {{pack_id}},
     "pack": {
         "pack_format": 48,
         "description": "Playground for testing purposes"

@@ -11,15 +11,14 @@ using static ConsoleUtility;
 
 public class Processor
 {
+    private readonly bool _rethrowErrors = false;
+    
     public Context Context { get; }
-
-    public Processor(string rootDir, CompilerFlags compilerFlags, string? overrideMinecraftRoot = null)
+    
+    public Processor(string rootDir, CompilerFlags compilerFlags, bool rethrowErrors = false)
     {
+        _rethrowErrors = rethrowErrors;
         var configuration = ReadAndSetConfigFile(rootDir);
-        if (overrideMinecraftRoot != null)
-        {
-            configuration.MinecraftRoot = overrideMinecraftRoot;
-        }
         if (!Regex.IsMatch(configuration.ProjectId, "^[a-z0-9_]+$"))
         {
             throw new InvalidOperationException("Project ID must contain only lowercase letters, digits, or underscores.");
@@ -29,8 +28,9 @@ public class Processor
         RecompileProject();
     }
     
-    public Processor(Context context)
+    public Processor(Context context, bool rethrowErrors = false)
     {
+        _rethrowErrors = rethrowErrors;
         Context = new Context(context);
         RecompileProject();
     }
@@ -49,6 +49,11 @@ public class Processor
             if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
             {
                 PrintError(e.StackTrace ?? string.Empty);
+            }
+            
+            if (_rethrowErrors)
+            {
+                throw;
             }
         }
     }
@@ -200,70 +205,33 @@ public class Processor
         }
     }
     
-    private void CreateDatapackOutputFolder(Datapack datapack)
+    private static void CreateOutputFolder(string outputDir)
     {
-        if (Directory.Exists(datapack.OutputDir))
+        if (Directory.Exists(outputDir))
         {
-            Directory.Delete(datapack.OutputDir, true);
+            Directory.Delete(outputDir, true);
         }
         
-        Directory.CreateDirectory(datapack.OutputDir);
-    }
-    
-    private void CreateResourcepackOutputFolder(Resourcepack resourcepack)
-    {
-        if (Directory.Exists(resourcepack.OutputDir))
-        {
-            Directory.Delete(resourcepack.OutputDir, true);
-        }
-        
-        Directory.CreateDirectory(resourcepack.OutputDir);
+        Directory.CreateDirectory(outputDir);
     }
 
-    private void CreateDatapackMeta(Datapack datapack)
+    private void CreateMeta(string outputDir, string datapackOrResourcepack, Func<string, string> substitutions)
     {
-        var cts = PrintLongTask("Creating datapack meta file", out var getElapsed);
-        var mcMeta = Path.Combine(datapack.OutputDir, "pack.mcmeta");
+        var cts = PrintLongTask($"Creating {datapackOrResourcepack.ToLower()} meta file", out var getElapsed);
+        var mcMeta = Path.Combine(outputDir, "pack.mcmeta");
     
         var assembly = Assembly.GetExecutingAssembly();
-        using var stream = assembly.GetManifestResourceStream("Amethyst.Resources.datapack.pack.mcmeta")!;
+        using var stream = assembly.GetManifestResourceStream($"Amethyst.Resources.{datapackOrResourcepack.ToLower()}.pack.mcmeta")!;
         using var reader = new StreamReader(stream);
         
         var mcMetaContents = reader.ReadToEnd();
-        
-        File.WriteAllText(mcMeta, mcMetaContents
-            .Replace(SUBSTITUTIONS["pack_id"], $"\"{Context.Configuration.ProjectId}\"")
-            .Replace(SUBSTITUTIONS["description"], $"\"{datapack.Description}\"")
-            .Replace(SUBSTITUTIONS["pack_format"], datapack.PackFormat.ToString()));
-
-        cts.Cancel();
-
-        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
-        {
-            PrintDebugMessageWithTime($"Datapack meta file created at '{mcMeta}'.", getElapsed());
-        }
-    }
-    
-    private void CreateResourcepackMeta(Resourcepack resourcepack)
-    {
-        var cts = PrintLongTask("Creating resourcepack meta file", out var getElapsed);
-        var mcMeta = Path.Combine(resourcepack.OutputDir, "pack.mcmeta");
-    
-        var assembly = Assembly.GetExecutingAssembly();
-        using var stream = assembly.GetManifestResourceStream("Amethyst.Resources.resourcepack.pack.mcmeta")!;
-        using var reader = new StreamReader(stream);
-        
-        var mcMetaContents = reader.ReadToEnd();
-        
-        File.WriteAllText(mcMeta, mcMetaContents
-            .Replace(SUBSTITUTIONS["description"], $"\"{resourcepack.Description}\"")
-            .Replace(SUBSTITUTIONS["pack_format"], resourcepack.PackFormat.ToString()));
+        File.WriteAllText(mcMeta, substitutions(mcMetaContents));
 
         cts.Cancel();
         
         if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
-            PrintDebugMessageWithTime($"Resourcepack meta file created at '{mcMeta}'.", getElapsed());
+            PrintDebugMessageWithTime($"{datapackOrResourcepack} meta file created at '{mcMeta}'.", getElapsed());
         }
     }
     
@@ -293,37 +261,17 @@ public class Processor
         }
     }
     
-    private void CopyDatapackTemplate(Datapack datapack)
+    private void CopyTemplate(string outputDir, string datapackOrResourcepack)
     {
-        var cts = PrintLongTask("Copying datapack template", out var getElapsed);
-
-        Regex? filterPattern = null;
-        if (datapack.ExcludeStdLib)
-        {
-            // TODO: implement filterPattern;
-        }
+        var cts = PrintLongTask($"Copying {datapackOrResourcepack.ToLower()} template", out var getElapsed);
         
-        AssemblyUtility.CopyAssemblyFolder("Amethyst.Resources.datapack", datapack.OutputDir, filterPattern);
+        AssemblyUtility.CopyAssemblyFolder($"Amethyst.Resources.{datapackOrResourcepack.ToLower()}", outputDir);
         
         cts.Cancel();
 
         if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
-            PrintDebugMessageWithTime("Datapack template copied.", getElapsed());
-        }
-    }
-    
-    private void CopyResourcepackTemplate(Resourcepack resourcepack)
-    {
-        var cts = PrintLongTask("Copying resourcepack template", out var getElapsed);
-        
-        AssemblyUtility.CopyAssemblyFolder("Amethyst.Resources.resourcepack", resourcepack.OutputDir);
-        
-        cts.Cancel();
-
-        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
-        {
-            PrintDebugMessageWithTime("Resourcepack template copied.", getElapsed());
+            PrintDebugMessageWithTime($"{datapackOrResourcepack} template copied.", getElapsed());
         }
     }
     
@@ -334,16 +282,20 @@ public class Processor
         if (configuration.Datapack is { } datapack)
         {
             SetDatapackOutputDirectory(datapack, configuration.MinecraftRoot);
-            CreateDatapackOutputFolder(datapack);
-            CopyDatapackTemplate(datapack);
-            CreateDatapackMeta(datapack);
+            CreateOutputFolder(datapack.OutputDir);
+            CopyTemplate(datapack.OutputDir, "Datapack");
+            CreateMeta(datapack.OutputDir, "Datapack", content => content
+                .Replace(SUBSTITUTIONS["description"], $"\"{datapack.Description}\"")
+                .Replace(SUBSTITUTIONS["pack_format"], datapack.PackFormat.ToString()));
         }
         if (configuration.Resourcepack is { } resourcepack)
         {
             SetResourcepackOutputDirectory(resourcepack, configuration.MinecraftRoot);
-            CreateResourcepackOutputFolder(resourcepack);
-            CopyResourcepackTemplate(resourcepack);
-            CreateResourcepackMeta(resourcepack);
+            CreateOutputFolder(resourcepack.OutputDir);
+            CopyTemplate(resourcepack.OutputDir, "Resourcepack");
+            CreateMeta(resourcepack.OutputDir, "Datapack", content => content
+                .Replace(SUBSTITUTIONS["description"], $"\"{resourcepack.Description}\"")
+                .Replace(SUBSTITUTIONS["pack_format"], resourcepack.PackFormat.ToString()));
         }
         
         cts.Cancel();
@@ -371,6 +323,12 @@ public class Processor
         {
             cts.Cancel();
             PrintError($"Syntax error: {e.File} ({e.Line}:{e.Column}): {e.Message}");
+
+            if (_rethrowErrors)
+            {
+                throw;
+            }
+            
             return;
         }
         

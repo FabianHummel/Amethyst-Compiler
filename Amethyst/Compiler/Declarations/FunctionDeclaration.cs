@@ -19,9 +19,15 @@ public partial class Compiler
             throw new SymbolAlreadyDeclaredException(functionName, context);
         }
         
-        var scope = VisitBlockNamed(context.block(), "_func");
-
         var attributes = VisitAttributeList(context.attributeList());
+
+        var scopeName = "_func";
+        if (attributes.Contains(ATTRIBUTE_UNIT_TEST_FUNCTION))
+        {
+            scopeName = functionName;
+        }
+        
+        var scope = VisitBlockNamed(context.block(), scopeName);
         
         if (attributes.Contains(ATTRIBUTE_TICK_FUNCTION))
         {
@@ -31,6 +37,11 @@ public partial class Compiler
         if (attributes.Contains(ATTRIBUTE_LOAD_FUNCTION))
         {
             Context.Configuration.Datapack.LoadFunctions.Add(scope.McFunctionPath);
+        }
+
+        if (attributes.Contains(ATTRIBUTE_UNIT_TEST_FUNCTION))
+        {
+            Context.UnitTests.Add(scope.McFunctionPath, scope);
         }
         
         Scope.Symbols.Add(functionName, new Function

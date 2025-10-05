@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Amethyst.Model;
@@ -123,4 +124,28 @@ public abstract class AbstractConstantArray : AbstractArray, IConstantValue<ICon
         },
         _ => null
     };
+
+    public static bool TryParse(IEnumerable<object> enumerable, [NotNullWhen(true)] out AbstractConstantArray? result)
+    {
+        var elements = new List<IConstantValue>();
+        
+        foreach (var item in enumerable)
+        {
+            if (!IConstantValue.TryParse(item, out var constantValue))
+            {
+                result = null;
+                return false;
+            }
+
+            elements.Add(constantValue);
+        }
+        
+        result = new ConstantDynamicArray
+        {
+            Context = null!,
+            Compiler = null!,
+            Value = elements.ToArray()
+        };
+        return true;
+    }
 }

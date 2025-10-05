@@ -10,6 +10,3 @@
 
 > [!IMPORTANT]
 > Don't modify the `server.properties.template` file, it's used to automatically generate the `server.properties` file.
-
-> [!TIP]
-> Pro-tip for contributing to unit tests: Amethyst projects can be reused by adding variables `{{xyz}}` everywhere within the codebase, which will be expanded upon compilation. This allows multiple test cases with different data to be generated from a single project.

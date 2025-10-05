@@ -1,4 +1,0 @@
-[test]
-function main() {
-    debug "Hello World!";
-}
