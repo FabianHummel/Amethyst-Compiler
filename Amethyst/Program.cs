@@ -93,7 +93,8 @@ public static class Program
     {
         _onChangedSourceTokenSource?.Cancel();
         _onChangedSourceTokenSource = new CancellationTokenSource();
-        Task.Delay(100, _onChangedSourceTokenSource.Token).ContinueWith(t => {
+        Task.Delay(100, _onChangedSourceTokenSource.Token).ContinueWith(t =>
+        {
             if (t.IsCompletedSuccessfully)
             {
                 ClearConsole();
@@ -107,7 +108,8 @@ public static class Program
     {
         _onChangedSourceTokenSource?.Cancel();
         _onChangedSourceTokenSource = new CancellationTokenSource();
-        Task.Delay(100, _onChangedSourceTokenSource.Token).ContinueWith(t => {
+        Task.Delay(100, _onChangedSourceTokenSource.Token).ContinueWith(t =>
+        {
             if (t.IsCompletedSuccessfully)
             {
                 ClearConsole();

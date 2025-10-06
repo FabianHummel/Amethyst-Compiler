@@ -224,7 +224,6 @@ public class Processor
         var assembly = Assembly.GetExecutingAssembly();
         using var stream = assembly.GetManifestResourceStream($"Amethyst.Resources.{datapackOrResourcepack.ToLower(CultureInfo.InvariantCulture)}.pack.mcmeta")!;
         using var reader = new StreamReader(stream);
-        
         var mcMetaContents = reader.ReadToEnd();
         File.WriteAllText(mcMeta, substitutions(mcMetaContents));
 
@@ -287,7 +286,8 @@ public class Processor
             CopyTemplate(datapack.OutputDir, "Datapack");
             CreateMeta(datapack.OutputDir, "Datapack", content => content
                 .Replace(Substitutions["description"], $"\"{datapack.Description}\"")
-                .Replace(Substitutions["pack_format"], datapack.PackFormat.ToString(), StringComparison.InvariantCulture));
+                .Replace(Substitutions["pack_format"], datapack.PackFormat.ToString(), StringComparison.InvariantCulture)
+                .Replace(Substitutions["pack_id"], $"\"{configuration.ProjectId}\""));
         }
         if (configuration.Resourcepack is { } resourcepack)
         {
@@ -296,7 +296,8 @@ public class Processor
             CopyTemplate(resourcepack.OutputDir, "Resourcepack");
             CreateMeta(resourcepack.OutputDir, "Datapack", content => content
                 .Replace(Substitutions["description"], $"\"{resourcepack.Description}\"")
-                .Replace(Substitutions["pack_format"], resourcepack.PackFormat.ToString(), StringComparison.InvariantCulture));
+                .Replace(Substitutions["pack_format"], resourcepack.PackFormat.ToString(), StringComparison.InvariantCulture)
+                .Replace(Substitutions["pack_id"], $"\"{configuration.ProjectId}\""));
         }
         
         cts.Cancel();
@@ -350,7 +351,8 @@ public class Processor
         var dataOrAssetsDir = Path.Combine(outputDir, dirName);
         
         // Copy everything except amethyst source code to output folder
-        FilesystemUtility.CopyDirectory(sourceDir, dataOrAssetsDir, filePath => {
+        FilesystemUtility.CopyDirectory(sourceDir, dataOrAssetsDir, filePath =>
+        {
             return Path.GetExtension(filePath) != SourceFileExtension;
         });
 
@@ -359,6 +361,8 @@ public class Processor
         {
             RegisterAndIndexNamespace(nsPath);
         }
+        
+        ParseInternalNamespace(dirName);
     }
     
     private void RegisterAndIndexNamespace(string nsPath)
@@ -415,6 +419,11 @@ public class Processor
                 folder.SourceFiles.Add(fileName, sourceFile);
             }
         }
+    }
+    
+    private void ParseInternalNamespace(string dirName)
+    {
+        // TODO: Parse all contents of $(dirName)/amethyst/**/api/*.amy
     }
     
     public static void PrintAmethystLogoAndVersion(bool reduceColors, CompilerFlags compilerFlags)

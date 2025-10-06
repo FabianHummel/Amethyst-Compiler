@@ -9,7 +9,7 @@ public partial class Compiler
     {
         var variableName = context.IDENTIFIER().GetText();
         
-        if (Scope.TryGetSymbol(variableName, out _))
+        if (TryGetSymbol(variableName, out _, context))
         {
             throw new SemanticException($"The symbol '{variableName}' has already been declared.", context);
         }

@@ -12,10 +12,11 @@ public partial class Compiler
         return null;
     }
     
-    private Scope VisitBlockNamed(AmethystParser.BlockContext context, string name)
+    private Scope VisitBlockNamed(AmethystParser.BlockContext context, string name, Action? init = null)
     {
         return EvaluateScoped(name, _ =>
         {
+            init?.Invoke();
             VisitBlockInline(context);
         });
     }

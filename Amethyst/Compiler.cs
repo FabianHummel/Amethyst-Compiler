@@ -27,7 +27,7 @@ public partial class Compiler : AmethystBaseVisitor<object?>
         }
     }
     
-    public void CompileNamespace()
+    private void CompileNamespace()
     {
         foreach (var registry in Namespace.Registries.Values)
         {
@@ -54,7 +54,7 @@ public partial class Compiler : AmethystBaseVisitor<object?>
         }
     }
 
-    public static IEnumerable<SourceFile> GetSourceFilesInFolder(SourceFolder sourceFolder)
+    private static IEnumerable<SourceFile> GetSourceFilesInFolder(SourceFolder sourceFolder)
     {
         return sourceFolder.SourceFiles.Values
             .Concat(sourceFolder.Children.SelectMany(pair => GetSourceFilesInFolder(pair.Value)));
@@ -87,7 +87,10 @@ public partial class Compiler : AmethystBaseVisitor<object?>
         
         var isCancelled = false;
         
-        action(() => isCancelled = true);
+        action(() =>
+        {
+            isCancelled = true;
+        });
 
         if (!isCancelled)
         {

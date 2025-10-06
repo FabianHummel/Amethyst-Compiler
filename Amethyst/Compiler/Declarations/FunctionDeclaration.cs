@@ -14,20 +14,21 @@ public partial class Compiler
         }
         
         var functionName = context.IDENTIFIER().GetText();
-        if (Scope.TryGetSymbol(functionName, out _))
+        if (TryGetSymbol(functionName, out _, context, checkExportedSymbols: false))
         {
             throw new SymbolAlreadyDeclaredException(functionName, context);
         }
         
         var attributes = VisitAttributeList(context.attributeList());
 
-        var scopeName = "_func";
-        if (attributes.Contains(AttributeUnitTestFunction))
+        var parameters = Array.Empty<Variable>();
+        var scope = VisitBlockNamed(context.block(), "_func", () =>
         {
-            scopeName = functionName;
-        }
-        
-        var scope = VisitBlockNamed(context.block(), scopeName);
+            if (context.parameterList() is { } parameterListContext)
+            {
+                parameters = VisitParameterList(parameterListContext);
+            }
+        });
         
         if (attributes.Contains(AttributeTickFunction))
         {
@@ -41,14 +42,57 @@ public partial class Compiler
 
         if (attributes.Contains(AttributeUnitTestFunction))
         {
-            Context.UnitTests.Add(scope.McFunctionPath, scope);
+            var mcFunctionScope = new Scope
+            {
+                Parent = scope.Parent,
+                Context = scope.Context,
+                Name = functionName
+            };
+            
+            Context.UnitTests.Add(mcFunctionScope.McFunctionPath, scope);
+        }
+
+        var function = new Function
+        {
+            Attributes = attributes,
+            Parameters = parameters,
+            Scope = scope
+        };
+
+        if (!Scope.Symbols.TryAdd(functionName, function)) 
+        {
+           throw new SymbolAlreadyDeclaredException(functionName, context); 
         }
         
-        Scope.Symbols.Add(functionName, new Function
-        {
-            Attributes = attributes
-        });
-        
         return null;
+    }
+    
+    public override Variable[] VisitParameterList(AmethystParser.ParameterListContext context)
+    {
+        var parameters = new List<Variable>();
+        foreach (var parameterContext in context.parameter())
+        {
+            var parameter = VisitParameter(parameterContext);
+            
+            if (!Scope.Symbols.TryAdd(parameter.Name, parameter))
+            {
+                throw new SymbolAlreadyDeclaredException(parameter.Name, context);
+            }
+            
+            parameters.Add(parameter);
+        }
+        
+        return parameters.ToArray();
+    }
+    
+    public override Variable VisitParameter(AmethystParser.ParameterContext context)
+    {
+        return new Variable
+        {
+            Name = context.IDENTIFIER().GetText(),
+            DataType = VisitType(context.type()),
+            Attributes = VisitAttributeList(context.attributeList()),
+            Location = ++StackPointer
+        };
     }
 }

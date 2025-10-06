@@ -1,4 +1,4 @@
-id = "unit_tests"
+id = "amethyst_unit_tests"
 minecraft = "./"
 
 [datapack]

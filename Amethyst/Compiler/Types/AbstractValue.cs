@@ -19,11 +19,6 @@ public abstract partial class AbstractValue
         Compiler.AddCode(code);
     }
     
-    protected void AddInitCode(string code)
-    {
-        Compiler.AddInitCode(code);
-    }
-
     public AbstractBoolean ToBoolean()
     {
         if (this is IConstantValue constantValue)

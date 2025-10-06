@@ -2,6 +2,7 @@ namespace Amethyst.Model;
 
 public class Variable : Symbol
 {
+    public required string Name { get; set; }
     public required int Location { get; init; }
     public required DataType DataType { get; init; }
     public required HashSet<string> Attributes { get; init; }
@@ -31,6 +32,7 @@ public class Variable : Symbol
 
     public override string ToString()
     {
-        return $"{Location}: {DataType} [{string.Join(',', Attributes)}]";
+        var attributes = Attributes.Count > 0 ? $"[{string.Join(", ", Attributes)}] " : "";
+        return $"{attributes}{DataType} ({Location})";
     }
 }

@@ -80,8 +80,7 @@ preprocessorAssignment
  ;
 
 preprocessorExpression
- : IDENTIFIER '(' preprocessorArgumentList? ')'                                 # preprocessorCallExpression
- | '++' preprocessorExpression                                                  # preprocessorPreIncrementExpression
+ : '++' preprocessorExpression                                                  # preprocessorPreIncrementExpression
  | '--' preprocessorExpression                                                  # preprocessorPreDecrementExpression
  | preprocessorExpression '++'                                                  # preprocessorPostIncrementExpression
  | preprocessorExpression '--'                                                  # preprocessorPostDecrementExpression
@@ -96,10 +95,6 @@ preprocessorExpression
  | preprocessorGroup                                                            # preprocessorGroupedExpression
  | preprocessorLiteral                                                          # preprocessorLiteralExpression
  | IDENTIFIER                                                                   # preprocessorIdentifierExpression
- ;
- 
-preprocessorArgumentList
- : preprocessorExpression (',' preprocessorExpression)*
  ;
  
 preprocessorGroup
@@ -149,7 +144,7 @@ parameterList
  ;
  
 parameter
- : IDENTIFIER ':' type
+ : attributeList IDENTIFIER ':' type
  ;
  
 block
@@ -222,7 +217,7 @@ assignment
  ;
 
 expression
- : IDENTIFIER '(' argumentList? ')'                     # callExpression            // TODO:
+ : IDENTIFIER '(' argumentList? ')'                     # callExpression
  | '++' expression                                      # preIncrementExpression
  | '--' expression                                      # preDecrementExpression
  | expression '++'                                      # postIncrementExpression

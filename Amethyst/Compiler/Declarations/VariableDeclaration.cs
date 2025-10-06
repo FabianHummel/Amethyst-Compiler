@@ -8,7 +8,7 @@ public partial class Compiler
     public override object? VisitVariableDeclaration(AmethystParser.VariableDeclarationContext context)
     {
         var variableName = context.IDENTIFIER().GetText();
-        if (Scope.TryGetSymbol(variableName, out _))
+        if (TryGetSymbol(variableName, out _, context))
         {
             throw new SymbolAlreadyDeclaredException(variableName, context);
         }
@@ -23,6 +23,7 @@ public partial class Compiler
 
         Scope.Symbols.Add(variableName, new Variable
         {
+            Name = variableName,
             Location = name,
             DataType = type,
             Attributes = attributes

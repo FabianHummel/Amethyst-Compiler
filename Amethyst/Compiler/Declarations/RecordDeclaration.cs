@@ -15,7 +15,7 @@ public partial class Compiler
         TotalRecordCount++;
         
         var recordName = context.IDENTIFIER().GetText();
-        if (Scope.TryGetSymbol(recordName, out _))
+        if (TryGetSymbol(recordName, out _, context))
         {
             throw new SymbolAlreadyDeclaredException(recordName, context);
         }

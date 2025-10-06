@@ -42,7 +42,7 @@ public class AmethystParseListener : AmethystBaseListener
             if (!Parser.SourceFile!.ExportedSymbols.ContainsKey(symbolName) &&
                 !Parser.SourceFile!.ImportedSymbols.TryAdd(symbolName, resourcePath.GetText()[1..^1]))
             {
-                throw new SyntaxException($"'{symbolName}' is already declared in this scope.", context);
+                throw new SymbolAlreadyDeclaredException(symbolName, context);
             }
         }
     }
@@ -81,7 +81,7 @@ public class AmethystParseListener : AmethystBaseListener
         if (!Parser.SourceFile!.ExportedSymbols.TryAdd(symbolName, context) && 
             !Parser.SourceFile!.ImportedSymbols.ContainsKey(symbolName))
         {
-            throw new SemanticException($"Symbol '{symbolName}' is already declared in this scope.", context);
+            throw new SymbolAlreadyDeclaredException(symbolName, context);
         }
     }
 
