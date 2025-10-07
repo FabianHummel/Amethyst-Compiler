@@ -11,34 +11,41 @@ public interface IRuntimeValue
     /// The memory location where the result is stored at.
     /// Corresponds to a player name inside a scoreboard for numeric values and a path to data storage for complex types.
     /// </summary>
-    int Location { get; set; }
+    Location Location { get; }
     
     /// <summary>
     /// Marks the assigned variable as temporary, meaning it can be overwritten by another variable.
     /// Useful for intermediate results that are not needed after the current operation, e.g. within a calculation.
     /// </summary>
-    bool IsTemporary { get; set; }
+    bool IsTemporary { get; }
 
     ParserRuleContext Context { get; }
     
     Compiler Compiler { get; }
     
-    DataType DataType { get; }
+    AbstractDatatype Datatype { get; }
     
     /// <summary>
     /// Turns this result into a boolean result by logically converting it to its boolean equivalent.
     /// </summary>
     /// <returns>The boolean result (numeric value of 0 or 1).</returns>
     AbstractBoolean MakeBoolean();
+    
+    IRuntimeValue WithLocation(Location newLocation, bool temporary = true);
 
-    public sealed int NextFreeLocation()
+    public sealed Location NextFreeLocation(DataLocation dataLocation)
     {
         if (IsTemporary)
         {
             return Location;
         }
         
-        return ++Compiler.StackPointer;
+        var numericLocation = ++Compiler.StackPointer;
+        return new Location
+        {
+            DataLocation = dataLocation,
+            Name = numericLocation.ToString()
+        };
     }
     
     /// <summary>
@@ -52,21 +59,18 @@ public interface IRuntimeValue
             return this;
         }
     
-        var location = NextFreeLocation();
+        var location = NextFreeLocation(Location.DataLocation);
         
-        if (DataType.Location == DataLocation.Scoreboard)
+        if (Location.DataLocation == DataLocation.Scoreboard)
         {
-            Compiler.AddCode($"scoreboard players operation {location} amethyst = {Location} amethyst");
+            Compiler.AddCode($"scoreboard players operation {location} = {Location}");
         }
         else
         {
-            Compiler.AddCode($"data modify storage amethyst: {location} set from storage amethyst: {Location}");
+            Compiler.AddCode($"data modify storage {location} set from storage {Location}");
         }
 
-        var clone = (IRuntimeValue)((AbstractValue)this).Clone();
-        clone.Location = location;
-        clone.IsTemporary = true;
-        return clone;
+        return WithLocation(location, temporary: true);
     }
     
     /// <summary>

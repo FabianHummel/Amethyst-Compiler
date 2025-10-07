@@ -4,19 +4,15 @@ namespace Amethyst;
 
 public class ConstantDynamicArray : AbstractConstantArray
 {
-    public override DataType DataType => new()
-    {
-        BasicType = BasicType.Array,
-        Modifier = null
-    };
+    public override AbstractDatatype Datatype => new ArrayDatatype();
     
     public override AbstractRuntimeArray ToRuntimeValue()
     {
-        var location = ++Compiler.StackPointer;
+        var location = Location.Storage(++Compiler.StackPointer);
         
-        Compiler.AddCode($"data modify storage amethyst: {location} set value {ToNbtString()}");
+        Compiler.AddCode($"data modify storage {location} set value {ToNbtString()}");
         
-        SubstituteRecursively(Compiler, location.ToString());
+        SubstituteRecursively(Compiler, location);
         
         return new RuntimeDynamicArray
         {

@@ -69,12 +69,12 @@ public partial class Compiler
         {
             var prefix = isMacroInvocation ? "$" : string.Empty;
             
-            var location = ++StackPointer;
+            var location = Location.Storage(++StackPointer);
 
             if (IsSelectorSingleTarget(selector, limitExpression))
             {
                 AddCode($"{prefix}execute as {selectorString} run function amethyst:libraries/gu/generate");
-                AddCode($"data modify storage amethyst: {location} set from storage gu:main out");
+                AddCode($"data modify storage {location} set from storage gu:main out");
             
                 return new RuntimeEntity
                 {
@@ -85,12 +85,12 @@ public partial class Compiler
                 };
             }
         
-            AddCode($"data modify storage amethyst: {location} set value []");
+            AddCode($"data modify storage {location} set value []");
 
             var scope = EvaluateScoped("_multi_selector", _ =>
             {
                 AddCode("function amethyst:libraries/gu/generate");
-                AddCode($"data modify storage amethyst: {location} append from storage gu:main out");
+                AddCode($"data modify storage {location} append from storage gu:main out");
             });
         
             AddCode($"{prefix}execute as {selectorString} run function {scope.McFunctionPath}");

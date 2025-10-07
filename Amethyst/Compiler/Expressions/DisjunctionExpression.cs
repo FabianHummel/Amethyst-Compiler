@@ -1,4 +1,5 @@
 using Amethyst.Language;
+using Amethyst.Model;
 using static Amethyst.Utility.ParserUtility;
 
 namespace Amethyst;
@@ -43,7 +44,7 @@ public partial class Compiler
                 if (booleanResult is IRuntimeValue runtimeValue)
                 {
                     // Early return if the current expression is true (we don't need to check the rest).
-                    AddCode($"execute unless score {runtimeValue.Location} amethyst matches 0 run return 1");
+                    AddCode($"execute unless score {runtimeValue.Location} matches 0 run return 1");
                 }
             }
             
@@ -53,15 +54,15 @@ public partial class Compiler
         // Reset the stack pointer to the one before evaluating the current expression, as we don't need the allocated variables anymore.
         StackPointer = previousSP;
 
-        var location = ++StackPointer;
+        var location = Location.Scoreboard(++StackPointer);
 
         if (isAlwaysTrue)
         {
-            AddCode($"scoreboard players set {location} amethyst 1");
+            AddCode($"scoreboard players set {location} 1");
         }
         else
         {
-            AddCode($"execute store success score {location} amethyst run function {scope.McFunctionPath}");
+            AddCode($"execute store success score {location} run function {scope.McFunctionPath}");
         }
 
         return new RuntimeBoolean

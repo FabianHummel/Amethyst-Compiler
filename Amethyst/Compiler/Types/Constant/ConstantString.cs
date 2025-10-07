@@ -1,3 +1,4 @@
+using Amethyst.Model;
 using Amethyst.Utility;
 
 namespace Amethyst;
@@ -12,9 +13,9 @@ public class ConstantString : AbstractString, IConstantValue<string>, IMemberAcc
 
     public IRuntimeValue ToRuntimeValue()
     {
-        var location = ++Compiler.StackPointer;
+        var location = Location.Storage(++Compiler.StackPointer);
         
-        Compiler.AddCode($"data modify storage amethyst: {location} set value {ToNbtString()}");
+        Compiler.AddCode($"data modify storage {location} set value {ToNbtString()}");
         
         return new RuntimeString
         {

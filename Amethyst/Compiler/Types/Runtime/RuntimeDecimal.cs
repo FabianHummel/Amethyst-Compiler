@@ -1,8 +1,10 @@
+using Amethyst.Model;
+
 namespace Amethyst;
 
 public partial class RuntimeDecimal : AbstractDecimal, IRuntimeValue
 {
-    public int Location { get; set; }
+    public required Location Location { get; init; }
     
     public bool IsTemporary { get; set; }
     
@@ -19,15 +21,23 @@ public partial class RuntimeDecimal : AbstractDecimal, IRuntimeValue
         };
     }
 
+    public IRuntimeValue WithLocation(Location newLocation, bool temporary = true)
+    {
+        return new RuntimeDecimal
+        {
+            Compiler = Compiler,
+            Context = Context,
+            Location = newLocation,
+            IsTemporary = temporary,
+            DecimalPlaces = DecimalPlaces
+        };
+    }
+
     public AbstractInteger MakeInteger()
     {
-        var location = Location;
+        var location = NextFreeLocation(DataLocation.Scoreboard);
         
-        if (!IsTemporary)
-        {
-            location = ++Compiler.StackPointer;
-            AddCode($"scoreboard players operation {location} amethyst = {Location} amethyst");
-        }
+        AddCode($"scoreboard players operation {location} = {Location}");
 
         return new RuntimeInteger
         {

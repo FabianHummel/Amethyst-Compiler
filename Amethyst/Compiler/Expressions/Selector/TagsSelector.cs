@@ -24,10 +24,10 @@ public partial class Compiler
         }
         else if (result is RuntimeStaticArray { BasicType: BasicType.String } and IRuntimeValue arrayResult)
         {
-            var location = arrayResult.NextFreeLocation();
+            var location = arrayResult.NextFreeLocation(DataLocation.Storage);
             
             AddCode("data modify storage amethyst:internal data.prefix.prefix set value \"tag=\"");
-            AddCode($"data modify storage amethyst:internal data.prefix.in set from storage amethyst: {arrayResult.Location}");
+            AddCode($"data modify storage amethyst:internal data.prefix.in set from storage {arrayResult.Location}");
             AddCode("function amethyst:api/data/prefix");
             
             queryString = $"$({location})";

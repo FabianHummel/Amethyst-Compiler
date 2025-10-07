@@ -26,7 +26,7 @@ public partial class Compiler
                 throw new SyntaxException($"Invalid decimal literal '{decimalLiteral.GetText()}'.", literalContext);
             }
 
-            var decimalPlaces = DecimalDataType.DEFAULT_DECIMAL_PLACES;
+            var decimalPlaces = DecimalDatatype.DEFAULT_DECIMAL_PLACES;
             
             if (decimalLiteral.GetText().Split('.').LastOrDefault() is { } decimalPart)
             {

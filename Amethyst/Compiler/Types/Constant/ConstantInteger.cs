@@ -1,3 +1,5 @@
+using Amethyst.Model;
+
 namespace Amethyst;
 
 public class ConstantInteger : AbstractInteger, IConstantValue<int>, IScoreboardValue
@@ -20,9 +22,9 @@ public class ConstantInteger : AbstractInteger, IConstantValue<int>, IScoreboard
 
     public IRuntimeValue ToRuntimeValue()
     {
-        var location = ++Compiler.StackPointer;
+        var location = Location.Scoreboard(++Compiler.StackPointer);
         
-        Compiler.AddCode($"scoreboard players set {location} amethyst {Value}");
+        Compiler.AddCode($"scoreboard players set {location} {Value}");
         
         return new RuntimeInteger
         {

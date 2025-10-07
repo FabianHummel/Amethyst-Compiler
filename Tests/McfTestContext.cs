@@ -25,19 +25,19 @@ public class McfTestContext
             throw new UnitTestException($"Symbol is not a variable: {identifier}");
         }
 
-        if (variable.DataType.Location == DataLocation.Scoreboard)
+        if (variable.Location.DataLocation == DataLocation.Scoreboard)
         {
             var scoreboardValue = await GetScoreboardValue(variable.Location);
-            return (T)NbtUtility.ParseScoreboardValue(scoreboardValue, variable.DataType);
+            return (T)NbtUtility.ParseScoreboardValue(scoreboardValue, variable.Datatype);
         }
 
-        if (variable.DataType.Location == DataLocation.Storage)
+        if (variable.Location.DataLocation == DataLocation.Storage)
         {
             var storageValue = await GetStorageValue(variable.Location);
-            return (T)NbtUtility.ParseStorageValue(storageValue, variable.DataType);
+            return (T)NbtUtility.ParseStorageValue(storageValue, variable.Datatype);
         }
 
-        throw new InvalidOperationException($"Unknown data location '{variable.DataType.Location}'.");
+        throw new InvalidOperationException($"Unknown data location '{variable.Location.DataLocation}'.");
     }
     
     private Symbol GetSymbolOrThrow(string identifier)
@@ -50,9 +50,9 @@ public class McfTestContext
         return symbol;
     }
 
-    private async Task<int> GetScoreboardValue(int location)
+    private async Task<int> GetScoreboardValue(Location location)
     {
-        var command = $"scoreboard players get {location} amethyst";
+        var command = $"scoreboard players get {location}";
         var result = await rcon.ExecuteCommandAsync(command);
         if (result == null)
         {
@@ -80,9 +80,9 @@ public class McfTestContext
         return value;
     }
 
-    private async Task<string> GetStorageValue(int location)
+    private async Task<string> GetStorageValue(Location location)
     {
-        var command = $"data get storage amethyst: {location}";
+        var command = $"data get storage {location}";
         var result = await rcon.ExecuteCommandAsync(command);
         if (result == null)
         {

@@ -1,8 +1,10 @@
+using Amethyst.Model;
+
 namespace Amethyst;
 
 public partial class RuntimeBoolean : AbstractBoolean, IRuntimeValue
 {
-    public int Location { get; set; }
+    public required Location Location { get; init; }
     
     public bool IsTemporary { get; set; }
 
@@ -25,6 +27,17 @@ public partial class RuntimeBoolean : AbstractBoolean, IRuntimeValue
     public AbstractBoolean MakeBoolean()
     {
         return this;
+    }
+
+    public IRuntimeValue WithLocation(Location newLocation, bool temporary = true)
+    {
+        return new RuntimeBoolean
+        {
+            Compiler = Compiler,
+            Context = Context,
+            Location = newLocation,
+            IsTemporary = temporary
+        };
     }
 
     public AbstractInteger MakeInteger()

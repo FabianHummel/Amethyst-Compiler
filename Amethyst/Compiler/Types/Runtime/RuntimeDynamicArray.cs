@@ -4,9 +4,16 @@ namespace Amethyst;
 
 public class RuntimeDynamicArray : AbstractRuntimeArray
 {
-    public override DataType DataType => new()
+    public override AbstractDatatype Datatype => new ArrayDatatype();
+    
+    public override IRuntimeValue WithLocation(Location newLocation, bool temporary = true)
     {
-        BasicType = BasicType.Array,
-        Modifier = null
-    };
+        return new RuntimeDynamicArray
+        {
+            Compiler = Compiler,
+            Context = Context,
+            Location = newLocation,
+            IsTemporary = temporary
+        };
+    }
 }

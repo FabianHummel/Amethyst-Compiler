@@ -6,7 +6,7 @@ public partial class PreprocessorBoolean : AbstractNumericPreprocessorValue, IPr
 {
     public required bool Value { get; set; }
     
-    public override PreprocessorDataType DataType => new()
+    public override PreprocessorDatatype Datatype => new()
     {
         BasicType = BasicPreprocessorType.Bool
     };

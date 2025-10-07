@@ -60,12 +60,15 @@ public abstract class ServerTestBase
     {
         string mcfValue = target.ToMcfValue(value);
 
-        string command = target.DataType.Location switch
+        string command;
+        if (target.Location.DataLocation == DataLocation.Scoreboard)
         {
-            DataLocation.Scoreboard => $"scoreboard players set {target.Location} amethyst {mcfValue}",
-            DataLocation.Storage => $"data modify storage amethyst {target.Location} set value {mcfValue}",
-            _ => throw new InvalidOperationException($"Cannot set value for variable '{target}' at '{target.DataType.Location}'.")
-        };
+            command = $"scoreboard players set {target.Location} {mcfValue}";
+        }
+        else
+        {
+            command = $"data modify storage amethyst {target.Location} set value {mcfValue}";
+        }
 
         await TestMain.Rcon.ExecuteCommandAsync(command);
     }

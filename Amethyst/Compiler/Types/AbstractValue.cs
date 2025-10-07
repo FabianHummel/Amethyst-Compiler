@@ -12,7 +12,7 @@ public abstract partial class AbstractValue
     /// <summary>
     /// The type of the underlying data.
     /// </summary>
-    public abstract DataType DataType { get; }
+    public abstract AbstractDatatype Datatype { get; }
 
     protected void AddCode(string code)
     {
@@ -70,10 +70,5 @@ public abstract partial class AbstractValue
         }
         
         throw new InvalidOperationException($"Invalid value type '{GetType()}' to convert to a runtime value.");
-    }
-
-    public AbstractValue Clone()
-    {
-        return (AbstractValue)MemberwiseClone();
     }
 }

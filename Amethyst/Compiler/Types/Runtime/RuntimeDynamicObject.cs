@@ -4,9 +4,16 @@ namespace Amethyst;
 
 public class RuntimeDynamicObject : AbstractRuntimeObject
 {
-    public override DataType DataType => new()
+    public override AbstractDatatype Datatype => new ObjectDatatype();
+    
+    public override IRuntimeValue WithLocation(Location newLocation, bool temporary = true)
     {
-        BasicType = BasicType.Object,
-        Modifier = null
-    };
+        return new RuntimeDynamicObject
+        {
+            Compiler = Compiler,
+            Context = Context,
+            Location = newLocation,
+            IsTemporary = temporary
+        };
+    }
 }

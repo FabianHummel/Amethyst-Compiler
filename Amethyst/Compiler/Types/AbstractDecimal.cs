@@ -4,10 +4,8 @@ namespace Amethyst;
 
 public abstract class AbstractDecimal : AbstractNumericValue
 {
-    public override DecimalDataType DataType => new()
+    protected override DecimalDatatype ScoreboardDatatype => new()
     {
-        BasicType = BasicType.Dec,
-        Modifier = null,
         DecimalPlaces = DecimalPlaces
     };
     

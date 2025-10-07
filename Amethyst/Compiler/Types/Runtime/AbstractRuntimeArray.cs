@@ -1,16 +1,18 @@
+using Amethyst.Model;
+
 namespace Amethyst;
 
 public abstract partial class AbstractRuntimeArray : AbstractArray, IRuntimeValue, IIndexable
 {
-    public int Location { get; set; }
+    public required Location Location { get; init; }
     
     public bool IsTemporary { get; set; }
 
     public AbstractBoolean MakeBoolean()
     {
-        var location = ++Compiler.StackPointer;
+        var location = NextFreeLocation(DataLocation.Scoreboard);
         
-        Compiler.AddCode($"execute store success score {location} amethyst run data get storage amethyst: {Location}[0]");
+        Compiler.AddCode($"execute store success score {location} run data get storage {Location}[0]");
         
         return new RuntimeBoolean
         {
@@ -21,11 +23,13 @@ public abstract partial class AbstractRuntimeArray : AbstractArray, IRuntimeValu
         };
     }
 
+    public abstract IRuntimeValue WithLocation(Location newLocation, bool temporary = true);
+
     public AbstractInteger MakeInteger()
     {
-        var location = ++Compiler.StackPointer;
+        var location = NextFreeLocation(DataLocation.Scoreboard);
         
-        Compiler.AddCode($"execute store result score {location} amethyst run data get storage amethyst: {Location}");
+        Compiler.AddCode($"execute store result score {location} run data get storage {Location}");
         
         return new RuntimeInteger
         {
@@ -36,24 +40,25 @@ public abstract partial class AbstractRuntimeArray : AbstractArray, IRuntimeValu
         };
     }
 
+    // TODO: Maybe directly return a RuntimeUnknown with a modified path location pointing to the element at the index?
     public AbstractValue GetIndex(AbstractValue index)
     {
-        var location = NextFreeLocation();
+        var location = NextFreeLocation(DataLocation.Storage);
         
         if (index is ConstantInteger integerConstant)
         {
-            AddCode($"execute store result storage amethyst: {location} run data get storage amethyst: {Location}[{integerConstant.Value}]");
+            AddCode($"execute store result storage {location} run data get storage {Location}[{integerConstant.Value}]");
         }
         else if (index is RuntimeInteger and IRuntimeValue integerResult)
         {
-            var indexLocation = integerResult.NextFreeLocation();
+            var indexLocation = integerResult.NextFreeLocation(DataLocation.Storage);
             Compiler.StackPointer--;
             
-            AddCode($"execute store result storage amethyst: {indexLocation} run scoreboard players get {integerResult.Location} amethyst");
+            AddCode($"execute store result storage {indexLocation} run scoreboard players get {integerResult.Location}");
             
             var scope = Compiler.EvaluateScoped("_index", _ =>
             {
-                AddCode($"$execute store result storage amethyst: {location} run data get storage amethyst: {Location}[$({integerResult.Location})]");
+                AddCode($"$execute store result storage {location} run data get storage {Location}[$({integerResult.Location})]");
             });
             
             AddCode($"function {scope.McFunctionPath} with storage amethyst:");

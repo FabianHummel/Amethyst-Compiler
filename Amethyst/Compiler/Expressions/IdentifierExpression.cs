@@ -12,7 +12,7 @@ public partial class Compiler
         
         if (symbol is Variable variable)
         {
-            if (variable.DataType.Modifier is { } modifier)
+            if (variable.Datatype.Modifier is { } modifier)
             {
                 return modifier switch
                 {
@@ -21,20 +21,20 @@ public partial class Compiler
                         Compiler = this,
                         Context = context,
                         Location = variable.Location,
-                        BasicType = variable.DataType.BasicType
+                        BasicType = variable.Datatype.BasicType
                     },
                     Modifier.Object => new RuntimeStaticObject
                     { 
                         Compiler = this, 
                         Context = context, 
                         Location = variable.Location, 
-                        BasicType = variable.DataType.BasicType
+                        BasicType = variable.Datatype.BasicType
                     },
                     _ => throw new InvalidOperationException($"Invalid type modifier '{modifier}'.")
                 };
             }
 
-            return variable.DataType.BasicType switch
+            return variable.Datatype.BasicType switch
             {
                 BasicType.Int => new RuntimeInteger
                 { 
@@ -47,7 +47,7 @@ public partial class Compiler
                     Compiler = this, 
                     Context = context, 
                     Location = variable.Location,
-                    DecimalPlaces = (variable.DataType as DecimalDataType)!.DecimalPlaces
+                    DecimalPlaces = (variable.Datatype as DecimalDatatype)!.DecimalPlaces
                 },
                 BasicType.Bool => new RuntimeBoolean
                 { 
@@ -73,7 +73,7 @@ public partial class Compiler
                     Context = context, 
                     Location = variable.Location
                 },
-                _ => throw new InvalidOperationException($"Invalid basic type '{variable.DataType.BasicType}'.")
+                _ => throw new InvalidOperationException($"Invalid basic type '{variable.Datatype.BasicType}'.")
             };
         }
 

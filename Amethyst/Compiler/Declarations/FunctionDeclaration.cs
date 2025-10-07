@@ -87,12 +87,19 @@ public partial class Compiler
     
     public override Variable VisitParameter(AmethystParser.ParameterContext context)
     {
+        var datatype = VisitType(context.type());
+        var numericLocation = ++StackPointer;
+        
         return new Variable
         {
             Name = context.IDENTIFIER().GetText(),
-            DataType = VisitType(context.type()),
+            Datatype = datatype,
             Attributes = VisitAttributeList(context.attributeList()),
-            Location = ++StackPointer
+            Location = new Location
+            {
+                Name = numericLocation.ToString(),
+                DataLocation = datatype.DataLocation
+            }
         };
     }
 }

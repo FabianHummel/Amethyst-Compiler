@@ -25,7 +25,7 @@ public partial class Compiler
         {
             Name = variableName,
             Location = name,
-            DataType = type,
+            Datatype = type,
             Attributes = attributes
         });
         

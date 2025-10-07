@@ -20,18 +20,12 @@ public class ConstantBoolean : AbstractBoolean, IConstantValue<bool>, IScoreboar
     };
 
     public int ScoreboardValue => AsInteger;
-    
-    public override DataType DataType => new()
-    {
-        BasicType = BasicType.Bool,
-        Modifier = null
-    };
 
     public IRuntimeValue ToRuntimeValue()
     {
-        var location = ++Compiler.StackPointer;
+        var location = Location.Scoreboard(++Compiler.StackPointer);
         
-        Compiler.AddCode($"scoreboard players set {location} amethyst {AsInteger}");
+        Compiler.AddCode($"scoreboard players set {location} {AsInteger}");
         
         return new RuntimeBoolean
         {

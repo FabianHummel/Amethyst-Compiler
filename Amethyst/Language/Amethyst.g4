@@ -120,7 +120,7 @@ declaration
  ;
  
 functionDeclaration
- : attributeList 'function' IDENTIFIER '(' parameterList? ')' (':' type)? block
+ : attributeList 'function' IDENTIFIER '(' parameterList? ')' ('->' type)? block
  ;
  
 variableDeclaration

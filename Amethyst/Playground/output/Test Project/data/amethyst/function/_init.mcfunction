@@ -16,6 +16,10 @@ scoreboard objectives add amethyst_const dummy
 scoreboard objectives modify amethyst_const displayname {"text":"Amethyst constants","color":"light_purple"}
 scoreboard players reset * amethyst_const
 
+scoreboard objectives add amethyst_test dummy
+scoreboard objectives modify amethyst_test displayname {"text":"Amethyst unit tests","color":"light_purple"}
+scoreboard players reset * amethyst_test
+
 scoreboard objectives add amethyst_record_initializers dummy
 scoreboard objectives modify amethyst_record_initializers displayname {"text":"Amethyst record initializers","color":"light_purple"}
 # Don't reset this one, it's used to keep track of the initializers, even after restarting the server

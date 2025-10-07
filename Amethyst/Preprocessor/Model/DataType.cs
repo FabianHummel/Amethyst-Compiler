@@ -16,13 +16,13 @@ public enum BasicPreprocessorType
     Resource
 }
 
-public class PreprocessorDataType
+public class PreprocessorDatatype
 {
     public required BasicPreprocessorType BasicType { get; init; }
 
     public override bool Equals(object? obj)
     {
-        if (obj is not PreprocessorDataType type)
+        if (obj is not PreprocessorDatatype type)
         {
             return false;
         }
@@ -40,7 +40,7 @@ public class PreprocessorDataType
         return BasicType.GetDescription();
     }
     
-    public static bool operator ==(PreprocessorDataType? left, PreprocessorDataType? right)
+    public static bool operator ==(PreprocessorDatatype? left, PreprocessorDatatype? right)
     {
         if (left is null)
         {
@@ -49,7 +49,7 @@ public class PreprocessorDataType
         return left.Equals(right);
     }
     
-    public static bool operator !=(PreprocessorDataType? left, PreprocessorDataType? right)
+    public static bool operator !=(PreprocessorDatatype? left, PreprocessorDatatype? right)
     {
         if (left is null)
         {

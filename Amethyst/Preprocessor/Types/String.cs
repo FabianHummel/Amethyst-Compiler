@@ -6,7 +6,7 @@ public partial class PreprocessorString : AbstractPreprocessorValue, IPreprocess
 {
     public required string Value { get; set; }
     
-    public override PreprocessorDataType DataType => new()
+    public override PreprocessorDatatype Datatype => new()
     {
         BasicType = BasicPreprocessorType.String
     };

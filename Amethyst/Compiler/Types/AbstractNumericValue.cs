@@ -7,7 +7,11 @@ namespace Amethyst;
 public abstract partial class AbstractNumericValue : AbstractAmethystValue
 {
     protected abstract AbstractDecimal AsDecimal { get; }
-    
+
+    protected abstract AbstractScoreboardDatatype ScoreboardDatatype { get; }
+
+    public override AbstractDatatype Datatype => ScoreboardDatatype;
+
     /// <summary>
     /// Ensures that this number is stored in storage, likely to be able to use it as macro input.
     /// </summary>
@@ -19,14 +23,11 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
             throw new InvalidOperationException("Call of this method is not allowed on constant values.");
         }
         
-        var location = runtimeValue.NextFreeLocation();
+        var location = runtimeValue.NextFreeLocation(DataLocation.Storage);
         
-        AddCode($"execute store result storage amethyst: {location} {DataType.StorageModifier} run scoreboard players get {runtimeValue.Location} amethyst");
+        AddCode($"execute store result storage {location} {ScoreboardDatatype.StorageModifier} run scoreboard players get {runtimeValue.Location}");
 
-        var clone = (IRuntimeValue)MemberwiseClone();
-        clone.Location = location;
-        clone.IsTemporary = true;
-        return clone;
+        return ((IRuntimeValue)this).WithLocation(location, temporary: true);
     }
 
     /// <summary>
@@ -209,14 +210,14 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
         {
             lhs = (RuntimeDecimal)lhs.EnsureBackedUp();
             lhs.DecimalPlaces = highestDecimalPlaces;
-            AddCode($"scoreboard players operation {lhs.Location} amethyst *= .{scale} amethyst_const");
+            AddCode($"scoreboard players operation {lhs.Location} *= .{scale} amethyst_const");
         }
         
         if (weightedDecimalPlaces > 0)
         {
             rhs = (RuntimeDecimal)rhs.EnsureBackedUp();
             lhs.DecimalPlaces = highestDecimalPlaces;
-            AddCode($"scoreboard players operation {rhs.Location} amethyst *= .{scale} amethyst_const");
+            AddCode($"scoreboard players operation {rhs.Location} *= .{scale} amethyst_const");
         }
     }
 
@@ -227,7 +228,7 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
     private AbstractNumericValue PerformCalculation(IRuntimeValue lhs, IRuntimeValue rhs, ArithmeticOperator op)
     {
         var runtimeLhsBackup = lhs.EnsureBackedUp();
-        AddCode($"scoreboard players operation {runtimeLhsBackup.Location} amethyst {op.GetMcfOperatorSymbol()}= {rhs.Location} amethyst");
+        AddCode($"scoreboard players operation {runtimeLhsBackup.Location} {op.GetMcfOperatorSymbol()}= {rhs.Location}");
         return (AbstractNumericValue)runtimeLhsBackup;
     }
     
@@ -237,8 +238,8 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
     /// </summary>
     private RuntimeBoolean PerformCalculation(IRuntimeValue lhs, IRuntimeValue rhs, ComparisonOperator op)
     {
-        var location = lhs.NextFreeLocation();
-        AddCode($"execute store success score {location} amethyst if score {lhs.Location} amethyst {op.GetMcfOperatorSymbol()} {rhs.Location} amethyst");
+        var location = lhs.NextFreeLocation(DataLocation.Scoreboard);
+        AddCode($"execute store success score {location} if score {lhs.Location} {op.GetMcfOperatorSymbol()} {rhs.Location}");
         return new RuntimeBoolean
         {
             Compiler = Compiler,

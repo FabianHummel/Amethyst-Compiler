@@ -80,7 +80,7 @@ public class AbstractValueGenerator : ISourceGenerator
             }
                 
             writer.WriteLine($$"""
-                                       throw new SyntaxException($"Operation {this.DataType} {{symbol}} {rhs.DataType} is not defined.", this.Context);
+                                       throw new SyntaxException($"Operation {this.Datatype} {{symbol}} {rhs.Datatype} is not defined.", this.Context);
                                    }
 
                                """);
@@ -90,7 +90,7 @@ public class AbstractValueGenerator : ISourceGenerator
                 writer.WriteLine($$"""
                                        protected virtual AbstractValue Visit{{@operator}}({{rhs}} rhs)
                                        {
-                                           throw new SyntaxException($"Operation {this.DataType} {{symbol}} {rhs.DataType} is not permitted.", this.Context);
+                                           throw new SyntaxException($"Operation {this.Datatype} {{symbol}} {rhs.Datatype} is not permitted.", this.Context);
                                        }
 
                                    """);

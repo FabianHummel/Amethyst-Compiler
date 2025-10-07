@@ -16,7 +16,7 @@ public partial class Compiler
 
         var result = VisitPreprocessorExpression(context.preprocessorExpression());
         
-        PreprocessorDataType? type = null;
+        PreprocessorDatatype? type = null;
         
         // if a type is defined, set the type to the defined type
         if (context.preprocessorType() is { } preprocessorTypeContext)
@@ -24,9 +24,9 @@ public partial class Compiler
             type = VisitPreprocessorType(preprocessorTypeContext);
         }
         // if both types are defined, check if they match
-        if (type != null && result != null && type != result.DataType)
+        if (type != null && result != null && type != result.Datatype)
         {
-            throw new SyntaxException($"The type of the variable '{type}' does not match the inferred type '{result.DataType}'.", context);
+            throw new SyntaxException($"The type of the variable '{type}' does not match the inferred type '{result.Datatype}'.", context);
         }
         // if no type is defined or inferred, throw an error
         if (type == null && result == null)
@@ -36,12 +36,12 @@ public partial class Compiler
         // if no type is defined, but inferred, set the type to the inferred type
         if (type == null && result != null)
         {
-            type = result.DataType;
+            type = result.Datatype;
         }
         
         Scope.Symbols.Add(variableName, new PreprocessorVariable
         {
-            DataType = type!,
+            Datatype = type!,
             Value = result!
         });
         

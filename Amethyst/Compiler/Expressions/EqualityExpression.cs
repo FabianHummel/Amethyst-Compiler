@@ -16,9 +16,9 @@ public partial class Compiler
         var op = Enum.GetValues<ComparisonOperator>()
             .First(op => op.GetAmethystOperatorSymbol() == operatorToken);
 
-        if (left.DataType != right.DataType)
+        if (left.Datatype != right.Datatype)
         {
-            throw new SyntaxException($"Cannot compare values of type '{left.DataType}' and '{right.DataType}'.", context);
+            throw new SyntaxException($"Cannot compare values of type '{left.Datatype}' and '{right.Datatype}'.", context);
         }
 
         if (left is IConstantValue lhsConstant && right is IConstantValue rhsConstant)
@@ -33,7 +33,7 @@ public partial class Compiler
             };
         }
 
-        int location;
+        Location location;
         
         var mcfComparisonOp = op switch
         {
@@ -46,8 +46,8 @@ public partial class Compiler
         {
             var backup = lhsRuntime.EnsureBackedUp();
             
-            AddCode($"execute store success score {backup.Location} amethyst run data modify storage amethyst: {backup.Location} set from storage amethyst: {rhsRuntime.Location}");
-            AddCode($"execute store success score {backup.Location} amethyst {mcfComparisonOp} score {backup.Location} amethyst matches 0");
+            AddCode($"execute store success score {backup.Location} run data modify storage {backup.Location} set from storage {rhsRuntime.Location}");
+            AddCode($"execute store success score {backup.Location} {mcfComparisonOp} score {backup.Location} matches 0");
 
             location = backup.Location;
         }
@@ -56,9 +56,9 @@ public partial class Compiler
             // switch operands so that the constant value is always on the right side for optimization
             var (lhs, rhs) = AbstractValue.EnsureConstantValueIsLast(left, right);
         
-            location = lhs.NextFreeLocation();
+            location = lhs.NextFreeLocation(DataLocation.Scoreboard);
             
-            if (lhs.DataType.Location == DataLocation.Scoreboard && rhs is IScoreboardValue numericConstant)
+            if (lhs.Location.DataLocation == DataLocation.Scoreboard && rhs is IScoreboardValue numericConstant)
             {
                 // if both sides are a decimal type, coerce the right side to the left side's decimal places.
                 // this allows syntax like this, where the number of decimal places don't exactly match:
@@ -76,11 +76,11 @@ public partial class Compiler
                     };
                 }
             
-                AddCode($"execute store success score {location} amethyst {mcfComparisonOp} score {lhs.Location} amethyst matches {numericConstant.ScoreboardValue}");
+                AddCode($"execute store success score {location} {mcfComparisonOp} score {lhs.Location} matches {numericConstant.ScoreboardValue}");
             }
             else
             {
-                AddCode($"execute store success score {location} amethyst {mcfComparisonOp} data storage amethyst: {{{lhs.Location}:{rhs.ToNbtString()}}}");
+                AddCode($"execute store success score {location} {mcfComparisonOp} data storage {{{lhs.Location}:{rhs.ToNbtString()}}}");
             }
         }
         

@@ -5,7 +5,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override PreprocessorDataType VisitPreprocessorType(AmethystParser.PreprocessorTypeContext context)
+    public override PreprocessorDatatype VisitPreprocessorType(AmethystParser.PreprocessorTypeContext context)
     {
         var basicTypeString = context.GetChild(0).GetText();
         var basicType = basicTypeString switch
@@ -18,7 +18,7 @@ public partial class Compiler
             _ => throw new SyntaxException($"Invalid basic type '{basicTypeString}'.", context)
         };
 
-        return new PreprocessorDataType
+        return new PreprocessorDatatype
         {
             BasicType = basicType
         };

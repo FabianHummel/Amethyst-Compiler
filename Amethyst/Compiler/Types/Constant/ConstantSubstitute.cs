@@ -6,7 +6,7 @@ public class ConstantSubstitute : AbstractValue, IConstantValue<IRuntimeValue>
 {
     public required IRuntimeValue Value { get; init; }
     
-    public override DataType DataType => Value.DataType;
+    public override AbstractDatatype Datatype => Value.Datatype;
     
     public int AsInteger => throw new InvalidOperationException("Constant substitutes cannot be converted to an integer value.");
     
@@ -19,7 +19,7 @@ public class ConstantSubstitute : AbstractValue, IConstantValue<IRuntimeValue>
 
     public string ToNbtString()
     {
-        return Value.DataType.DefaultValue;
+        return Value.Datatype.DefaultValue;
     }
 
     public string ToTextComponent()

@@ -1,3 +1,5 @@
+using Amethyst.Model;
+
 namespace Amethyst;
 
 public class ConstantDecimal : AbstractDecimal, IConstantValue<double>, IScoreboardValue
@@ -10,13 +12,13 @@ public class ConstantDecimal : AbstractDecimal, IConstantValue<double>, IScorebo
     
     protected override AbstractDecimal AsDecimal => this;
     
-    public int ScoreboardValue => (int)Math.Round(Value * DataType.Scale);
+    public int ScoreboardValue => (int)Math.Round(Value * ScoreboardDatatype.Scale);
 
     public IRuntimeValue ToRuntimeValue()
     {
-        var location = ++Compiler.StackPointer;
+        var location = Location.Scoreboard(++Compiler.StackPointer);
         
-        Compiler.AddCode($"scoreboard players set {location} amethyst {ScoreboardValue}");
+        Compiler.AddCode($"scoreboard players set {location} {ScoreboardValue}");
         
         return new RuntimeDecimal
         {

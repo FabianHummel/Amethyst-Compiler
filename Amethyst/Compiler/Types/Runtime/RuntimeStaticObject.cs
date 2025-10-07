@@ -6,9 +6,17 @@ public class RuntimeStaticObject : AbstractRuntimeObject
 {
     public required BasicType BasicType { get; init; }
     
-    public override DataType DataType => new()
+    public override AbstractDatatype Datatype => AbstractDatatype.Parse(BasicType, Modifier.Object);
+    
+    public override IRuntimeValue WithLocation(Location newLocation, bool temporary = true)
     {
-        BasicType = BasicType,
-        Modifier = Modifier.Object
-    };
+        return new RuntimeStaticObject
+        {
+            Compiler = Compiler,
+            Context = Context,
+            Location = newLocation,
+            IsTemporary = temporary,
+            BasicType = BasicType
+        };
+    }
 }

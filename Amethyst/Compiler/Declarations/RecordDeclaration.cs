@@ -31,12 +31,12 @@ public partial class Compiler
         Scope.Symbols.Add(recordName, new Record
         {
             Name = name,
-            DataType = type,
+            Datatype = type,
             InitialValue = result,
             Attributes = attributes
         });
 
-        if (type.Location == DataLocation.Scoreboard)
+        if (type.DataLocation == DataLocation.Scoreboard)
         {
             AddInitCode($"scoreboard objectives add {name} dummy");
 
@@ -46,9 +46,9 @@ public partial class Compiler
             }
         }
 
-        if (result.DataType.Location == DataLocation.Scoreboard)
+        if (result.Location.DataLocation == DataLocation.Scoreboard)
         {
-            AddCode($"scoreboard players operation {name} amethyst_record_initializers = {result.Location} amethyst");
+            AddCode($"scoreboard players operation {name} amethyst_record_initializers = {result.Location}");
         }
         else
         {

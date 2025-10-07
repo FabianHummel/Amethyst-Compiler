@@ -6,9 +6,17 @@ public class RuntimeStaticArray : AbstractRuntimeArray
 {
     public required BasicType BasicType { get; init; }
     
-    public override DataType DataType => new()
+    public override AbstractDatatype Datatype => AbstractDatatype.Parse(BasicType, Modifier.Array);
+    
+    public override IRuntimeValue WithLocation(Location newLocation, bool temporary = true)
     {
-        BasicType = BasicType,
-        Modifier = Modifier.Array
-    };
+        return new RuntimeStaticArray
+        {
+            Compiler = Compiler,
+            Context = Context,
+            Location = newLocation,
+            IsTemporary = temporary,
+            BasicType = BasicType
+        };
+    }
 }

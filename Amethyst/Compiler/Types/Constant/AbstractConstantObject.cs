@@ -25,7 +25,7 @@ public abstract class AbstractConstantObject : AbstractObject, IConstantValue<Di
         {
             if (constantValue is ISubstitutable substitutable)
             {
-                var substitutionModifier = substitutionModifierPrefix + DataType.GetSubstitutionModifier(key);
+                var substitutionModifier = substitutionModifierPrefix + Datatype.GetSubstitutionModifier(key);
                 
                 substitutable.SubstituteRecursively(compiler, substitutionModifier);
             }
@@ -35,15 +35,15 @@ public abstract class AbstractConstantObject : AbstractObject, IConstantValue<Di
         {
             foreach (var (i, element) in Substitutions)
             {
-                var substitutionModifier = substitutionModifierPrefix + DataType.GetSubstitutionModifier(i);
+                var substitutionModifier = substitutionModifierPrefix + Datatype.GetSubstitutionModifier(i);
                 
-                if (element.DataType.Location == DataLocation.Scoreboard)
+                if (element.Datatype is AbstractScoreboardDatatype scoreboardDatatype)
                 {
-                    compiler.AddCode($"execute store result storage amethyst: {substitutionModifier} {element.DataType.StorageModifier} run scoreboard players get {element.Location} amethyst");
+                    compiler.AddCode($"execute store result storage {substitutionModifier} {scoreboardDatatype.StorageModifier} run scoreboard players get {element.Location}");
                 }
                 else
                 {
-                    compiler.AddCode($"data modify storage amethyst: {substitutionModifier} set from storage amethyst: {element.Location}");
+                    compiler.AddCode($"data modify storage {substitutionModifier} set from storage {element.Location}");
                 }
             }
         }

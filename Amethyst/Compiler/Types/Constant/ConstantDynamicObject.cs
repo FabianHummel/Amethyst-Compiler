@@ -4,19 +4,15 @@ namespace Amethyst;
 
 public class ConstantDynamicObject : AbstractConstantObject, IMemberAccess
 {
-    public override DataType DataType => new()
-    {
-        BasicType = BasicType.Object,
-        Modifier = null
-    };
+    public override AbstractDatatype Datatype => new ObjectDatatype();
 
     public override AbstractRuntimeObject ToRuntimeValue()
     {
-        var location = ++Compiler.StackPointer;
+        var location = Location.Storage(++Compiler.StackPointer);
 
-        Compiler.AddCode($"data modify storage amethyst: {location} set value {ToNbtString()}");
+        Compiler.AddCode($"data modify storage {location} set value {ToNbtString()}");
 
-        SubstituteRecursively(Compiler, location.ToString());
+        SubstituteRecursively(Compiler, location);
 
         return new RuntimeDynamicObject
         {

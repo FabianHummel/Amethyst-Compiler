@@ -1,8 +1,10 @@
+using Amethyst.Model;
+
 namespace Amethyst;
 
 public partial class RuntimeInteger : AbstractInteger, IRuntimeValue
 {
-    public int Location { get; set; }
+    public required Location Location { get; init; }
     
     public bool IsTemporary { get; set; }
 
@@ -23,6 +25,17 @@ public partial class RuntimeInteger : AbstractInteger, IRuntimeValue
             Context = Context,
             Location = Location,
             IsTemporary = IsTemporary
+        };
+    }
+
+    public IRuntimeValue WithLocation(Location newLocation, bool temporary = true)
+    {
+        return new RuntimeInteger
+        {
+            Compiler = Compiler,
+            Context = Context,
+            Location = newLocation,
+            IsTemporary = temporary
         };
     }
 

@@ -1,16 +1,18 @@
+using Amethyst.Model;
+
 namespace Amethyst;
 
 public abstract partial class AbstractRuntimeObject : AbstractObject, IRuntimeValue, IIndexable
 {
-    public int Location { get; set; }
+    public required Location Location { get; init; }
     
     public bool IsTemporary { get; set; }
 
     public AbstractBoolean MakeBoolean()
     {
-        var location = ++Compiler.StackPointer;
+        var location = NextFreeLocation(DataLocation.Scoreboard);
         
-        Compiler.AddCode($"execute store success score {location} amethyst run data get storage amethyst: {Location}.keys[0]");
+        Compiler.AddCode($"execute store success score {location} run data get storage {Location}.keys[0]");
         
         return new RuntimeBoolean
         {
@@ -21,11 +23,13 @@ public abstract partial class AbstractRuntimeObject : AbstractObject, IRuntimeVa
         };
     }
 
+    public abstract IRuntimeValue WithLocation(Location newLocation, bool temporary = true);
+
     public AbstractInteger MakeInteger()
     {
-        var location = ++Compiler.StackPointer;
+        var location = NextFreeLocation(DataLocation.Scoreboard);
         
-        Compiler.AddCode($"execute store result score {location} amethyst run data get storage amethyst: {Location}.keys");
+        Compiler.AddCode($"execute store result score {location} run data get storage {Location}.keys");
         
         return new RuntimeInteger
         {
@@ -38,18 +42,18 @@ public abstract partial class AbstractRuntimeObject : AbstractObject, IRuntimeVa
 
     public AbstractValue GetIndex(AbstractValue index)
     {
-        var location = NextFreeLocation();
+        var location = NextFreeLocation(DataLocation.Storage);
         
         if (index is ConstantString stringConstant)
         {
-            AddCode($"execute store result storage amethyst: {location} run data get storage amethyst: {Location}.data.{stringConstant.Value}");
+            AddCode($"execute store result storage {location} run data get storage {Location}.data.{stringConstant.Value}");
         }
         
         else if (index is RuntimeString stringResult)
         {
             var scope = Compiler.EvaluateScoped("_index", _ =>
             {
-                AddCode($"$execute store result storage amethyst: {location} run data get storage amethyst: {Location}.data.$({stringResult.Location})");
+                AddCode($"$execute store result storage {location} run data get storage {Location}.data.$({stringResult.Location})");
             });
             
             AddCode($"function {scope.McFunctionPath} with storage amethyst:");

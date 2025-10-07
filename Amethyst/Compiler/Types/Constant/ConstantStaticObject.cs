@@ -6,19 +6,15 @@ public class ConstantStaticObject : AbstractConstantObject, IMemberAccess
 {
     public required BasicType BasicType { get; init; }
 
-    public override DataType DataType => new()
-    {
-        BasicType = BasicType,
-        Modifier = Modifier.Object
-    };
+    public override AbstractDatatype Datatype => AbstractDatatype.Parse(BasicType, Modifier.Object);
     
     public override AbstractRuntimeObject ToRuntimeValue()
     {
-        var location = ++Compiler.StackPointer;
+        var location = Location.Storage(++Compiler.StackPointer);
         
-        Compiler.AddCode($"data modify storage amethyst: {location} set value {ToNbtString()}");
+        Compiler.AddCode($"data modify storage {location} set value {ToNbtString()}");
         
-        SubstituteRecursively(Compiler, location.ToString());
+        SubstituteRecursively(Compiler, location);
         
         return new RuntimeStaticObject
         {

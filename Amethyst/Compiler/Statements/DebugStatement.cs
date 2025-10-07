@@ -18,13 +18,13 @@ public partial class Compiler
 
         if (result is IRuntimeValue runtimeValue)
         {
-            if (runtimeValue.DataType.Location == DataLocation.Scoreboard)
+            if (runtimeValue.Datatype is AbstractScoreboardDatatype scoreboardDatatype)
             {
-                AddCode($"execute store result storage amethyst:internal data.stringify.in {runtimeValue.DataType.StorageModifier} run scoreboard players get {runtimeValue.Location} amethyst");
+                AddCode($"execute store result storage amethyst:internal data.stringify.in {scoreboardDatatype.StorageModifier} run scoreboard players get {runtimeValue.Location}");
             }
             else
             {
-                AddCode($"data modify storage amethyst:internal data.stringify.in set from storage amethyst: {runtimeValue.Location}");
+                AddCode($"data modify storage amethyst:internal data.stringify.in set from storage {runtimeValue.Location}");
             }
             
             AddCode("function amethyst:api/data/stringify");

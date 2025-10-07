@@ -4,8 +4,5 @@ namespace Amethyst;
 
 public abstract class AbstractBoolean : AbstractNumericValue
 {
-    public override DataType DataType => new()
-    {
-        BasicType = BasicType.Bool
-    };
+    protected override BooleanDatatype ScoreboardDatatype => new();
 }

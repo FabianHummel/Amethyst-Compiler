@@ -1,4 +1,5 @@
 [initializing]
 function main() {
-    DEBUG 10 + "nice";
+    var x = [1,2,3];
+    debug x;
 }

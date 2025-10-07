@@ -39,36 +39,36 @@ public partial class Compiler
             var parameter = function.Parameters[index];
             var result = VisitExpression(expressionContext);
             
-            if (result.DataType != parameter.DataType)
+            if (result.Datatype != parameter.Datatype)
             {
-                throw new SyntaxException($"Expected type '{parameter.DataType}', but got '{result.DataType}'.", expressionContext);
+                throw new SyntaxException($"Expected type '{parameter.Datatype}', but got '{result.Datatype}'.", expressionContext);
             }
 
-            if (parameter.DataType.Location == DataLocation.Scoreboard && result is IScoreboardValue scoreboardValue)
+            if (parameter.Location.DataLocation == DataLocation.Scoreboard && result is IScoreboardValue scoreboardValue)
             {
-                AddCode($"scoreboard players set {parameter.Location} amethyst {scoreboardValue.ScoreboardValue}");
+                AddCode($"scoreboard players set {parameter.Location} {scoreboardValue.ScoreboardValue}");
                 continue;
             }
 
-            if (parameter.DataType.Location == DataLocation.Scoreboard && result is IRuntimeValue runtimeValue)
+            if (parameter.Location.DataLocation == DataLocation.Scoreboard && result is IRuntimeValue runtimeValue)
             {
-                AddCode($"scoreboard players operation {parameter.Location} amethyst = {runtimeValue.Location} amethyst");
+                AddCode($"scoreboard players operation {parameter.Location} = {runtimeValue.Location} amethyst");
                 continue;
             }
 
-            if (parameter.DataType.Location == DataLocation.Storage && result is IConstantValue storageValue)
+            if (parameter.Location.DataLocation == DataLocation.Storage && result is IConstantValue storageValue)
             {
-                AddCode($"data modify storage amethyst: {parameter.Location} set value {storageValue.ToNbtString()}");
+                AddCode($"data modify storage {parameter.Location} set value {storageValue.ToNbtString()}");
                 continue;
             }
             
-            if (parameter.DataType.Location == DataLocation.Storage && result is IRuntimeValue runtimeStorageValue)
+            if (parameter.Location.DataLocation == DataLocation.Storage && result is IRuntimeValue runtimeStorageValue)
             {
-                AddCode($"data modify storage amethyst: {parameter.Location} set from storage amethyst: {runtimeStorageValue.Location}");
+                AddCode($"data modify storage {parameter.Location} set from storage {runtimeStorageValue.Location}");
                 continue;
             }
 
-            throw new SyntaxException($"Cannot pass value of type '{result.DataType}' to parameter '{parameter.Name}' of type '{parameter.DataType}'.", expressionContext);
+            throw new SyntaxException($"Cannot pass value of type '{result.Datatype}' to parameter '{parameter.Name}' of type '{parameter.Datatype}'.", expressionContext);
         }
     }
 }

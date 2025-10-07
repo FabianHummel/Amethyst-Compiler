@@ -4,10 +4,7 @@ namespace Amethyst;
 
 public abstract class AbstractString : AbstractAmethystValue
 {
-    public override DataType DataType => new()
-    {
-        BasicType = BasicType.String
-    };
+    public override StringDatatype Datatype => new();
 
     protected override AbstractString VisitAdd(AbstractValue rhs)
     {

@@ -2,14 +2,14 @@ namespace Amethyst.Model;
 
 public class Variable : Symbol
 {
-    public required string Name { get; set; }
-    public required int Location { get; init; }
-    public required DataType DataType { get; init; }
+    public required string Name { get; init; }
+    public required Location Location { get; init; }
+    public required AbstractDatatype Datatype { get; init; }
     public required HashSet<string> Attributes { get; init; }
 
     public string ToMcfValue(object value)
     {
-        if (DataType.Location == DataLocation.Scoreboard)
+        if (Location.DataLocation == DataLocation.Scoreboard)
         {
             if (!IScoreboardValue.TryParse(value, out var scoreboardValue))
             {
@@ -18,7 +18,7 @@ public class Variable : Symbol
             return scoreboardValue.ScoreboardValue.ToString();
         }
 
-        if (DataType.Location == DataLocation.Storage)
+        if (Location.DataLocation == DataLocation.Storage)
         {
             if (!IConstantValue.TryParse(value, out var storageValue))
             {
@@ -27,12 +27,12 @@ public class Variable : Symbol
             return storageValue.ToNbtString();
         }
 
-        throw new InvalidOperationException($"Unknown data location '{DataType.Location}'.");
+        throw new InvalidOperationException($"Unknown data location '{Location.DataLocation}'.");
     }
 
     public override string ToString()
     {
         var attributes = Attributes.Count > 0 ? $"[{string.Join(", ", Attributes)}] " : "";
-        return $"{attributes}{DataType} ({Location})";
+        return $"{attributes}{Datatype} ({Location})";
     }
 }
