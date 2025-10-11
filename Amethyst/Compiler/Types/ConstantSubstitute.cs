@@ -1,5 +1,3 @@
-using Amethyst.Model;
-
 namespace Amethyst;
 
 public class ConstantSubstitute : AbstractValue, IConstantValue<IRuntimeValue>

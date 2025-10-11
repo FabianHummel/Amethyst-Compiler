@@ -14,7 +14,7 @@ preprocessor
  ;
 
 preprocessorFromDeclaration
- : PREPROCESSOR_FROM RESOURCE_LITERAL IDENTIFIER (COMMA IDENTIFIER)* SEMICOLON
+ : PREPROCESSOR_FROM RESOURCE_LITERAL IDENTIFIER (COMMA IDENTIFIER)* SEMICOLON // replace RESOURCE_LITERAL with resourceLiteral in the future
  ;
 
 preprocessorStatement
@@ -113,9 +113,31 @@ preprocessorLiteral
  : booleanLiteral
  | INTEGER_LITERAL
  | DECIMAL_LITERAL
- | STRING_LITERAL
- | RESOURCE_LITERAL
+ | STRING_LITERAL // stringLiteral
+ | RESOURCE_LITERAL // resourceLiteral
  ;
+ 
+//stringLiteral
+// : STRING_LITERAL stringLiteralPart* STRING_QUOTE
+// ;
+// 
+//stringLiteralPart
+// : STRING_CONTENT
+// | STRING_ESCAPE_SEQUENCE
+// | STRING_UNICODE_ESCAPE
+// | STRING_INTERPOLATION_START expression INTERPOLATION_END
+// ;
+//
+//resourceLiteral
+// : RESOURCE_LITERAL resourceLiteralPart* RESOURCE_QUOTE
+// ;
+// 
+//resourceLiteralPart
+// : RESOURCE_CONTENT
+// | RESOURCE_ESCAPE_SEQUENCE
+// | RESOURCE_UNICODE_ESCAPE
+// | RESOURCE_INTERPOLATION_START expression INTERPOLATION_END
+// ;
 
 declaration
  : functionDeclaration
@@ -263,7 +285,7 @@ literal
  : booleanLiteral
  | INTEGER_LITERAL
  | DECIMAL_LITERAL
- | STRING_LITERAL
+ | STRING_LITERAL // stringLiteral
  | selectorCreation
  | objectCreation
  | arrayCreation

@@ -19,4 +19,9 @@
         <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
         <PackageReference Include="Antlr4BuildTasks" Version="12.10.0" PrivateAssets="all" IncludeAssets="build" />
     </ItemGroup>
+
+    <Target Name="CustomAfterBuild" AfterTargets="Build">
+        <Delete Files="AmethystLexer.tokens" />
+        <RemoveDir Directories="gen" />
+    </Target>
 </Project>

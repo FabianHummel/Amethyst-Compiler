@@ -98,33 +98,32 @@ WS: [ \r\t\u000C\n]+ -> skip ;
 SL_COMMENT: '#' ~[\r\n]* -> skip ;
 COMMAND: '/' ~[\r\n]+;
 NEWLINE: '\r'? '\n';
-STRING_LITERAL: '"' -> pushMode(IN_STRING) ;
+STRING_LITERAL: '"' ~["\\\r\n]* '"' ; //STRING_LITERAL: '"' -> pushMode(IN_STRING) ;
+RESOURCE_LITERAL: '`' ~[`\\\r\n]* '`' ; //RESOURCE_LITERAL: '`' -> pushMode(IN_RESOURCE) ;
 INTEGER_LITERAL: '0'..'9'+ ;
 DECIMAL_LITERAL: '0'..'9'* '.' '0'..'9'+ ;
-RESOURCE_LITERAL: '`' -> pushMode(IN_RESOURCE) ;
 IDENTIFIER: [a-zA-Z0-9_]+;
-HEX: [0-9a-fA-F] ;
+//HEX: [0-9a-fA-F] ;
 
-mode IN_STRING;
-
-    STRING_CONTENT: ~["\\\r\n]+ ;
-    ESCAPE_SEQUENCE: '\\' ["\\/bfnrt] ;
-    UNICODE_ESCAPE: '\\' 'u' HEX HEX HEX HEX ;
-    STRING_QUOTE: '"' -> popMode ;
-    INTERPOLATION_START: '${' -> pushMode(INTERPOLATION) ;
-    
-mode IN_RESOURCE;
-
-    RESOURCE_CONTENT: ~[`\\\r\n]+ ;
-    RESOURCE_ESCAPE_SEQUENCE: '\\' [`\\/bfnrt] ;
-    RESOURCE_UNICODE_ESCAPE: '\\' 'u' HEX HEX HEX HEX ;
-    RESOURCE_QUOTE: '`' -> popMode ;
-    RESOURCE_INTERPOLATION_START: '${' -> pushMode(INTERPOLATION) ;
-    
-mode INTERPOLATION;
-
-    INTERPOLATION_END: '}' -> popMode ;
-    INTERPOLATION_CONTENT: ~[}] + ;
+//mode IN_STRING;
+//
+//    STRING_CONTENT: ~["\\\r\n]+ ;
+//    STRING_ESCAPE_SEQUENCE: '\\' ["\\/bfnrt] ;
+//    STRING_UNICODE_ESCAPE: '\\' 'u' HEX HEX HEX HEX ;
+//    STRING_QUOTE: '"' -> popMode ;
+//    STRING_INTERPOLATION_START: '${' -> pushMode(IN_INTERPOLATION) ;
+//    
+//mode IN_RESOURCE;
+//
+//    RESOURCE_CONTENT: ([a-zA-Z0-9_.-]+ ':')? [a-zA-Z0-9_./-]+ ;
+//    RESOURCE_ESCAPE_SEQUENCE: '\\' [`\\/bfnrt] ;
+//    RESOURCE_UNICODE_ESCAPE: '\\' 'u' HEX HEX HEX HEX ;
+//    RESOURCE_QUOTE: '`' -> popMode ;
+//    RESOURCE_INTERPOLATION_START: '${' -> pushMode(IN_INTERPOLATION) ;
+//    
+//mode IN_INTERPOLATION;
+//
+//    INTERPOLATION_END: '}' -> popMode ;
     
 mode IN_STORAGE;
 

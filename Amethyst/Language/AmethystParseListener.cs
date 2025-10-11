@@ -28,11 +28,11 @@ public class AmethystParseListener : AmethystParserBaseListener
 
     public override void ExitPreprocessorFromDeclaration(AmethystParser.PreprocessorFromDeclarationContext context)
     {
-        if (context.RESOURCE_LITERAL() is not { } resourcePath)
+        if (context.RESOURCE_LITERAL() is not { } resourceLiteral)
         {
             return;
         }
-
+        
         var symbols = context.IDENTIFIER()
             .Select(s => s.GetText())
             .ToList();
@@ -40,7 +40,7 @@ public class AmethystParseListener : AmethystParserBaseListener
         foreach (var symbolName in symbols)
         {
             if (!Parser.SourceFile!.ExportedSymbols.ContainsKey(symbolName) &&
-                !Parser.SourceFile!.ImportedSymbols.TryAdd(symbolName, resourcePath.GetText()[1..^1]))
+                !Parser.SourceFile!.ImportedSymbols.TryAdd(symbolName, resourceLiteral.GetText()[1..^1]))
             {
                 throw new SymbolAlreadyDeclaredException(symbolName, context);
             }

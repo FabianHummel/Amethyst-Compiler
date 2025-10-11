@@ -7,10 +7,10 @@ public class RuntimeArithmetic : ServerTestBase
 {
     [Test(Description = "Arithmetic with the use of runtime values")]
     [Link("test_addition")]
-    public void TestAddition(
+    public async Task TestAddition(
         [Values(1,-2,3)] int x,
         [Values(1,2,-3)] int y)
     {
-        Assert.Equals(x + y, Context.Variable<int>("result"));
+        Assert.AreEqual(x + y, await Context.Variable<int>("result"));
     }
 }

@@ -462,8 +462,8 @@ public class Processor
                 throw new InvalidOperationException($"Invalid internal amethyst namespace structure, expected 'api' folder but got '{apiFolder}'");
             }
 
-            var fileName = string.Join('.', pathComponents[^2..]);
-            var relativePath = Path.Combine(pathComponents[2..^2].Append(fileName).ToArray());
+            var fileName = pathComponents[^2];
+            var relativePath = Path.Combine(pathComponents[2..^1]);
             var sourceFilePath = absoluteResourcePath[..absoluteResourcePath.LastIndexOf('.')].Replace('.', Path.DirectorySeparatorChar) + SourceFileExtension;
             var folder = registry.CreateOrGetFolderForPath(relativePath);
             var sourceFile = new SourceFile

@@ -6,7 +6,7 @@ public partial class RuntimeEntity : AbstractValue, IRuntimeValue
 {
     public required Location Location { get; init; }
     
-    public bool IsTemporary { get; set; }
+    public bool IsTemporary { get; init; }
 
     public override AbstractDatatype Datatype => new EntityDatatype();
 

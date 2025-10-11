@@ -6,7 +6,7 @@ public abstract partial class AbstractRuntimeArray : AbstractArray, IRuntimeValu
 {
     public required Location Location { get; init; }
     
-    public bool IsTemporary { get; set; }
+    public bool IsTemporary { get; init; }
 
     public AbstractBoolean MakeBoolean()
     {

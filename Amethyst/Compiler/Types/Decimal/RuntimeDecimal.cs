@@ -6,7 +6,7 @@ public partial class RuntimeDecimal : AbstractDecimal, IRuntimeValue
 {
     public required Location Location { get; init; }
     
-    public bool IsTemporary { get; set; }
+    public bool IsTemporary { get; init; }
     
     protected override AbstractDecimal AsDecimal => this;
 

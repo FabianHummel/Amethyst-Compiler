@@ -6,7 +6,7 @@ public partial class RuntimeString : AbstractString, IRuntimeValue
 {
     public required Location Location { get; init; }
 
-    public bool IsTemporary { get; set; }
+    public bool IsTemporary { get; init; }
 
     public AbstractBoolean MakeBoolean()
     {

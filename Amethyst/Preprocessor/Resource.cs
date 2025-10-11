@@ -5,7 +5,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public SourceFile VisitResource(string resourcePath, string registryName, ParserRuleContext context)
+    public SourceFile VisitResource(string resourcePath, string registryName, ParserRuleContext context, bool symbolIsLastPathSection = true)
     {
         var ns = Namespace;
 

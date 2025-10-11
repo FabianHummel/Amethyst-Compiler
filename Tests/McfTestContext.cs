@@ -60,21 +60,24 @@ public class McfTestContext
         }
         
         var successfulResult = OutParser.TryParse(result, 
-            "{variableName} has {value} [{scoreboardName}]", // TODO: Add versioning for different output formats
-            out int value, out string variableName, out string scoreboardName);
+            "{_1} has {value} [{_2}]", // TODO: Add versioning for different output formats
+            out int value, out string _1, out string _2);
         
-        var failedResult = OutParser.TryParse(result, 
-            "Can't get value of {scoreboardName} for {variableName}; none is set", 
-            out scoreboardName, out variableName);
+        bool failedResult = false;
+        if (!successfulResult)
+        {
+            failedResult = OutParser.TryParse(result,
+                "Can't get value of {scoreboardName} for {variableName}; none is set",
+                out string scoreboardName, out string variableName);
+            if (failedResult)
+            {
+                throw new UnitTestException($"Scoreboard value not set: {variableName} in {scoreboardName}");
+            }
+        }
         
         if (!successfulResult && !failedResult)
         {
             throw new UnitTestException($"Failed to parse result: {result}");
-        }
-        
-        if (failedResult)
-        {
-            throw new UnitTestException($"Scoreboard value not set: {variableName} in {scoreboardName}");
         }
         
         return value;
@@ -93,18 +96,21 @@ public class McfTestContext
             "Storage {_} has the following contents: {value}", // TODO: Add versioning for different output formats
             out string _, out string value);
         
-        var failedResult = OutParser.TryParse(result,
-            "Found no elements matching {storageLocation}",
-            out string storageLocation);
+        var failedResult = false;
+        if (!successfulResult)
+        {
+            failedResult = OutParser.TryParse(result,
+                "Found no elements matching {storageLocation}",
+                out string storageLocation);
+            if (failedResult)
+            {
+                throw new UnitTestException($"Storage value not set: {storageLocation}");
+            }
+        }
 
         if (!successfulResult && !failedResult)
         {
             throw new UnitTestException($"Failed to parse result: {result}");
-        }
-        
-        if (failedResult)
-        {
-            throw new UnitTestException($"Storage value not set: {storageLocation}");
         }
         
         return value;

@@ -14,7 +14,7 @@ public partial class Compiler
             {
                 Compiler = this,
                 Context = literalContext,
-                Value = stringLiteral.GetText()[1..^1] // Remove quotes
+                Value = stringLiteral.GetText()[1..^1]
             };
         }
         
@@ -24,7 +24,7 @@ public partial class Compiler
             {
                 Compiler = this,
                 Context = literalContext,
-                Value = resourceLiteral.GetText()[1..^1] // Remove backticks
+                Value = resourceLiteral.GetText()[1..^1]
             };
         }
         

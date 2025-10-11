@@ -1,0 +1,28 @@
+#| Convert any data structure to JSON text components including syntax highlighting.
+#> input    The datum to convert
+#< string   A string representation of the supplied datum.
+[no_mangle]
+function stringify(input: storage amethyst:internal data.stringify.in) -> string
+{
+    /data modify storage amethyst:internal data.stringify.out set value []
+    /data modify storage amethyst:internal data.stringify._stack set value []
+    /data modify storage amethyst:internal data.stringify._stack append from storage amethyst:internal data.stringify.in
+    /function amethyst:internal/data/stringify/loop
+    
+    return storage amethyst:internal data.stringify.out;
+}
+
+#| Get the data type of the passed datum.
+#> input    The datum to convert
+#< string   A string representation of the supplied datum.
+[no_mangle]
+function get_type(input: storage amethyst:internal data.type.in) -> string
+{
+    /data remove storage amethyst:internal data.type.out
+    /execute if function amethyst:internal/data/type/check_object run return 1
+    /execute if function amethyst:internal/data/type/check_array run return 1
+    /execute if function amethyst:internal/data/type/check_string run return 1
+    /function amethyst:internal/data/type/check_numeric with storage amethyst:internal data.type/
+    
+    return storage amethyst:internal data.type.out;
+}
