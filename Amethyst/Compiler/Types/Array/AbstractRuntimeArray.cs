@@ -68,7 +68,7 @@ public abstract partial class AbstractRuntimeArray : AbstractArray, IRuntimeValu
             throw new SyntaxException("Expected integer index.", index.Context);
         }
 
-        return new RuntimeUnknown
+        return new RawLocation
         {
             Compiler = Compiler,
             Context = Context,

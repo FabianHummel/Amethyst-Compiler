@@ -1,6 +1,8 @@
+using System.Diagnostics;
+using Amethyst.Model;
 using Amethyst.Utility;
 
-namespace Amethyst.Model;
+namespace Amethyst;
 
 public abstract class AbstractDatatype : IEquatable<AbstractDatatype>
 {
@@ -103,6 +105,9 @@ public abstract class AbstractDatatype : IEquatable<AbstractDatatype>
             BasicType.String => new StringDatatype { Modifier = modifier },
             BasicType.Array => new ArrayDatatype { Modifier = modifier },
             BasicType.Object => new ObjectDatatype { Modifier = modifier },
+            BasicType.Dec => throw new UnreachableException("Decimal type is handled separately."),
+            BasicType.Raw => throw new UnreachableException("Raw type is handled separately."),
+            BasicType.Entity => new EntityDatatype { Modifier = modifier },
             _ => throw new ArgumentOutOfRangeException(nameof(basicType), $"Unsupported basic type '{basicType}'.")
         };
     }

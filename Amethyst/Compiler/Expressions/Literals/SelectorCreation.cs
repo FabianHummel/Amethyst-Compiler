@@ -106,7 +106,7 @@ public partial class Compiler
         }
     }
     
-    public override SelectorQueryResult VisitSelectorKvp(AmethystParser.SelectorKvpContext context)
+    public SelectorQueryResult VisitSelectorKvp(AmethystParser.SelectorKvpContext context)
     {
         if (context is AmethystParser.ExpressionSelectorContext expressionSelectorContext)
         {

@@ -26,8 +26,8 @@ public partial class Compiler
             {
                 AddCode($"data modify storage amethyst:internal data.stringify.in set from storage {runtimeValue.Location}");
             }
+            AddCode("function amethyst:internal/data/stringify/run");
             
-            AddCode("function amethyst:api/data/stringify");
             jsonComponent = """{"nbt":"data.stringify.out","storage":"amethyst:internal","interpret":true}""";
         }
         

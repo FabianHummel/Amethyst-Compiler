@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Reflection;
+using System.Resources;
 using Amethyst.Model;
 using Amethyst.Utility;
 using Tomlet;
@@ -13,6 +14,7 @@ using static ConsoleUtility;
 public class Processor
 {
     private readonly bool _rethrowErrors;
+    private readonly Parser _parser = new();
     
     public Context Context { get; }
     
@@ -362,7 +364,7 @@ public class Processor
             RegisterAndIndexNamespace(nsPath);
         }
         
-        ParseInternalNamespace(dirName);
+        ParseInternalNamespace(dirName, isDatapack);
     }
     
     private void RegisterAndIndexNamespace(string nsPath)
@@ -382,13 +384,11 @@ public class Processor
                 Name = nsName
             });
         }
-        
-        var parser = new Parser();
 
         foreach (var registryPath in Directory.GetDirectories(nsPath))
         {
             var registryName = Path.GetFileName(registryPath);
-            parser.RegistryName = registryName;
+            _parser.RegistryName = registryName;
             
             // Scan amethyst source code files in each registry
             foreach (var filePath in Directory.GetFiles(registryPath, SourceFile, SearchOption.AllDirectories))
@@ -415,15 +415,73 @@ public class Processor
                         Parent = null
                     }
                 };
-                parser.Parse(sourceFile);
                 folder.SourceFiles.Add(fileName, sourceFile);
+                _parser.Parse(sourceFile);
             }
         }
     }
     
-    private void ParseInternalNamespace(string dirName)
+    private void ParseInternalNamespace(string dataOrAssetsDirName, bool isDatapack)
     {
-        // TODO: Parse all contents of $(dirName)/amethyst/**/api/*.amy
+        var ns = new Namespace
+        {
+            Context = Context,
+            Name = "amethyst"
+        };
+        
+        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
+        {
+            PrintDebug($"Registering internal namespace: {ns.Name}");
+        }
+        
+        Context.Namespaces.Add(ns.Name, ns);
+        
+        var enclosingFolder = isDatapack ? "datapack" : "resourcepack";
+        const string nsName = "amethyst";
+        var nsPath = $"Amethyst.Resources.{enclosingFolder}.{dataOrAssetsDirName}.{nsName}";
+        foreach (var absoluteResourcePath in AssemblyUtility.GetEmbeddedResources(nsPath)
+                     .Where(path => path.EndsWith(SourceFileExtension)))
+        {
+            var resourcePath = absoluteResourcePath[(nsPath.Length + 1)..];
+            var pathComponents = resourcePath.Split('.');
+            
+            var registryName = pathComponents[0];
+            _parser.RegistryName = registryName;
+            
+            if (!ns.Registries.TryGetValue(registryName, out var registry))
+            {
+                ns.Registries.Add(registryName, registry = new SourceFolder
+                {
+                    Context = Context
+                });
+            }
+            
+            var apiFolder = pathComponents[1];
+            if (apiFolder != "api")
+            {
+                throw new InvalidOperationException($"Invalid internal amethyst namespace structure, expected 'api' folder but got '{apiFolder}'");
+            }
+
+            var fileName = string.Join('.', pathComponents[^2..]);
+            var relativePath = Path.Combine(pathComponents[2..^2].Append(fileName).ToArray());
+            var sourceFilePath = absoluteResourcePath[..absoluteResourcePath.LastIndexOf('.')].Replace('.', Path.DirectorySeparatorChar) + SourceFileExtension;
+            var folder = registry.CreateOrGetFolderForPath(relativePath);
+            var sourceFile = new SourceFile
+            {
+                Path = sourceFilePath,
+                Name = $"{nsName}:{relativePath}",
+                RootScope = new Scope
+                {
+                    Context = Context,
+                    Name = nsName,
+                    Parent = null
+                }
+            };
+            folder.SourceFiles.Add(fileName, sourceFile);
+            
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(absoluteResourcePath)!;
+            _parser.Parse(sourceFile, stream);
+        }
     }
     
     public static void PrintAmethystLogoAndVersion(bool reduceColors, CompilerFlags compilerFlags)

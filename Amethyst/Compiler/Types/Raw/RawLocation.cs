@@ -8,7 +8,11 @@ public partial class RawLocation : AbstractValue, IRuntimeValue
     
     public bool IsTemporary { get; init; }
 
-    public override AbstractDatatype Datatype => new UnknownDatatype(Location.DataLocation);
+    public override AbstractDatatype Datatype => new RawDatatype(Location.DataLocation)
+    {
+        Namespace = Location.Namespace,
+        Name = Location.Name
+    };
     
     public AbstractBoolean MakeBoolean()
     {

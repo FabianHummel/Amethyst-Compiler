@@ -13,7 +13,13 @@ public class Parser
     {
         SourceFile = sourceFile;
         var stream = File.OpenRead(sourceFile.Path);
-        var inputStream = new AmethystInputStream(stream, sourceFile);
+        Parse(sourceFile, stream);
+    }
+
+    public void Parse(SourceFile sourceFile, Stream fileStream)
+    {
+        SourceFile = sourceFile;
+        var inputStream = new AmethystInputStream(fileStream, sourceFile);
         var lexer = new AmethystLexer(inputStream);
         var tokenStream = new CommonTokenStream(lexer);
         var parser = new AmethystParser(tokenStream);

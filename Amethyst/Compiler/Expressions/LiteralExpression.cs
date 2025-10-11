@@ -82,7 +82,18 @@ public partial class Compiler
         {
             return VisitObjectCreation(objectCreation);
         }
+
+        if (literalContext.rawLocation() is { } rawLocationContext)
+        {
+            var rawLocation = VisitRawLocation(rawLocationContext);
+            return new RawLocation
+            {
+                Compiler = this,
+                Context = literalContext,
+                Location = rawLocation
+            };
+        }
         
-        throw new InvalidOperationException($"Invalid literal '{literalContext}'.");
+        throw new InvalidOperationException($"Invalid literal '{literalContext.GetText()}'.");
     }
 }

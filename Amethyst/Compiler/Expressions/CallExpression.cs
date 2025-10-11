@@ -1,5 +1,6 @@
 using Amethyst.Language;
 using Amethyst.Model;
+using Antlr4.Runtime;
 
 namespace Amethyst;
 
@@ -14,20 +15,29 @@ public partial class Compiler
             throw new SyntaxException($"Function '{functionName}' is not defined.", context);
         }
 
+        AmethystParser.ExpressionContext[]? expressionContexts = null;
         if (context.argumentList() is { } argumentListContext)
         {
-            VisitArgumentList(argumentListContext, function);
+            expressionContexts = argumentListContext.expression();
         }
         
-        AddCode($"function {function.Scope.McFunctionPath}");
+        VisitCallExpressionInternal(function, expressionContexts, context);
 
         return null;
     }
-    
-    public void VisitArgumentList(AmethystParser.ArgumentListContext context, Function function)
+
+    private void VisitCallExpressionInternal(Function function, AmethystParser.ExpressionContext[]? expressionContexts, ParserRuleContext context)
     {
-        var expressionContexts = context.expression();
+        if (expressionContexts != null)
+        {
+            VisitArgumentListInternal(function, expressionContexts, context);
+        }
         
+        AddCode($"function {function.Scope.McFunctionPath}");
+    }
+    
+    private void VisitArgumentListInternal(Function function, AmethystParser.ExpressionContext[] expressionContexts, ParserRuleContext context)
+    {
         if (expressionContexts.Length != function.Parameters.Length)
         {
             throw new SyntaxException($"Expected {function.Parameters.Length} arguments, but got {expressionContexts.Length}.", context);
@@ -43,6 +53,9 @@ public partial class Compiler
             {
                 throw new SyntaxException($"Expected type '{parameter.Datatype}', but got '{result.Datatype}'.", expressionContext);
             }
+            
+            // TODO: Find a way to make this better
+            // TODO: Handle more cases: from scoreboard -> storage, from storage -> scoreboard
 
             if (parameter.Location.DataLocation == DataLocation.Scoreboard && result is IScoreboardValue scoreboardValue)
             {

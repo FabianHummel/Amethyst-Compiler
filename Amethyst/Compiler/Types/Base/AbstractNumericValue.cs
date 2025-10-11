@@ -160,6 +160,8 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
                 ComparisonOperator.LESS_THAN_OR_EQUAL => constantDecimalLhs.Value <= constantDecimalRhs.Value,
                 ComparisonOperator.GREATER_THAN => constantDecimalLhs.Value > constantDecimalRhs.Value,
                 ComparisonOperator.GREATER_THAN_OR_EQUAL => constantDecimalLhs.Value >= constantDecimalRhs.Value,
+                ComparisonOperator.EQUAL => Math.Abs(constantDecimalLhs.Value - constantDecimalRhs.Value) < float.Epsilon,
+                ComparisonOperator.NOT_EQUAL => Math.Abs(constantDecimalLhs.Value - constantDecimalRhs.Value) >= float.Epsilon,
                 _ => throw new SyntaxException($"Invalid operator '{op}'.", Context)
             };
             
@@ -172,6 +174,8 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
             ComparisonOperator.LESS_THAN_OR_EQUAL => lhs.AsInteger <= rhs.AsInteger,
             ComparisonOperator.GREATER_THAN => lhs.AsInteger > rhs.AsInteger,
             ComparisonOperator.GREATER_THAN_OR_EQUAL => lhs.AsInteger >= rhs.AsInteger,
+            ComparisonOperator.EQUAL => lhs.AsInteger == rhs.AsInteger,
+            ComparisonOperator.NOT_EQUAL => lhs.AsInteger != rhs.AsInteger,
             _ => throw new SyntaxException($"Invalid operator '{op}'.", Context)
         };
         

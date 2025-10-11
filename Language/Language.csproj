@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <Antlr4 Include="**\*.g4">
+            <Error>true</Error>
+            <Listener>true</Listener>
+            <Visitor>true</Visitor>
+            <Package>Amethyst.Language</Package>
+            <JavaExec>PATH</JavaExec>
+        </Antlr4>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
+        <PackageReference Include="Antlr4BuildTasks" Version="12.10.0" PrivateAssets="all" IncludeAssets="build" />
+    </ItemGroup>
+</Project>

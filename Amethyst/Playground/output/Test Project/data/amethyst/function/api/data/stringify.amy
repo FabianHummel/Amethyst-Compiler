@@ -2,12 +2,12 @@
 #> input    The datum to convert
 #< string   A string representation of the supplied datum.
 [no_mangle]
-function stringify([raw_location("amethyst:internal data.stringify.in")] input: unknown) -> string
+function stringify(input: storage amethyst:internal data.stringify.in) -> string
 {
     /data modify storage amethyst:internal data.stringify.out set value []
     /data modify storage amethyst:internal data.stringify._stack set value []
     /data modify storage amethyst:internal data.stringify._stack append from storage amethyst:internal data.stringify.in
     /function amethyst:internal/data/stringify/loop
     
-    return storage amethyst:internal data.stringify.out
+    return storage amethyst:internal data.stringify.out;
 }

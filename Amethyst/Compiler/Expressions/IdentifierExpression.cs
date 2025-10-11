@@ -73,6 +73,18 @@ public partial class Compiler
                     Context = context, 
                     Location = variable.Location
                 },
+                BasicType.Raw => new RawLocation
+                {
+                    Compiler = this,
+                    Context = context,
+                    Location = variable.Location
+                },
+                BasicType.Entity => new RuntimeEntity
+                {
+                    Compiler = this,
+                    Context = context,
+                    Location = variable.Location
+                },
                 _ => throw new InvalidOperationException($"Invalid basic type '{variable.Datatype.BasicType}'.")
             };
         }
@@ -84,7 +96,8 @@ public partial class Compiler
 
         if (symbol is Function function)
         {
-            throw new NotImplementedException("TODO: What to do here?");
+            // HINT: Traditionally, functions are values just like any other value, but not in amethyst. I'm not dealing with that shit
+            throw new SemanticException("Functions cannot be used as values.", context);
         }
 
         throw new InvalidOperationException($"Invalid symbol '{symbol.GetType()}'.");

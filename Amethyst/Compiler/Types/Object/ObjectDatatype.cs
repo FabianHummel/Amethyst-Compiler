@@ -1,4 +1,6 @@
-namespace Amethyst.Model;
+using Amethyst.Model;
+
+namespace Amethyst;
 
 public class ObjectDatatype : AbstractStorageDatatype
 {

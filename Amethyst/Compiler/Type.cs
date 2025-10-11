@@ -9,15 +9,18 @@ public partial class Compiler
     public override AbstractDatatype VisitType(AmethystParser.TypeContext context)
     {
         Modifier? modifier = null;
-        if (context.GetChild(1) is { } modifierContext)
+        if (context.LRBRACKET() != null)
+        {
+            modifier = Modifier.Array;
+        }
+        else if (context.LRBRACE() != null)
+        {
+            modifier = Modifier.Object;
+        }
+        else if (context.GetChild(1) is { } modifierContext)
         {
             var modifierString = modifierContext.GetText();
-            modifier = modifierString switch
-            {
-                "[]" => Modifier.Array,
-                "{}" => Modifier.Object,
-                _ => throw new SyntaxException($"Invalid type modifier '{modifierString}'.", context)
-            };
+            throw new InvalidOperationException($"Invalid type modifier '{modifierString}'.");
         }
         
         if (context.@decimal() is { } decimalContext)
@@ -36,16 +39,41 @@ public partial class Compiler
             };
         }
 
-        var basicTypeString = context.GetChild(0).GetText();
-        var basicType = basicTypeString switch
+        if (context.rawLocation() is { } rawLocationContext)
         {
-            "int" => BasicType.Int,
-            "string" => BasicType.String,
-            "bool" => BasicType.Bool,
-            "array" => BasicType.Array,
-            "object" => BasicType.Object,
-            _ => throw new SyntaxException($"Invalid basic type '{basicTypeString}'.", context)
-        };
+            return VisitRawLocation(rawLocationContext);
+        }
+
+        BasicType basicType;
+        if (context.INT() != null)
+        {
+            basicType = BasicType.Int;
+        }
+        else if (context.STRING() != null)
+        {
+            basicType = BasicType.String;
+        }
+        else if (context.BOOL() != null)
+        {
+            basicType = BasicType.Bool;
+        }
+        else if (context.ARRAY() != null)
+        {
+            basicType = BasicType.Array;
+        }
+        else if (context.OBJECT() != null)
+        {
+            basicType = BasicType.Object;
+        }
+        else if (context.ENTITY() != null)
+        {
+            basicType = BasicType.Entity;
+        }
+        else
+        {
+            var basicTypeString = context.GetChild(0).GetText();
+            throw new InvalidOperationException($"Invalid basic type '{basicTypeString}'.");
+        }
         
         return AbstractDatatype.Parse(basicType, modifier);
     }

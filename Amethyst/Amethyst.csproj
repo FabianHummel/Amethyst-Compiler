@@ -8,17 +8,8 @@
         <LangVersion>preview</LangVersion>
         <Version>1.0.1</Version>
     </PropertyGroup>
-
-    <ItemGroup>
-        <AdditionalFiles Include="Language/Amethyst.g4" />
-    </ItemGroup>
     
     <ItemGroup>
-      <PackageReference Include="Antlr4" Version="4.6.6">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-      <PackageReference Include="Antlr4.Runtime" Version="4.6.6" />
       <PackageReference Include="CommandLineParser" Version="2.9.1" />
       <PackageReference Include="Crayon" Version="2.0.69" />
       <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
@@ -26,6 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Language\Language.csproj" />
         <ProjectReference 
                 Include="..\SourceGenerators\SourceGenerators.csproj" 
                 OutputItemType="Analyzer" 

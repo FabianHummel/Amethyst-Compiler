@@ -3,7 +3,7 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
-public partial class Compiler : AmethystBaseVisitor<object?>
+public partial class Compiler : AmethystParserBaseVisitor<object?>
 {
     internal Context Context { get; }
     internal int TotalRecordCount { get; set; }
@@ -27,6 +27,61 @@ public partial class Compiler : AmethystBaseVisitor<object?>
         }
     }
     
+    public void AddCode(string code)
+    {
+        Scope.AddCode(code);
+    }
+    
+    public void AddInitCode(string code)
+    {
+        Namespace.AddInitCode(code);
+    }
+    
+    public Scope EvaluateScoped(string name, Action<Action> action)
+    {
+        if (!Scope.Scopes.TryAdd(name, 0))
+        {
+            Scope.Scopes[name]++;
+        }
+        
+        var previousScope = Scope;
+        var newScope = Scope = new Scope
+        {
+            Name = name + Scope.Scopes[name],
+            Parent = previousScope,
+            Context = Context
+        };
+        
+        var isCancelled = false;
+        
+        action(() =>
+        {
+            isCancelled = true;
+        });
+
+        if (!isCancelled)
+        {
+            Scope.Dispose();
+        }
+        
+        Scope = previousScope;
+        
+        return newScope;
+    }
+
+    public Namespace Amethyst
+    {
+        get
+        {
+            if (!Context.Namespaces.TryGetValue("amethyst", out var amethystNamespace))
+            {
+                throw new InvalidOperationException("The internal namespace was not registered correctly. This indicates a corrupted installation.");
+            }
+            
+            return amethystNamespace;
+        }
+    }
+        
     private void CompileNamespace()
     {
         foreach (var registry in Namespace.Registries.Values)
@@ -58,47 +113,5 @@ public partial class Compiler : AmethystBaseVisitor<object?>
     {
         return sourceFolder.SourceFiles.Values
             .Concat(sourceFolder.Children.SelectMany(pair => GetSourceFilesInFolder(pair.Value)));
-    }
-    
-    internal void AddCode(string code)
-    {
-        Scope.AddCode(code);
-    }
-    
-    internal void AddInitCode(string code)
-    {
-        Namespace.AddInitCode(code);
-    }
-    
-    internal Scope EvaluateScoped(string name, Action<Action> action)
-    {
-        if (!Scope.Scopes.TryAdd(name, 0))
-        {
-            Scope.Scopes[name]++;
-        }
-        
-        var previousScope = Scope;
-        var newScope = Scope = new Scope
-        {
-            Name = name + Scope.Scopes[name],
-            Parent = previousScope,
-            Context = Context
-        };
-        
-        var isCancelled = false;
-        
-        action(() =>
-        {
-            isCancelled = true;
-        });
-
-        if (!isCancelled)
-        {
-            Scope.Dispose();
-        }
-        
-        Scope = previousScope;
-        
-        return newScope;
     }
 }

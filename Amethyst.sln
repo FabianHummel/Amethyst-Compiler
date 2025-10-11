@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceGenerators", "SourceG
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{13F73BE2-A450-41B0-8301-ACFD92872935}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Language", "Language\Language.csproj", "{172F6476-F0C5-462B-AB47-0D034E55815B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{13F73BE2-A450-41B0-8301-ACFD92872935}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13F73BE2-A450-41B0-8301-ACFD92872935}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13F73BE2-A450-41B0-8301-ACFD92872935}.Release|Any CPU.Build.0 = Release|Any CPU
+		{172F6476-F0C5-462B-AB47-0D034E55815B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{172F6476-F0C5-462B-AB47-0D034E55815B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{172F6476-F0C5-462B-AB47-0D034E55815B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{172F6476-F0C5-462B-AB47-0D034E55815B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

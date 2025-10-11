@@ -10,8 +10,8 @@ public class AmethystErrorListener : BaseErrorListener
     {
         Parser = parser;
     }
-    
-    public override void SyntaxError(IRecognizer recognizer, IToken offendingSymbol, int line, int charPositionInLine, string msg, RecognitionException e)
+
+    public override void SyntaxError(TextWriter output, IRecognizer recognizer, IToken offendingSymbol, int line, int charPositionInLine, string msg, RecognitionException e)
     {
         throw new SyntaxException(msg, line, charPositionInLine, offendingSymbol.InputStream.SourceName!);
     }

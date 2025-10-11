@@ -64,7 +64,7 @@ public abstract partial class AbstractRuntimeObject : AbstractObject, IRuntimeVa
             throw new SyntaxException("Expected string index.", index.Context);
         }
 
-        return new RuntimeUnknown
+        return new RawLocation
         {
             Compiler = Compiler,
             Context = Context,

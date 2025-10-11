@@ -2,7 +2,7 @@ using Amethyst.Language;
 
 namespace Amethyst;
 
-public class AmethystParseListener : AmethystBaseListener
+public class AmethystParseListener : AmethystParserBaseListener
 {
     private Parser Parser { get; }
     private int _depth;

@@ -2,7 +2,7 @@
 #> input    The datum to convert
 #< string   A string representation of the supplied datum.
 [no_mangle]
-function stringify([raw_location("amethyst:internal data.type.in")] input: unknown) -> string
+function stringify(input: storage amethyst:internal data.type.in) -> string
 {
     /data remove storage amethyst:internal data.type.out
     /execute if function amethyst:internal/data/type/check_object run return 1
@@ -10,5 +10,5 @@ function stringify([raw_location("amethyst:internal data.type.in")] input: unkno
     /execute if function amethyst:internal/data/type/check_string run return 1
     /function amethyst:internal/data/type/check_numeric with storage amethyst:internal data.type/
     
-    return storage amethyst:internal data.type.out
+    return storage amethyst:internal data.type.out;
 }

@@ -22,8 +22,8 @@ public enum BasicType
     [DefaultValue("{}")]
     [SubstitutionModifier(".data.{0}")]
     Object,
-    [Description("unknown")]
-    Unknown,
+    [Description("raw")]
+    Raw,
     [Description("entity")]
     Entity
 }

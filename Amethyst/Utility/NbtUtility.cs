@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Amethyst.Model;
 
 namespace Amethyst.Utility;
@@ -17,7 +19,7 @@ public static class NbtUtility
     
     public static object ParseScoreboardValue(int value, AbstractDatatype variableAbstractDatatype)
     {
-        if (variableAbstractDatatype.Modifier != null)
+        if (variableAbstractDatatype.DataLocation != DataLocation.Scoreboard)
         {
             throw new InvalidOperationException($"Invalid data type '{variableAbstractDatatype}' for scoreboard variable.");
         }
@@ -28,17 +30,23 @@ public static class NbtUtility
             return (double)value / scale;
         }
 
-        return variableAbstractDatatype.BasicType switch
+        return variableAbstractDatatype switch
         {
-            BasicType.Int => value,
-            BasicType.Bool => value != 0,
+            IntegerDatatype => value,
+            BooleanDatatype => value != 0,
+            RawDatatype => value,
             _ => throw new InvalidOperationException($"Invalid data type '{variableAbstractDatatype}' for scoreboard variable.")
         };
     }
     
     public static object ParseStorageValue(string value, AbstractDatatype variableAbstractDatatype)
     {
-        if (variableAbstractDatatype.Modifier == Modifier.Array || variableAbstractDatatype.BasicType == BasicType.Array)
+        if (variableAbstractDatatype.DataLocation != DataLocation.Storage)
+        {
+            throw new InvalidOperationException($"Invalid data type '{variableAbstractDatatype}' for storage variable.");
+        }
+        
+        if (variableAbstractDatatype.Modifier == Modifier.Array || variableAbstractDatatype is ArrayDatatype)
         {
             var elements = value[1..^1].Split(',').Select(element =>
             {
@@ -49,7 +57,7 @@ public static class NbtUtility
             return elements.ToArray();
         }
 
-        if (variableAbstractDatatype.Modifier == Modifier.Object || variableAbstractDatatype.BasicType == BasicType.Object)
+        if (variableAbstractDatatype.Modifier == Modifier.Object || variableAbstractDatatype is ObjectDatatype)
         {
             var keyValuePairs = value[1..^1].Split(',').Select(pair =>
             {
@@ -70,6 +78,7 @@ public static class NbtUtility
             BasicType.Dec => double.Parse(value.TrimEnd('d')),
             BasicType.String => value[1..^1],
             BasicType.Entity => Guid.Parse(value[1..^1]),
+            BasicType.Raw => value,
             _ => throw new InvalidOperationException($"Invalid data type '{variableAbstractDatatype}' for storage variable.")
         };
     }
