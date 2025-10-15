@@ -23,7 +23,7 @@ public partial class Compiler
         var previousSP = StackPointer;
         
         // We create a scope to be able to early return from the function.
-        var scope = EvaluateScoped("_and", cancel =>
+        var mcFunctionPath = EvaluateScoped("_and", cancel =>
         {
             foreach (var expressionContext in expressionContexts)
             {
@@ -61,7 +61,7 @@ public partial class Compiler
         }
         else
         {
-            AddCode($"execute store success score {location} run function {scope.McFunctionPath}");
+            AddCode($"execute store success score {location} run function {mcFunctionPath}");
         }
         
         return new RuntimeBoolean

@@ -22,41 +22,34 @@ public partial class Compiler
         var attributes = VisitAttributeList(context.attributeList());
 
         var parameters = Array.Empty<Variable>();
-        var scope = VisitBlockNamed(context.block(), "_func", () =>
+        var mcFunctionPath = VisitBlockNamed(context.block(), "_func", () =>
         {
             if (context.parameterList() is { } parameterListContext)
             {
                 parameters = VisitParameterList(parameterListContext);
             }
+            
+            if (attributes.Contains(AttributeUnitTestFunction))
+            {
+                Context.UnitTests.Add(Scope.McFunctionPath, Scope);
+            }
         });
         
         if (attributes.Contains(AttributeTickFunction))
         {
-            Context.Configuration.Datapack.TickFunctions.Add(scope.McFunctionPath);
+            Context.Configuration.Datapack.TickFunctions.Add(mcFunctionPath);
         }
         
         if (attributes.Contains(AttributeLoadFunction))
         {
-            Context.Configuration.Datapack.LoadFunctions.Add(scope.McFunctionPath);
+            Context.Configuration.Datapack.LoadFunctions.Add(mcFunctionPath);
         }
-
-        if (attributes.Contains(AttributeUnitTestFunction))
-        {
-            var mcFunctionScope = new Scope
-            {
-                Parent = scope.Parent,
-                Context = scope.Context,
-                Name = functionName
-            };
-            
-            Context.UnitTests.Add(mcFunctionScope.McFunctionPath, scope);
-        }
-
+        
         var function = new Function
         {
             Attributes = attributes,
             Parameters = parameters,
-            Scope = scope
+            McFunctionPath = mcFunctionPath
         };
 
         if (!Scope.Symbols.TryAdd(functionName, function)) 

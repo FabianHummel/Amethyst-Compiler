@@ -38,10 +38,14 @@ public partial class Compiler
         if (sourceFile.ImportedSymbols.TryGetValue(name, out var resourcePath))
         {
             sourceFile = VisitResource(resourcePath, Constants.DatapackFunctionsDirectory, context);
-            var previousScope = Scope;
-            Scope = sourceFile.RootScope;
+            // TODO: This does not work because the namespace, registry, etc... is not set to the correct values.
+            // if (sourceFile.Scope == null)
+            // {
+            //     CompileSourceFile(sourceFile);
+            // }
+            
+            using var scope = new DisposableScope(this, sourceFile.Scope);
             var foundSymbol = TryGetSymbolRecursive(name, ref sourceFile, out symbol, context, checkExportedSymbols);
-            Scope = previousScope;
             return foundSymbol;
         }
         

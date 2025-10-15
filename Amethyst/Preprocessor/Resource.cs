@@ -24,28 +24,24 @@ public partial class Compiler
             }
         }
         
-        var paths = resourcePath.Split('/');
-        var name = paths[^1];
-        paths = paths[..^1];
+        var pathSegments = resourcePath.Split('/');
+        var name = pathSegments[^1];
 
-        if (!ns.Registries.TryGetValue(registryName, out var sourceFolder))
+        if (!ns.Registries.TryGetValue(registryName, out var registry))
         {
             throw new SemanticException($"No symbols have been defined in the '{registryName}' registry.", context);
         }
         
-        foreach (var sourceFolderName in paths)
+        if (!registry.Root.TryTraverse(pathSegments[..^1], out var sourceFolder))
         {
-            if (!sourceFolder.Children.TryGetValue(sourceFolderName, out sourceFolder))
-            {
-                throw new SemanticException($"The folder '{sourceFolderName}' does not exist for the specified path.", context);
-            }
+            throw new SemanticException($"Could not find a part of the path '{resourcePath}'.", context);
         }
         
-        if (!sourceFolder.SourceFiles.TryGetValue(name, out var sourceFile))
+        if (!sourceFolder.Leaves.TryGetValue(name, out var sourceFile))
         {
             throw new SemanticException($"The file '{name}' does not exist for the specified path.", context);
         }
 
-        return sourceFile;
+        return sourceFile.Value;
     }
 }

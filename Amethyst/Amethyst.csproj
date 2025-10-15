@@ -10,6 +10,7 @@
     </PropertyGroup>
     
     <ItemGroup>
+      <PackageReference Include="Autofac" Version="8.4.0" />
       <PackageReference Include="CommandLineParser" Version="2.9.1" />
       <PackageReference Include="Crayon" Version="2.0.69" />
       <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />

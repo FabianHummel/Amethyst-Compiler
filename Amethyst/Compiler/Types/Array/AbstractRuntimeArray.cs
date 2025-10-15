@@ -56,12 +56,12 @@ public abstract partial class AbstractRuntimeArray : AbstractArray, IRuntimeValu
             
             AddCode($"execute store result storage {indexLocation} run scoreboard players get {integerResult.Location}");
             
-            var scope = Compiler.EvaluateScoped("_index", _ =>
+            var mcFunctionPath = Compiler.EvaluateScoped("_index", _ =>
             {
                 AddCode($"$execute store result storage {location} run data get storage {Location}[$({integerResult.Location})]");
             });
             
-            AddCode($"function {scope.McFunctionPath} with storage amethyst:");
+            AddCode($"function {mcFunctionPath} with storage amethyst:");
         }
         else
         {

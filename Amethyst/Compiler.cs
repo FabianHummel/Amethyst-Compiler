@@ -10,6 +10,7 @@ public partial class Compiler : AmethystParserBaseVisitor<object?>
     internal int StackPointer { get; set; }
     
     internal Namespace Namespace { get; set; } = null!;
+    internal Registry Registry { get; set; } = null!;
     internal SourceFile SourceFile { get; set; } = null!;
     internal Scope Scope { get; set; } = null!;
     
@@ -22,8 +23,8 @@ public partial class Compiler : AmethystParserBaseVisitor<object?>
     {
         foreach (var ns in Context.Namespaces.Values)
         {
-            Namespace = ns;
-            CompileNamespace();
+            using var scope = new DisposableNamespace(this, ns);
+            CompileNamespace(ns);
         }
     }
     
@@ -36,82 +37,87 @@ public partial class Compiler : AmethystParserBaseVisitor<object?>
     {
         Namespace.AddInitCode(code);
     }
-    
-    public Scope EvaluateScoped(string name, Action<Action> action)
+
+    public string EvaluateScoped(string name, Action<Action> action)
+    {
+        return EvaluateScoped(name, (_, cancel) => action(cancel));
+    }
+
+    public string EvaluateScoped(string name, Action<Scope, Action> action)
     {
         if (!Scope.Scopes.TryAdd(name, 0))
         {
             Scope.Scopes[name]++;
         }
         
-        var previousScope = Scope;
-        var newScope = Scope = new Scope
+        var scopeName = name + Scope.Scopes[name];
+        var newScope = new Scope(this, scopeName)
         {
-            Name = name + Scope.Scopes[name],
-            Parent = previousScope,
-            Context = Context
+            Parent = Scope
         };
-        
+
+        using var scope = new DisposableScope(this, newScope);
+        var mcFunctionPath = EvaluateScopeInternal(newScope, action);
+        return mcFunctionPath;
+    }
+
+    private string EvaluateScopeInternal(Scope scope, Action<Scope, Action> action)
+    {
         var isCancelled = false;
-        
-        action(() =>
+        action(scope, () =>
         {
             isCancelled = true;
         });
-
-        if (!isCancelled)
-        {
-            Scope.Dispose();
-        }
         
-        Scope = previousScope;
-        
-        return newScope;
+        var mcFunctionPath = scope.McFunctionPath;
+        Scope.Dispose(isCancelled);
+        return mcFunctionPath;
     }
-
-    public Namespace Amethyst
+    
+    private void CompileNamespace(Namespace ns)
     {
-        get
+        foreach (var registry in ns.Registries.Values)
         {
-            if (!Context.Namespaces.TryGetValue("amethyst", out var amethystNamespace))
+            using var scope = new DisposableRegistry(this, registry);
+            CompileRegistry(registry);
+        }
+    }
+    
+    private void CompileRegistry(Registry registry)
+    {
+        var sourceFiles = registry.Root.GetAllLeaves()
+            .Select(leaf => leaf.Value);
+        
+        foreach (var sourceFile in sourceFiles)
+        {
+            using var scope = new DisposableSourceFile(this, sourceFile, new Scope(this, sourceFile.Name)
             {
-                throw new InvalidOperationException("The internal namespace was not registered correctly. This indicates a corrupted installation.");
-            }
+                Parent = null
+            });
+            CompileSourceFile(sourceFile);
+        }
+    }
+    
+    private void CompileSourceFile(SourceFile sourceFile)
+    {
+        sourceFile.Scope = new Scope(this, sourceFile.Name)
+        {
+            Parent = Scope
+        };
+        
+        foreach (var entryPoint in sourceFile.EntryPointFunctions.Values)
+        {
+            VisitFunctionDeclaration(entryPoint);
+        }
             
-            return amethystNamespace;
-        }
-    }
-        
-    private void CompileNamespace()
-    {
-        foreach (var registry in Namespace.Registries.Values)
+        foreach (var (symbolName, symbol) in sourceFile.ExportedSymbols)
         {
-            foreach (var sourceFile in GetSourceFilesInFolder(registry))
+            if (Scope.Symbols.ContainsKey(symbolName))
             {
-                SourceFile = sourceFile;
-                Scope = sourceFile.RootScope;
-             
-                foreach (var entryPoint in sourceFile.EntryPointFunctions.Values)
-                {
-                    VisitFunctionDeclaration(entryPoint);
-                }
-                
-                foreach (var (symbolName, symbol) in sourceFile.ExportedSymbols)
-                {
-                    if (Scope.Symbols.ContainsKey(symbolName))
-                    {
-                        continue;
-                    }
-                    
-                    VisitDeclaration(symbol);
-                }
+                continue;
             }
+                    
+            VisitDeclaration(symbol);
         }
-    }
-
-    private static IEnumerable<SourceFile> GetSourceFilesInFolder(SourceFolder sourceFolder)
-    {
-        return sourceFolder.SourceFiles.Values
-            .Concat(sourceFolder.Children.SelectMany(pair => GetSourceFilesInFolder(pair.Value)));
     }
 }

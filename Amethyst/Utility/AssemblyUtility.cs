@@ -6,10 +6,12 @@ public static class AssemblyUtility
 {
     private static readonly Assembly _assembly = Assembly.GetExecutingAssembly();
     
-    public static void CopyAssemblyFolder(string assemblyPath, string outputDir)
+    public static void CopyAssemblyFolder(string assemblyPath, string outputDir, string? exclude = null)
     {
         foreach (var templateFile in GetEmbeddedResources(assemblyPath))
         {
+            if (exclude != null && templateFile.EndsWith(exclude)) continue;
+            
             var path = templateFile[(assemblyPath.Length + 1)..];
             path = path[..path.LastIndexOf('.')].Replace('.', Path.DirectorySeparatorChar) + path[path.LastIndexOf('.')..];
             path = Path.Combine(outputDir, path);

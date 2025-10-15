@@ -7,16 +7,21 @@ public partial class Compiler
 {
     public override object? VisitBlock(AmethystParser.BlockContext context)
     {
-        var scope = VisitBlockNamed(context, "_block");
-        AddCode($"function {scope.McFunctionPath}");
+        var mcFunctionPath = VisitBlockNamed(context, "_block");
+        AddCode($"function {mcFunctionPath}");
         return null;
     }
     
-    private Scope VisitBlockNamed(AmethystParser.BlockContext context, string name, Action? init = null)
+    private string VisitBlockNamed(AmethystParser.BlockContext context, string name, Action? init = null)
     {
-        return EvaluateScoped(name, _ =>
+        return VisitBlockNamed(context, name, _ => init?.Invoke());
+    }
+    
+    private string VisitBlockNamed(AmethystParser.BlockContext context, string name, Action<string>? init)
+    {
+        return EvaluateScoped(name, (scope, _) =>
         {
-            init?.Invoke();
+            init?.Invoke(scope.McFunctionPath);
             VisitBlockInline(context);
         });
     }

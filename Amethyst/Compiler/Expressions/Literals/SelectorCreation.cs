@@ -28,12 +28,12 @@ public partial class Compiler
         {
             AbstractValue value = null!;
             
-            var scope = EvaluateScoped("_create_selector", _ =>
+            var mcFunctionPath = EvaluateScoped("_create_selector", _ =>
             {
                 value = CreateSelector(isMacroInvocation: true);
             });
             
-            AddCode($"function {scope.McFunctionPath} with storage amethyst:");
+            AddCode($"function {mcFunctionPath} with storage amethyst:");
 
             return value;
         }
@@ -87,13 +87,13 @@ public partial class Compiler
         
             AddCode($"data modify storage {location} set value []");
 
-            var scope = EvaluateScoped("_multi_selector", _ =>
+            var mcFunctionPath = EvaluateScoped("_multi_selector", _ =>
             {
                 AddCode("function amethyst:libraries/gu/generate");
                 AddCode($"data modify storage {location} append from storage gu:main out");
             });
         
-            AddCode($"{prefix}execute as {selectorString} run function {scope.McFunctionPath}");
+            AddCode($"{prefix}execute as {selectorString} run function {mcFunctionPath}");
 
             return new RuntimeStaticArray
             {

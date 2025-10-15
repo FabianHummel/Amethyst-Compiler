@@ -51,12 +51,12 @@ public abstract partial class AbstractRuntimeObject : AbstractObject, IRuntimeVa
         
         else if (index is RuntimeString stringResult)
         {
-            var scope = Compiler.EvaluateScoped("_index", _ =>
+            var mcFunctionPath = Compiler.EvaluateScoped("_index", _ =>
             {
                 AddCode($"$execute store result storage {location} run data get storage {Location}.data.$({stringResult.Location})");
             });
             
-            AddCode($"function {scope.McFunctionPath} with storage amethyst:");
+            AddCode($"function {mcFunctionPath} with storage amethyst:");
         }
         
         else

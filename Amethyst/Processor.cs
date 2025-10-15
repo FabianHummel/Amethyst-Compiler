@@ -266,8 +266,9 @@ public class Processor
     private void CopyTemplate(string outputDir, string datapackOrResourcepack)
     {
         var cts = PrintLongTask($"Copying {datapackOrResourcepack.ToLower(CultureInfo.InvariantCulture)} template", out var getElapsed);
-        
-        AssemblyUtility.CopyAssemblyFolder($"Amethyst.Resources.{datapackOrResourcepack.ToLower(CultureInfo.InvariantCulture)}", outputDir);
+
+        var assemblyPath = $"Amethyst.Resources.{datapackOrResourcepack.ToLower(CultureInfo.InvariantCulture)}";
+        AssemblyUtility.CopyAssemblyFolder(assemblyPath, outputDir, exclude: SourceFileExtension);
         
         cts.Cancel();
 
@@ -361,13 +362,13 @@ public class Processor
         // Scan namespaces
         foreach (var nsPath in Directory.GetDirectories(sourceDir))
         {
-            RegisterAndIndexNamespace(nsPath);
+            ParseNamespace(nsPath);
         }
         
         ParseInternalNamespace(dirName, isDatapack);
     }
     
-    private void RegisterAndIndexNamespace(string nsPath)
+    private void ParseNamespace(string nsPath)
     {
         var nsName = Path.GetFileName(nsPath);
         
@@ -390,33 +391,22 @@ public class Processor
             var registryName = Path.GetFileName(registryPath);
             _parser.RegistryName = registryName;
             
+            if (!ns.Registries.TryGetValue(registryName, out var registry))
+            {
+                ns.Registries.Add(registryName, registry = new Registry(registryName));
+            }
+            
             // Scan amethyst source code files in each registry
             foreach (var filePath in Directory.GetFiles(registryPath, SourceFile, SearchOption.AllDirectories))
             {
-                if (!ns.Registries.TryGetValue(registryName, out var registry))
-                {
-                    ns.Registries.Add(registryName, registry = new SourceFolder
-                    {
-                        Context = Context
-                    });
-                }
-                
-                var relativePath = Path.GetRelativePath(registryPath, filePath);
                 var fileName = Path.GetFileNameWithoutExtension(filePath);
-                var folder = registry.CreateOrGetFolderForPath(relativePath);
-                var sourceFile = new SourceFile
-                {
-                    Path = filePath,
-                    Name = $"{nsName}:{relativePath}",
-                    RootScope = new Scope
-                    {
-                        Context = Context,
-                        Name = nsName,
-                        Parent = null
-                    }
-                };
-                folder.SourceFiles.Add(fileName, sourceFile);
-                _parser.Parse(sourceFile);
+                var relativePath = Path.GetRelativePath(registryPath, filePath);
+                var relativePathSegments = relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                var node = registry.Root.CreateOrGetNode(relativePathSegments);
+                var sourceFile = new SourceFile(fileName, parent: node);
+                node.AddLeaf(fileName, sourceFile);
+                
+                _parser.Parse(sourceFile, filePath);
             }
         }
     }
@@ -436,24 +426,24 @@ public class Processor
         
         Context.Namespaces.Add(ns.Name, ns);
         
-        var enclosingFolder = isDatapack ? "datapack" : "resourcepack";
+        var datapackOrResourcepackDirName = isDatapack ? "datapack" : "resourcepack";
         const string nsName = "amethyst";
-        var nsPath = $"Amethyst.Resources.{enclosingFolder}.{dataOrAssetsDirName}.{nsName}";
-        foreach (var absoluteResourcePath in AssemblyUtility.GetEmbeddedResources(nsPath)
-                     .Where(path => path.EndsWith(SourceFileExtension)))
+        var resourcePath = $"Amethyst.Resources.{datapackOrResourcepackDirName}.{dataOrAssetsDirName}.{nsName}";
+        
+        var sourceFilePaths = AssemblyUtility.GetEmbeddedResources(resourcePath)
+            .Where(path => path.EndsWith(SourceFileExtension));
+        
+        foreach (var absoluteResourcePath in sourceFilePaths)
         {
-            var resourcePath = absoluteResourcePath[(nsPath.Length + 1)..];
-            var pathComponents = resourcePath.Split('.');
+            var relativeResourcePath = absoluteResourcePath[(resourcePath.Length + 1)..];
+            var pathComponents = relativeResourcePath.Split('.');
             
             var registryName = pathComponents[0];
             _parser.RegistryName = registryName;
             
             if (!ns.Registries.TryGetValue(registryName, out var registry))
             {
-                ns.Registries.Add(registryName, registry = new SourceFolder
-                {
-                    Context = Context
-                });
+                ns.Registries.Add(registryName, registry = new Registry(registryName));
             }
             
             var apiFolder = pathComponents[1];
@@ -463,21 +453,10 @@ public class Processor
             }
 
             var fileName = pathComponents[^2];
-            var relativePath = Path.Combine(pathComponents[2..^1]);
-            var sourceFilePath = absoluteResourcePath[..absoluteResourcePath.LastIndexOf('.')].Replace('.', Path.DirectorySeparatorChar) + SourceFileExtension;
-            var folder = registry.CreateOrGetFolderForPath(relativePath);
-            var sourceFile = new SourceFile
-            {
-                Path = sourceFilePath,
-                Name = $"{nsName}:{relativePath}",
-                RootScope = new Scope
-                {
-                    Context = Context,
-                    Name = nsName,
-                    Parent = null
-                }
-            };
-            folder.SourceFiles.Add(fileName, sourceFile);
+            var relativePathSegments = pathComponents[2..^1];
+            var node = registry.Root.CreateOrGetNode(relativePathSegments);
+            var sourceFile = new SourceFile(fileName, node);
+            node.AddLeaf(fileName, sourceFile);
             
             var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(absoluteResourcePath)!;
             _parser.Parse(sourceFile, stream);

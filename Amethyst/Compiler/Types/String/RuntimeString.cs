@@ -60,13 +60,13 @@ public partial class RuntimeString : AbstractString, IRuntimeValue
             resultLocation = NextFreeLocation(DataLocation.Storage);
         }
         
-        var scope = Compiler.EvaluateScoped("_concat", _ =>
+        var mcFunctionPath = Compiler.EvaluateScoped("_concat", _ =>
         {
             // Todo: sanitize string by escaping quotes and other special characters that may mess up the macro expansion
             Compiler.AddCode($"$data modify storage {resultLocation} set value \"$({Location})$({rhs.Location})\"");
         });
         
-        Compiler.AddCode($"function {scope.McFunctionPath} with storage amethyst:");
+        Compiler.AddCode($"function {mcFunctionPath} with storage amethyst:");
 
         return new RuntimeString
         {

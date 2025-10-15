@@ -33,7 +33,7 @@ public partial class Compiler
             VisitArgumentListInternal(function, expressionContexts, context);
         }
         
-        AddCode($"function {function.Scope.McFunctionPath}");
+        AddCode($"function {function.McFunctionPath}");
     }
     
     private void VisitArgumentListInternal(Function function, AmethystParser.ExpressionContext[] expressionContexts, ParserRuleContext context)

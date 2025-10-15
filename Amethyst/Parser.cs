@@ -9,10 +9,9 @@ public class Parser
     public string? RegistryName { get; set; }
     public SourceFile? SourceFile { get; set; }
     
-    public void Parse(SourceFile sourceFile)
+    public void Parse(SourceFile sourceFile, string path)
     {
-        SourceFile = sourceFile;
-        var stream = File.OpenRead(sourceFile.Path);
+        var stream = File.OpenRead(path);
         Parse(sourceFile, stream);
     }
 
