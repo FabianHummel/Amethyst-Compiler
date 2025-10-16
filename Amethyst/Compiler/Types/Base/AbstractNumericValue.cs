@@ -25,7 +25,7 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
         
         var location = runtimeValue.NextFreeLocation(DataLocation.Storage);
         
-        AddCode($"execute store result storage {location} {ScoreboardDatatype.StorageModifier} run scoreboard players get {runtimeValue.Location}");
+        this.AddCode($"execute store result storage {location} {ScoreboardDatatype.StorageModifier} run scoreboard players get {runtimeValue.Location}");
 
         return ((IRuntimeValue)this).WithLocation(location, temporary: true);
     }
@@ -214,14 +214,14 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
         {
             lhs = (RuntimeDecimal)lhs.EnsureBackedUp();
             lhs.DecimalPlaces = highestDecimalPlaces;
-            AddCode($"scoreboard players operation {lhs.Location} *= .{scale} amethyst_const");
+            this.AddCode($"scoreboard players operation {lhs.Location} *= .{scale} amethyst_const");
         }
         
         if (weightedDecimalPlaces > 0)
         {
             rhs = (RuntimeDecimal)rhs.EnsureBackedUp();
             lhs.DecimalPlaces = highestDecimalPlaces;
-            AddCode($"scoreboard players operation {rhs.Location} *= .{scale} amethyst_const");
+            this.AddCode($"scoreboard players operation {rhs.Location} *= .{scale} amethyst_const");
         }
     }
 
@@ -232,7 +232,7 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
     private AbstractNumericValue PerformCalculation(IRuntimeValue lhs, IRuntimeValue rhs, ArithmeticOperator op)
     {
         var runtimeLhsBackup = lhs.EnsureBackedUp();
-        AddCode($"scoreboard players operation {runtimeLhsBackup.Location} {op.GetMcfOperatorSymbol()}= {rhs.Location}");
+        this.AddCode($"scoreboard players operation {runtimeLhsBackup.Location} {op.GetMcfOperatorSymbol()}= {rhs.Location}");
         return (AbstractNumericValue)runtimeLhsBackup;
     }
     
@@ -243,7 +243,7 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
     private RuntimeBoolean PerformCalculation(IRuntimeValue lhs, IRuntimeValue rhs, ComparisonOperator op)
     {
         var location = lhs.NextFreeLocation(DataLocation.Scoreboard);
-        AddCode($"execute store success score {location} if score {lhs.Location} {op.GetMcfOperatorSymbol()} {rhs.Location}");
+        this.AddCode($"execute store success score {location} if score {lhs.Location} {op.GetMcfOperatorSymbol()} {rhs.Location}");
         return new RuntimeBoolean
         {
             Compiler = Compiler,

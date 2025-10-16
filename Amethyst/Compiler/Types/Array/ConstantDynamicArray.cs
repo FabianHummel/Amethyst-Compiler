@@ -10,9 +10,9 @@ public class ConstantDynamicArray : AbstractConstantArray
     {
         var location = Location.Storage(++Compiler.StackPointer);
         
-        Compiler.AddCode($"data modify storage {location} set value {ToNbtString()}");
+        AddCode($"data modify storage {location} set value {ToNbtString()}");
         
-        SubstituteRecursively(Compiler, location);
+        SubstituteRecursively(location);
         
         return new RuntimeDynamicArray
         {

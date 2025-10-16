@@ -26,9 +26,9 @@ public partial class Compiler
         {
             var location = arrayResult.NextFreeLocation(DataLocation.Storage);
             
-            AddCode("data modify storage amethyst:internal data.prefix.prefix set value \"tag=\"");
-            AddCode($"data modify storage amethyst:internal data.prefix.in set from storage {arrayResult.Location}");
-            AddCode("function amethyst:api/data/prefix");
+            this.AddCode("data modify storage amethyst:internal data.prefix.prefix set value \"tag=\"");
+            this.AddCode($"data modify storage amethyst:internal data.prefix.in set from storage {arrayResult.Location}");
+            this.AddCode("function amethyst:api/data/prefix");
             
             queryString = $"$({location})";
 

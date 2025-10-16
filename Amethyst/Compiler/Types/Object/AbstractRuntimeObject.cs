@@ -12,7 +12,7 @@ public abstract partial class AbstractRuntimeObject : AbstractObject, IRuntimeVa
     {
         var location = NextFreeLocation(DataLocation.Scoreboard);
         
-        Compiler.AddCode($"execute store success score {location} run data get storage {Location}.keys[0]");
+        this.AddCode($"execute store success score {location} run data get storage {Location}.keys[0]");
         
         return new RuntimeBoolean
         {
@@ -29,7 +29,7 @@ public abstract partial class AbstractRuntimeObject : AbstractObject, IRuntimeVa
     {
         var location = NextFreeLocation(DataLocation.Scoreboard);
         
-        Compiler.AddCode($"execute store result score {location} run data get storage {Location}.keys");
+        this.AddCode($"execute store result score {location} run data get storage {Location}.keys");
         
         return new RuntimeInteger
         {

@@ -20,18 +20,18 @@ public partial class Compiler
         {
             if (runtimeValue.Datatype is AbstractScoreboardDatatype scoreboardDatatype)
             {
-                AddCode($"execute store result storage amethyst:internal data.stringify.in {scoreboardDatatype.StorageModifier} run scoreboard players get {runtimeValue.Location}");
+                this.AddCode($"execute store result storage amethyst:internal data.stringify.in {scoreboardDatatype.StorageModifier} run scoreboard players get {runtimeValue.Location}");
             }
             else
             {
-                AddCode($"data modify storage amethyst:internal data.stringify.in set from storage {runtimeValue.Location}");
+                this.AddCode($"data modify storage amethyst:internal data.stringify.in set from storage {runtimeValue.Location}");
             }
-            AddCode("function amethyst:internal/data/stringify/run");
+            this.AddCode("function amethyst:internal/data/stringify/run");
             
             jsonComponent = """{"nbt":"data.stringify.out","storage":"amethyst:internal","interpret":true}""";
         }
         
-        AddCode($$"""tellraw @a ["",{"text":"DEBUG: ","color":"dark_gray"},{{jsonComponent}}]""");
+        this.AddCode($$"""tellraw @a ["",{"text":"DEBUG: ","color":"dark_gray"},{{jsonComponent}}]""");
         
         return null;
     }

@@ -6,8 +6,7 @@ namespace Amethyst;
 
 public class Parser
 {
-    public string? RegistryName { get; set; }
-    public SourceFile? SourceFile { get; set; }
+    public SourceFile SourceFile { get; set; } = null!;
     
     public void Parse(SourceFile sourceFile, string path)
     {

@@ -19,7 +19,7 @@ public abstract class AbstractConstantObject : AbstractObject, IConstantValue<Di
     
     public abstract IRuntimeValue ToRuntimeValue();
 
-    public void SubstituteRecursively(Compiler compiler, string substitutionModifierPrefix = "")
+    public void SubstituteRecursively(string substitutionModifierPrefix = "")
     {
         foreach (var (key, constantValue) in Value)
         {
@@ -27,7 +27,7 @@ public abstract class AbstractConstantObject : AbstractObject, IConstantValue<Di
             {
                 var substitutionModifier = substitutionModifierPrefix + Datatype.GetSubstitutionModifier(key);
                 
-                substitutable.SubstituteRecursively(compiler, substitutionModifier);
+                substitutable.SubstituteRecursively(substitutionModifier);
             }
         }
 
@@ -39,11 +39,11 @@ public abstract class AbstractConstantObject : AbstractObject, IConstantValue<Di
                 
                 if (element.Datatype is AbstractScoreboardDatatype scoreboardDatatype)
                 {
-                    compiler.AddCode($"execute store result storage {substitutionModifier} {scoreboardDatatype.StorageModifier} run scoreboard players get {element.Location}");
+                    AddCode($"execute store result storage {substitutionModifier} {scoreboardDatatype.StorageModifier} run scoreboard players get {element.Location}");
                 }
                 else
                 {
-                    compiler.AddCode($"data modify storage {substitutionModifier} set from storage {element.Location}");
+                    AddCode($"data modify storage {substitutionModifier} set from storage {element.Location}");
                 }
             }
         }

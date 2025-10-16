@@ -18,7 +18,7 @@ public partial class RawLocation : AbstractValue, IRuntimeValue
     {
         var location = NextFreeLocation(DataLocation.Scoreboard);
         
-        Compiler.AddCode($"execute store success score {location} run data get storage {Location}");
+        this.AddCode($"execute store success score {location} run data get storage {Location}");
         
         return new RuntimeBoolean
         {

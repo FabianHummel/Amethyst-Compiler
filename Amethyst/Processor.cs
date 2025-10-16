@@ -349,9 +349,9 @@ public class Processor
 
     private void ProcessDatapackOrResourcepack(bool isDatapack, string outputDir)
     {
-        var dirName = isDatapack ? "data" : "assets";
-        var sourceDir = Path.Combine(Context.SourcePath, dirName);
-        var dataOrAssetsDir = Path.Combine(outputDir, dirName);
+        var packDirName = isDatapack ? "data" : "assets";
+        var sourceDir = Path.Combine(Context.SourcePath, packDirName);
+        var dataOrAssetsDir = Path.Combine(outputDir, packDirName);
         
         // Copy everything except amethyst source code to output folder
         FilesystemUtility.CopyDirectory(sourceDir, dataOrAssetsDir, filePath =>
@@ -360,75 +360,34 @@ public class Processor
         });
 
         // Scan namespaces
-        foreach (var nsPath in Directory.GetDirectories(sourceDir))
-        {
-            ParseNamespace(nsPath);
-        }
+        ParseUserNamespaces(packDirName, sourceDir);
         
-        ParseInternalNamespace(dirName, isDatapack);
+        ParseInternalNamespace(packDirName, isDatapack);
     }
     
-    private void ParseNamespace(string nsPath)
+    private void ParseUserNamespaces(string packDirName, string sourceDir)
     {
-        var nsName = Path.GetFileName(nsPath);
-        
-        if (!Context.Namespaces.TryGetValue(nsName, out var ns))
+        // Scan amethyst source code files in each registry
+        foreach (var filePath in Directory.GetFiles(sourceDir, SourceFile, SearchOption.AllDirectories))
         {
-            if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
+            var fileName = Path.GetFileNameWithoutExtension(filePath);
+            var relativePath = Path.GetRelativePath(sourceDir, filePath);
+            var pathSegments = relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var sourceFile = new SourceFile([packDirName, ..pathSegments[..^1], fileName]);
+            Context.SourceFiles.Add(sourceFile.GetFullPath(), sourceFile);
+            sourceFile.Scope = new Scope(Context, sourceFile)
             {
-                PrintDebug($"Registering namespace: {nsName}");
-            }
+                Parent = null
+            };
             
-            Context.Namespaces.Add(nsName, ns = new Namespace
-            {
-                Context = Context,
-                Name = nsName
-            });
-        }
-
-        foreach (var registryPath in Directory.GetDirectories(nsPath))
-        {
-            var registryName = Path.GetFileName(registryPath);
-            _parser.RegistryName = registryName;
-            
-            if (!ns.Registries.TryGetValue(registryName, out var registry))
-            {
-                ns.Registries.Add(registryName, registry = new Registry(registryName));
-            }
-            
-            // Scan amethyst source code files in each registry
-            foreach (var filePath in Directory.GetFiles(registryPath, SourceFile, SearchOption.AllDirectories))
-            {
-                var fileName = Path.GetFileNameWithoutExtension(filePath);
-                var relativePath = Path.GetRelativePath(registryPath, filePath);
-                var relativePathSegments = relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                var node = registry.Root.CreateOrGetNode(relativePathSegments);
-                var sourceFile = new SourceFile(fileName, parent: node);
-                node.AddLeaf(fileName, sourceFile);
-                
-                _parser.Parse(sourceFile, filePath);
-            }
+            _parser.Parse(sourceFile, filePath);
         }
     }
     
-    private void ParseInternalNamespace(string dataOrAssetsDirName, bool isDatapack)
+    private void ParseInternalNamespace(string packDirName, bool isDatapack)
     {
-        var ns = new Namespace
-        {
-            Context = Context,
-            Name = "amethyst"
-        };
-        
-        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
-        {
-            PrintDebug($"Registering internal namespace: {ns.Name}");
-        }
-        
-        Context.Namespaces.Add(ns.Name, ns);
-        
-        var datapackOrResourcepackDirName = isDatapack ? "datapack" : "resourcepack";
-        const string nsName = "amethyst";
-        var resourcePath = $"Amethyst.Resources.{datapackOrResourcepackDirName}.{dataOrAssetsDirName}.{nsName}";
+        var packGroupName = isDatapack ? "datapack" : "resourcepack";
+        var resourcePath = $"Amethyst.Resources.{packGroupName}.{packDirName}";
         
         var sourceFilePaths = AssemblyUtility.GetEmbeddedResources(resourcePath)
             .Where(path => path.EndsWith(SourceFileExtension));
@@ -436,27 +395,21 @@ public class Processor
         foreach (var absoluteResourcePath in sourceFilePaths)
         {
             var relativeResourcePath = absoluteResourcePath[(resourcePath.Length + 1)..];
-            var pathComponents = relativeResourcePath.Split('.');
+            var pathComponents = relativeResourcePath.Split('.').ToList();
             
-            var registryName = pathComponents[0];
-            _parser.RegistryName = registryName;
-            
-            if (!ns.Registries.TryGetValue(registryName, out var registry))
-            {
-                ns.Registries.Add(registryName, registry = new Registry(registryName));
-            }
-            
-            var apiFolder = pathComponents[1];
+            var apiFolder = pathComponents[2];
             if (apiFolder != "api")
             {
-                throw new InvalidOperationException($"Invalid internal amethyst namespace structure, expected 'api' folder but got '{apiFolder}'");
+                throw new InvalidOperationException($"Invalid internal namespace structure, expected 'api' folder but got '{apiFolder}'");
             }
+            pathComponents.RemoveAt(index: 2);
 
-            var fileName = pathComponents[^2];
-            var relativePathSegments = pathComponents[2..^1];
-            var node = registry.Root.CreateOrGetNode(relativePathSegments);
-            var sourceFile = new SourceFile(fileName, node);
-            node.AddLeaf(fileName, sourceFile);
+            var sourceFile = new SourceFile([packDirName, ..pathComponents[..^1]], isInternal: true);
+            Context.SourceFiles.Add(sourceFile.GetFullPath(), sourceFile);
+            sourceFile.Scope = new Scope(Context, sourceFile)
+            {
+                Parent = null
+            };
             
             var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(absoluteResourcePath)!;
             _parser.Parse(sourceFile, stream);

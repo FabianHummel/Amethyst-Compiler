@@ -39,8 +39,8 @@ public class AmethystParseListener : AmethystParserBaseListener
 
         foreach (var symbolName in symbols)
         {
-            if (!Parser.SourceFile!.ExportedSymbols.ContainsKey(symbolName) &&
-                !Parser.SourceFile!.ImportedSymbols.TryAdd(symbolName, resourceLiteral.GetText()[1..^1]))
+            if (!Parser.SourceFile.ExportedSymbols.ContainsKey(symbolName) &&
+                !Parser.SourceFile.ImportedSymbols.TryAdd(symbolName, resourceLiteral.GetText()[1..^1]))
             {
                 throw new SymbolAlreadyDeclaredException(symbolName, context);
             }
@@ -49,7 +49,7 @@ public class AmethystParseListener : AmethystParserBaseListener
     
     public override void ExitDeclaration(AmethystParser.DeclarationContext context)
     {
-        if (Parser.RegistryName != Constants.DatapackFunctionsDirectory)
+        if (Parser.SourceFile.Registry != Constants.DatapackFunctionsDirectory)
         {
             throw new SyntaxException($"Runtime declarations must go inside the '{Constants.DatapackFunctionsDirectory}' registry.", context);
         }
@@ -78,8 +78,8 @@ public class AmethystParseListener : AmethystParserBaseListener
             return; // Only register top-level declarations
         }
         
-        if (!Parser.SourceFile!.ExportedSymbols.TryAdd(symbolName, context) && 
-            !Parser.SourceFile!.ImportedSymbols.ContainsKey(symbolName))
+        if (!Parser.SourceFile.ExportedSymbols.TryAdd(symbolName, context) && 
+            !Parser.SourceFile.ImportedSymbols.ContainsKey(symbolName))
         {
             throw new SymbolAlreadyDeclaredException(symbolName, context);
         }
@@ -101,7 +101,7 @@ public class AmethystParseListener : AmethystParserBaseListener
         };
         if (attributes.Overlaps(entryPointAttributes))
         {
-            Parser.SourceFile!.EntryPointFunctions.Add(fnName, context);
+            Parser.SourceFile.EntryPointFunctions.Add(fnName, context);
         }
     }
 }

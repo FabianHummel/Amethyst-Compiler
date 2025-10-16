@@ -23,7 +23,7 @@ public partial class Compiler
         var previousSP = StackPointer;
         
         // We create a scope to be able to early return from the function.
-        var mcFunctionPath = EvaluateScoped("_or", cancel =>
+        var mcFunctionPath = this.EvaluateScoped("_or", cancel =>
         {
             foreach (var expressionContext in expressionContexts)
             {
@@ -44,11 +44,11 @@ public partial class Compiler
                 if (booleanResult is IRuntimeValue runtimeValue)
                 {
                     // Early return if the current expression is true (we don't need to check the rest).
-                    AddCode($"execute unless score {runtimeValue.Location} matches 0 run return 1");
+                    this.AddCode($"execute unless score {runtimeValue.Location} matches 0 run return 1");
                 }
             }
             
-            AddCode("return fail");
+            this.AddCode("return fail");
         });
         
         // Reset the stack pointer to the one before evaluating the current expression, as we don't need the allocated variables anymore.
@@ -58,11 +58,11 @@ public partial class Compiler
 
         if (isAlwaysTrue)
         {
-            AddCode($"scoreboard players set {location} 1");
+            this.AddCode($"scoreboard players set {location} 1");
         }
         else
         {
-            AddCode($"execute store success score {location} run function {mcFunctionPath}");
+            this.AddCode($"execute store success score {location} run function {mcFunctionPath}");
         }
 
         return new RuntimeBoolean

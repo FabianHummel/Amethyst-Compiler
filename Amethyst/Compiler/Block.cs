@@ -8,7 +8,7 @@ public partial class Compiler
     public override object? VisitBlock(AmethystParser.BlockContext context)
     {
         var mcFunctionPath = VisitBlockNamed(context, "_block");
-        AddCode($"function {mcFunctionPath}");
+        this.AddCode($"function {mcFunctionPath}");
         return null;
     }
     
@@ -19,7 +19,7 @@ public partial class Compiler
     
     private string VisitBlockNamed(AmethystParser.BlockContext context, string name, Action<string>? init)
     {
-        return EvaluateScoped(name, (scope, _) =>
+        return this.EvaluateScoped(name, (scope, _) =>
         {
             init?.Invoke(scope.McFunctionPath);
             VisitBlockInline(context);

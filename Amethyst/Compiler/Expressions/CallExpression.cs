@@ -33,7 +33,7 @@ public partial class Compiler
             VisitArgumentListInternal(function, expressionContexts, context);
         }
         
-        AddCode($"function {function.McFunctionPath}");
+        this.AddCode($"function {function.McFunctionPath}");
     }
     
     private void VisitArgumentListInternal(Function function, AmethystParser.ExpressionContext[] expressionContexts, ParserRuleContext context)
@@ -59,25 +59,25 @@ public partial class Compiler
 
             if (parameter.Location.DataLocation == DataLocation.Scoreboard && result is IScoreboardValue scoreboardValue)
             {
-                AddCode($"scoreboard players set {parameter.Location} {scoreboardValue.ScoreboardValue}");
+                this.AddCode($"scoreboard players set {parameter.Location} {scoreboardValue.ScoreboardValue}");
                 continue;
             }
 
             if (parameter.Location.DataLocation == DataLocation.Scoreboard && result is IRuntimeValue runtimeValue)
             {
-                AddCode($"scoreboard players operation {parameter.Location} = {runtimeValue.Location} amethyst");
+                this.AddCode($"scoreboard players operation {parameter.Location} = {runtimeValue.Location} amethyst");
                 continue;
             }
 
             if (parameter.Location.DataLocation == DataLocation.Storage && result is IConstantValue storageValue)
             {
-                AddCode($"data modify storage {parameter.Location} set value {storageValue.ToNbtString()}");
+                this.AddCode($"data modify storage {parameter.Location} set value {storageValue.ToNbtString()}");
                 continue;
             }
             
             if (parameter.Location.DataLocation == DataLocation.Storage && result is IRuntimeValue runtimeStorageValue)
             {
-                AddCode($"data modify storage {parameter.Location} set from storage {runtimeStorageValue.Location}");
+                this.AddCode($"data modify storage {parameter.Location} set from storage {runtimeStorageValue.Location}");
                 continue;
             }
 

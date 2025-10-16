@@ -15,7 +15,7 @@ public class ConstantString : AbstractString, IConstantValue<string>, IMemberAcc
     {
         var location = Location.Storage(++Compiler.StackPointer);
         
-        Compiler.AddCode($"data modify storage {location} set value {ToNbtString()}");
+        this.AddCode($"data modify storage {location} set value {ToNbtString()}");
         
         return new RuntimeString
         {

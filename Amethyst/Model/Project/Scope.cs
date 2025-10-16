@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Text;
 using static Amethyst.Constants;
 
 namespace Amethyst.Model;
@@ -12,27 +11,28 @@ public class Scope : IDisposable
     
     public Dictionary<string, int> Scopes { get; } = new();
     public Dictionary<string, Symbol> Symbols { get; } = new();
-    
-    private readonly Compiler _compiler;
-    private readonly Namespace _ns;
+
     private readonly SourceFile _sourceFile;
+    private readonly Context _context;
     
     private readonly TextWriter _writer = new StringWriter();
+    private readonly TextWriter _initWriter = new StringWriter();
 
-    public Scope(Compiler compiler, string name)
+    public Scope(Context context, SourceFile sourceFile)
+        : this("", context, sourceFile)
     {
-        _compiler = compiler;
-        _ns = compiler.Namespace;
-        _sourceFile = compiler.SourceFile;
+    }
+    
+    public Scope(string name, Context context, SourceFile sourceFile)
+    {
         Name = name;
+        _sourceFile = sourceFile;
+        _context = context;
     }
 
     public string FilePath => Path.Combine(
-        _compiler.Context.Configuration.Datapack!.OutputDir, 
-        "data",
-        _ns.Name,
-        DatapackFunctionsDirectory,
-        _sourceFile.GetPath(),
+        _context.Configuration.Datapack!.OutputDir, 
+        _sourceFile.GetFullPath(),
         GetPath() + McfunctionFileExtension);
     
     public string GetPath()
@@ -44,14 +44,19 @@ public class Scope : IDisposable
     {
         get
         {
-            var path = Path.Combine(_sourceFile.GetPath(), GetPath());
-            return $"{_ns.Name}:{path.Replace(Path.DirectorySeparatorChar, '/')}";
+            var mcFunctionPath = GetPath().Replace(Path.DirectorySeparatorChar, '/');
+            return $"{_sourceFile.McFunctionPath}/{mcFunctionPath}";
         }
     }
-    
+
     public void AddCode(string code)
     {
         _writer.WriteLine(code);
+    }
+    
+    public void AddInitCode(string code)
+    {
+        _initWriter.WriteLine(code);
     }
 
     public bool TryGetSymbol(string identifier, [NotNullWhen(true)] out Symbol? symbol)
@@ -112,22 +117,76 @@ public class Scope : IDisposable
         template = template.Replace(Substitutions["date"], SubstitutionValues["date"].ToString());
         writer.Write(template);
     }
-}
 
-internal sealed class DisposableScope : IDisposable
-{
-    private readonly Compiler _owner;
-    private readonly Scope _previous;
-    
-    public DisposableScope(Compiler owner, Scope scope)
+    public static Scope Reparent(Scope compilerScope, string scopeName)
     {
-        _owner = owner;
-        _previous = owner.Scope;
-        owner.Scope = scope;
+        return new Scope(scopeName, compilerScope._context, compilerScope._sourceFile)
+        {
+            Parent = compilerScope
+        };
     }
     
-    public void Dispose()
+    internal sealed class GlobalBackup : IDisposable
     {
-        _owner.Scope = _previous;
+        private readonly Compiler _owner;
+        private readonly Scope _previous;
+    
+        public GlobalBackup(Compiler owner, Scope scope)
+        {
+            _owner = owner;
+            _previous = owner.Scope;
+            owner.Scope = scope;
+        }
+    
+        public void Dispose()
+        {
+            _owner.Scope = _previous;
+        }
+    }
+}
+
+public static partial class CompilerExtensions
+{
+    public static void AddCode(this Compiler compiler, string code)
+    {
+        compiler.Scope.AddCode(code);
+    }
+    
+    public static void AddInitCode(this Compiler compiler, string code)
+    {
+        compiler.Scope.AddInitCode(code);
+    }
+
+    public static string EvaluateScoped(this Compiler compiler, string name, Action<Action> action)
+    {
+        return compiler.EvaluateScoped(name, (_, cancel) => action(cancel));
+    }
+
+    public static string EvaluateScoped(this Compiler compiler, string name, Action<Scope, Action> action)
+    {
+        if (!compiler.Scope.Scopes.TryAdd(name, 0))
+        {
+            compiler.Scope.Scopes[name]++;
+        }
+        
+        var scopeName = name + compiler.Scope.Scopes[name];
+        var newScope = Scope.Reparent(compiler.Scope, scopeName);
+
+        using var scope = new Scope.GlobalBackup(compiler, newScope);
+        var mcFunctionPath = EvaluateScopeInternal(compiler, newScope, action);
+        return mcFunctionPath;
+    }
+
+    private static string EvaluateScopeInternal(Compiler compiler, Scope scope, Action<Scope, Action> action)
+    {
+        var isCancelled = false;
+        action(scope, () =>
+        {
+            isCancelled = true;
+        });
+        
+        var mcFunctionPath = scope.McFunctionPath;
+        compiler.Scope.Dispose(isCancelled);
+        return mcFunctionPath;
     }
 }

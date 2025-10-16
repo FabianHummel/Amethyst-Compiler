@@ -28,12 +28,12 @@ public partial class Compiler
         {
             AbstractValue value = null!;
             
-            var mcFunctionPath = EvaluateScoped("_create_selector", _ =>
+            var mcFunctionPath = this.EvaluateScoped("_create_selector", _ =>
             {
                 value = CreateSelector(isMacroInvocation: true);
             });
             
-            AddCode($"function {mcFunctionPath} with storage amethyst:");
+            this.AddCode($"function {mcFunctionPath} with storage amethyst:");
 
             return value;
         }
@@ -73,8 +73,8 @@ public partial class Compiler
 
             if (IsSelectorSingleTarget(selector, limitExpression))
             {
-                AddCode($"{prefix}execute as {selectorString} run function amethyst:libraries/gu/generate");
-                AddCode($"data modify storage {location} set from storage gu:main out");
+                this.AddCode($"{prefix}execute as {selectorString} run function amethyst:libraries/gu/generate");
+                this.AddCode($"data modify storage {location} set from storage gu:main out");
             
                 return new RuntimeEntity
                 {
@@ -85,15 +85,15 @@ public partial class Compiler
                 };
             }
         
-            AddCode($"data modify storage {location} set value []");
+            this.AddCode($"data modify storage {location} set value []");
 
-            var mcFunctionPath = EvaluateScoped("_multi_selector", _ =>
+            var mcFunctionPath = this.EvaluateScoped("_multi_selector", _ =>
             {
-                AddCode("function amethyst:libraries/gu/generate");
-                AddCode($"data modify storage {location} append from storage gu:main out");
+                this.AddCode("function amethyst:libraries/gu/generate");
+                this.AddCode($"data modify storage {location} append from storage gu:main out");
             });
         
-            AddCode($"{prefix}execute as {selectorString} run function {mcFunctionPath}");
+            this.AddCode($"{prefix}execute as {selectorString} run function {mcFunctionPath}");
 
             return new RuntimeStaticArray
             {

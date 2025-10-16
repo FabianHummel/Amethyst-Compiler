@@ -6,7 +6,7 @@ namespace Tests.Arithmetic;
 public class RuntimeArithmetic : ServerTestBase
 {
     [Test(Description = "Arithmetic with the use of runtime values")]
-    [Link("test_addition")]
+    [Link("arithmetic/test_addition")]
     public async Task TestAddition(
         [Values(1,-2,3)] int x,
         [Values(1,2,-3)] int y)

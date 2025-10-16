@@ -46,8 +46,8 @@ public partial class Compiler
         {
             var backup = lhsRuntime.EnsureBackedUp();
             
-            AddCode($"execute store success score {backup.Location} run data modify storage {backup.Location} set from storage {rhsRuntime.Location}");
-            AddCode($"execute store success score {backup.Location} {mcfComparisonOp} score {backup.Location} matches 0");
+            this.AddCode($"execute store success score {backup.Location} run data modify storage {backup.Location} set from storage {rhsRuntime.Location}");
+            this.AddCode($"execute store success score {backup.Location} {mcfComparisonOp} score {backup.Location} matches 0");
 
             location = backup.Location;
         }
@@ -76,11 +76,11 @@ public partial class Compiler
                     };
                 }
             
-                AddCode($"execute store success score {location} {mcfComparisonOp} score {lhs.Location} matches {numericConstant.ScoreboardValue}");
+                this.AddCode($"execute store success score {location} {mcfComparisonOp} score {lhs.Location} matches {numericConstant.ScoreboardValue}");
             }
             else
             {
-                AddCode($"execute store success score {location} {mcfComparisonOp} data storage {{{lhs.Location}:{rhs.ToNbtString()}}}");
+                this.AddCode($"execute store success score {location} {mcfComparisonOp} data storage {{{lhs.Location}:{rhs.ToNbtString()}}}");
             }
         }
         

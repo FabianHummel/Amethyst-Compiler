@@ -18,7 +18,7 @@ public class ConstantDecimal : AbstractDecimal, IConstantValue<double>, IScorebo
     {
         var location = Location.Scoreboard(++Compiler.StackPointer);
         
-        Compiler.AddCode($"scoreboard players set {location} {ScoreboardValue}");
+        this.AddCode($"scoreboard players set {location} {ScoreboardValue}");
         
         return new RuntimeDecimal
         {

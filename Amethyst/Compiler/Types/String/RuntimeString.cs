@@ -12,7 +12,7 @@ public partial class RuntimeString : AbstractString, IRuntimeValue
     {
         var location = NextFreeLocation(DataLocation.Scoreboard);
         
-        Compiler.AddCode($"execute store success score {location} run data get storage {Location}");
+        this.AddCode($"execute store success score {location} run data get storage {Location}");
         
         return new RuntimeBoolean
         {
@@ -37,7 +37,7 @@ public partial class RuntimeString : AbstractString, IRuntimeValue
     {
         var location = NextFreeLocation(DataLocation.Scoreboard);
         
-        Compiler.AddCode($"execute store result score {location} run data get storage {Location}");
+        this.AddCode($"execute store result score {location} run data get storage {Location}");
         
         return new RuntimeInteger
         {
@@ -63,10 +63,10 @@ public partial class RuntimeString : AbstractString, IRuntimeValue
         var mcFunctionPath = Compiler.EvaluateScoped("_concat", _ =>
         {
             // Todo: sanitize string by escaping quotes and other special characters that may mess up the macro expansion
-            Compiler.AddCode($"$data modify storage {resultLocation} set value \"$({Location})$({rhs.Location})\"");
+            this.AddCode($"$data modify storage {resultLocation} set value \"$({Location})$({rhs.Location})\"");
         });
         
-        Compiler.AddCode($"function {mcFunctionPath} with storage amethyst:");
+        this.AddCode($"function {mcFunctionPath} with storage amethyst:");
 
         return new RuntimeString
         {

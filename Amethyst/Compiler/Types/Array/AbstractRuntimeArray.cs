@@ -12,7 +12,7 @@ public abstract partial class AbstractRuntimeArray : AbstractArray, IRuntimeValu
     {
         var location = NextFreeLocation(DataLocation.Scoreboard);
         
-        Compiler.AddCode($"execute store success score {location} run data get storage {Location}[0]");
+        this.AddCode($"execute store success score {location} run data get storage {Location}[0]");
         
         return new RuntimeBoolean
         {
@@ -29,7 +29,7 @@ public abstract partial class AbstractRuntimeArray : AbstractArray, IRuntimeValu
     {
         var location = NextFreeLocation(DataLocation.Scoreboard);
         
-        Compiler.AddCode($"execute store result score {location} run data get storage {Location}");
+        this.AddCode($"execute store result score {location} run data get storage {Location}");
         
         return new RuntimeInteger
         {
@@ -47,21 +47,21 @@ public abstract partial class AbstractRuntimeArray : AbstractArray, IRuntimeValu
         
         if (index is ConstantInteger integerConstant)
         {
-            AddCode($"execute store result storage {location} run data get storage {Location}[{integerConstant.Value}]");
+            this.AddCode($"execute store result storage {location} run data get storage {Location}[{integerConstant.Value}]");
         }
         else if (index is RuntimeInteger and IRuntimeValue integerResult)
         {
             var indexLocation = integerResult.NextFreeLocation(DataLocation.Storage);
             Compiler.StackPointer--;
             
-            AddCode($"execute store result storage {indexLocation} run scoreboard players get {integerResult.Location}");
+            this.AddCode($"execute store result storage {indexLocation} run scoreboard players get {integerResult.Location}");
             
             var mcFunctionPath = Compiler.EvaluateScoped("_index", _ =>
             {
-                AddCode($"$execute store result storage {location} run data get storage {Location}[$({integerResult.Location})]");
+                this.AddCode($"$execute store result storage {location} run data get storage {Location}[$({integerResult.Location})]");
             });
             
-            AddCode($"function {mcFunctionPath} with storage amethyst:");
+            this.AddCode($"function {mcFunctionPath} with storage amethyst:");
         }
         else
         {

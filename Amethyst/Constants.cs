@@ -29,6 +29,9 @@ public static class Constants
     // public const string AttributeAssignOnTick = "assign_on_tick";
     // public const string AttributeAssignOnLoad = "assign_on_load";
     
+    public const string DatapackRootDir = "data";
+    public const string ResourceRootDir = "assets";
+    public const string InternalNamespaceName = "amethyst";
     public const string DatapackFunctionsDirectory = "function";
     
     public static readonly string AmethystVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!.ToString();
