@@ -24,6 +24,7 @@ public static class Constants
     public const string AttributeLoadFunction = "initializing";
     public const string AttributeTickFunction = "ticking";
     public const string AttributeUnitTestFunction = "test";
+    public const string AttributeNoMangle = "no_mangle";
     // public const string AttributeAssignOnLeave = "assign_on_leave";
     // public const string AttributeAssignOnJoin = "assign_on_join";
     // public const string AttributeAssignOnTick = "assign_on_tick";

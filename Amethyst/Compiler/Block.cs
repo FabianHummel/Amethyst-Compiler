@@ -12,25 +12,18 @@ public partial class Compiler
         return null;
     }
     
-    private string VisitBlockNamed(AmethystParser.BlockContext context, string name, Action? init = null)
-    {
-        return VisitBlockNamed(context, name, _ => init?.Invoke());
-    }
-    
-    private string VisitBlockNamed(AmethystParser.BlockContext context, string name, Action<string>? init)
-    {
-        return this.EvaluateScoped(name, (scope, _) =>
-        {
-            init?.Invoke(scope.McFunctionPath);
-            VisitBlockInline(context);
-        });
-    }
-    
-    private void VisitBlockInline(AmethystParser.BlockContext context)
+    public void VisitBlockInline(AmethystParser.BlockContext context)
     {
         foreach (var preprocessorStatementContext in context.preprocessorStatement())
         {
             Visit(preprocessorStatementContext);
         }
+    }
+
+    internal string VisitBlockNamed(AmethystParser.BlockContext context, string name, bool preserveName = false)
+    {
+        using var scope = this.EvaluateScoped(name, preserveName);
+        VisitBlockInline(context);
+        return Scope.McFunctionPath;
     }
 }

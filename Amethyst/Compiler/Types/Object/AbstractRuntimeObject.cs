@@ -46,17 +46,19 @@ public abstract partial class AbstractRuntimeObject : AbstractObject, IRuntimeVa
         
         if (index is ConstantString stringConstant)
         {
-            AddCode($"execute store result storage {location} run data get storage {Location}.data.{stringConstant.Value}");
+            this.AddCode($"execute store result storage {location} run data get storage {Location}.data.{stringConstant.Value}");
         }
         
         else if (index is RuntimeString stringResult)
         {
-            var mcFunctionPath = Compiler.EvaluateScoped("_index", _ =>
+            string mcFunctionPath;
+            using (Compiler.EvaluateScoped("_index"))
             {
-                AddCode($"$execute store result storage {location} run data get storage {Location}.data.$({stringResult.Location})");
-            });
+                mcFunctionPath = Compiler.Scope.McFunctionPath;
+                this.AddCode($"$execute store result storage {location} run data get storage {Location}.data.$({stringResult.Location})");
+            }
             
-            AddCode($"function {mcFunctionPath} with storage amethyst:");
+            this.AddCode($"function {mcFunctionPath} with storage amethyst:");
         }
         
         else

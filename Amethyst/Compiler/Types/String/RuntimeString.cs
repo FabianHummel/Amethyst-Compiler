@@ -60,11 +60,13 @@ public partial class RuntimeString : AbstractString, IRuntimeValue
             resultLocation = NextFreeLocation(DataLocation.Storage);
         }
         
-        var mcFunctionPath = Compiler.EvaluateScoped("_concat", _ =>
+        string mcFunctionPath;
+        using (Compiler.EvaluateScoped("_concat"))
         {
+            mcFunctionPath = Compiler.Scope.McFunctionPath;
             // Todo: sanitize string by escaping quotes and other special characters that may mess up the macro expansion
             this.AddCode($"$data modify storage {resultLocation} set value \"$({Location})$({rhs.Location})\"");
-        });
+        }
         
         this.AddCode($"function {mcFunctionPath} with storage amethyst:");
 

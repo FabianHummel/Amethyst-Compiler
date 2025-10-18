@@ -12,7 +12,7 @@ public class ConstantStaticObject : AbstractConstantObject, IMemberAccess
     {
         var location = Location.Storage(++Compiler.StackPointer);
         
-        AddCode($"data modify storage {location} set value {ToNbtString()}");
+        this.AddCode($"data modify storage {location} set value {ToNbtString()}");
         
         SubstituteRecursively(location);
         

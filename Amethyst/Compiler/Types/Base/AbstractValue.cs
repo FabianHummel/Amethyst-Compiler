@@ -13,11 +13,6 @@ public abstract partial class AbstractValue
     /// The type of the underlying data.
     /// </summary>
     public abstract AbstractDatatype Datatype { get; }
-
-    protected void AddCode(string code)
-    {
-        Compiler.AddCode(code);
-    }
     
     public AbstractBoolean ToBoolean()
     {
@@ -70,5 +65,18 @@ public abstract partial class AbstractValue
         }
         
         throw new InvalidOperationException($"Invalid value type '{GetType()}' to convert to a runtime value.");
+    }
+}
+
+public static class AbstractValueExtensions
+{
+    public static void AddCode(this AbstractValue abstractValue, string code)
+    {
+        abstractValue.Compiler.AddCode(code);
+    }
+    
+    public static void AddInitCode(this AbstractValue abstractValue, string code)
+    {
+        abstractValue.Compiler.AddInitCode(code);
     }
 }

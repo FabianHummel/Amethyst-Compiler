@@ -12,8 +12,9 @@ public class Scope : IDisposable
     public Dictionary<string, int> Scopes { get; } = new();
     public Dictionary<string, Symbol> Symbols { get; } = new();
 
-    private readonly SourceFile _sourceFile;
     private readonly Context _context;
+    private readonly SourceFile _sourceFile;
+    private bool _isCancelled;
     
     private readonly TextWriter _writer = new StringWriter();
     private readonly TextWriter _initWriter = new StringWriter();
@@ -26,8 +27,8 @@ public class Scope : IDisposable
     public Scope(string name, Context context, SourceFile sourceFile)
     {
         Name = name;
-        _sourceFile = sourceFile;
         _context = context;
+        _sourceFile = sourceFile;
     }
 
     public string FilePath => Path.Combine(
@@ -58,6 +59,11 @@ public class Scope : IDisposable
     {
         _initWriter.WriteLine(code);
     }
+    
+    public void Cancel()
+    {
+        _isCancelled = true;
+    }
 
     public bool TryGetSymbol(string identifier, [NotNullWhen(true)] out Symbol? symbol)
     {
@@ -76,14 +82,7 @@ public class Scope : IDisposable
 
     public void Dispose()
     {
-        Dispose(false);
-        
-        GC.SuppressFinalize(this);
-    }
-
-    public void Dispose(bool cancelled)
-    {
-        if (cancelled)
+        if (_isCancelled)
         {
             return;
         }
@@ -96,6 +95,8 @@ public class Scope : IDisposable
         File.AppendAllText(FilePath, _writer.ToString());
         
         _writer.Dispose();
+        
+        GC.SuppressFinalize(this);
     }
 
     public override string ToString()
@@ -118,11 +119,24 @@ public class Scope : IDisposable
         writer.Write(template);
     }
 
-    public static Scope Reparent(Scope compilerScope, string scopeName)
+    public static Scope Reparent(Scope parent, string name, bool preserveName = false)
     {
-        return new Scope(scopeName, compilerScope._context, compilerScope._sourceFile)
+        if (preserveName)
         {
-            Parent = compilerScope
+            goto createScope;
+        }
+        
+        if (!parent.Scopes.TryAdd(name, 0))
+        {
+            parent.Scopes[name]++;
+        }
+        
+        name += parent.Scopes[name];
+        
+    createScope:
+        return new Scope(name, parent._context, parent._sourceFile)
+        {
+            Parent = parent
         };
     }
     
@@ -140,6 +154,7 @@ public class Scope : IDisposable
     
         public void Dispose()
         {
+            _owner.Scope.Dispose();
             _owner.Scope = _previous;
         }
     }
@@ -157,36 +172,9 @@ public static partial class CompilerExtensions
         compiler.Scope.AddInitCode(code);
     }
 
-    public static string EvaluateScoped(this Compiler compiler, string name, Action<Action> action)
+    internal static Scope.GlobalBackup EvaluateScoped(this Compiler compiler, string name, bool preserveName = false)
     {
-        return compiler.EvaluateScoped(name, (_, cancel) => action(cancel));
-    }
-
-    public static string EvaluateScoped(this Compiler compiler, string name, Action<Scope, Action> action)
-    {
-        if (!compiler.Scope.Scopes.TryAdd(name, 0))
-        {
-            compiler.Scope.Scopes[name]++;
-        }
-        
-        var scopeName = name + compiler.Scope.Scopes[name];
-        var newScope = Scope.Reparent(compiler.Scope, scopeName);
-
-        using var scope = new Scope.GlobalBackup(compiler, newScope);
-        var mcFunctionPath = EvaluateScopeInternal(compiler, newScope, action);
-        return mcFunctionPath;
-    }
-
-    private static string EvaluateScopeInternal(Compiler compiler, Scope scope, Action<Scope, Action> action)
-    {
-        var isCancelled = false;
-        action(scope, () =>
-        {
-            isCancelled = true;
-        });
-        
-        var mcFunctionPath = scope.McFunctionPath;
-        compiler.Scope.Dispose(isCancelled);
-        return mcFunctionPath;
+        var newScope = Scope.Reparent(compiler.Scope, name, preserveName);
+        return new Scope.GlobalBackup(compiler, newScope);
     }
 }

@@ -2,7 +2,6 @@ FROM `amethyst:test` complete;
 
 [initializing]
 function main() {
-    var x = [1,2,3];
-    debug x;
+    debug [1,2,3];
     complete();
 }

@@ -37,7 +37,7 @@ public partial class RuntimeDecimal : AbstractDecimal, IRuntimeValue
     {
         var location = NextFreeLocation(DataLocation.Scoreboard);
         
-        AddCode($"scoreboard players operation {location} = {Location}");
+        this.AddCode($"scoreboard players operation {location} = {Location}");
 
         return new RuntimeInteger
         {

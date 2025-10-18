@@ -20,11 +20,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Amethyst\Amethyst.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-        <Content Include="Project/**" />
-    </ItemGroup>
-
+    
     <ItemGroup>
       <None Update="appsettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -36,19 +32,22 @@
       <None Remove="Tests.csproj.DotSettings" />
     </ItemGroup>
 
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\**" />
+    </ItemGroup>
+
     <Target Name="CopyMinecraftServer" AfterTargets="AfterBuild">
         <CreateItem Include="Server/**">
             <Output TaskParameter="Include" ItemName="MinecraftServer" />
         </CreateItem>
-
         <Copy SourceFiles="@(MinecraftServer)" DestinationFolder="$(OutputPath)/%(RecursiveDir)" />
     </Target>
 
     <Target Name="CopyAssets" AfterTargets="AfterBuild">
-        <CreateItem Include="Assets/**">
+        <CreateItem Include="Assets/datapack/**">
             <Output TaskParameter="Include" ItemName="Assets" />
         </CreateItem>
-
-        <Copy SourceFiles="@(Assets)" DestinationFolder="$(OutputPath)/%(RecursiveDir)" />
+        <RemoveDir Directories="$(OutputPath)/datapack" />
+        <Copy SourceFiles="@(Assets)" DestinationFolder="$(OutputPath)/datapack/%(RecursiveDir)" />
     </Target>
 </Project>

@@ -39,11 +39,11 @@ public abstract class AbstractConstantObject : AbstractObject, IConstantValue<Di
                 
                 if (element.Datatype is AbstractScoreboardDatatype scoreboardDatatype)
                 {
-                    AddCode($"execute store result storage {substitutionModifier} {scoreboardDatatype.StorageModifier} run scoreboard players get {element.Location}");
+                    this.AddCode($"execute store result storage {substitutionModifier} {scoreboardDatatype.StorageModifier} run scoreboard players get {element.Location}");
                 }
                 else
                 {
-                    AddCode($"data modify storage {substitutionModifier} set from storage {element.Location}");
+                    this.AddCode($"data modify storage {substitutionModifier} set from storage {element.Location}");
                 }
             }
         }

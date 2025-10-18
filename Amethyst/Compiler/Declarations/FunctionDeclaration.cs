@@ -21,19 +21,27 @@ public partial class Compiler
         
         var attributes = VisitAttributeList(context.attributeList());
 
+        var isNoMangle = attributes.Contains(AttributeUnitTestFunction) || attributes.Contains(AttributeNoMangle);
+
         var parameters = Array.Empty<Variable>();
-        var mcFunctionPath = VisitBlockNamed(context.block(), "_func", () =>
+
+        string mcFunctionPath;
+        using (this.EvaluateScoped(isNoMangle ? functionName : "_func", preserveName: isNoMangle))
         {
+            mcFunctionPath = Scope.McFunctionPath;
+            
             if (context.parameterList() is { } parameterListContext)
             {
                 parameters = VisitParameterList(parameterListContext);
             }
-            
+        
             if (attributes.Contains(AttributeUnitTestFunction))
             {
                 Context.UnitTests.Add(Scope.McFunctionPath, Scope);
             }
-        });
+            
+            VisitBlockInline(context.block());
+        }
         
         if (attributes.Contains(AttributeTickFunction))
         {

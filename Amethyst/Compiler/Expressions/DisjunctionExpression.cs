@@ -23,8 +23,10 @@ public partial class Compiler
         var previousSP = StackPointer;
         
         // We create a scope to be able to early return from the function.
-        var mcFunctionPath = this.EvaluateScoped("_or", cancel =>
+        string mcFunctionPath;
+        using (this.EvaluateScoped("_or"))
         {
+            mcFunctionPath = Scope.McFunctionPath;
             foreach (var expressionContext in expressionContexts)
             {
                 var expression = VisitExpression(expressionContext);
@@ -36,9 +38,8 @@ public partial class Compiler
 
                 if (booleanResult is ConstantBoolean { Value: true })
                 {
-                    cancel();
+                    Scope.Cancel();
                     isAlwaysTrue = true;
-                    return;
                 }
                 
                 if (booleanResult is IRuntimeValue runtimeValue)
@@ -49,7 +50,7 @@ public partial class Compiler
             }
             
             this.AddCode("return fail");
-        });
+        }
         
         // Reset the stack pointer to the one before evaluating the current expression, as we don't need the allocated variables anymore.
         StackPointer = previousSP;

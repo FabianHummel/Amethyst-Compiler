@@ -25,7 +25,7 @@ public class ConstantBoolean : AbstractBoolean, IConstantValue<bool>, IScoreboar
     {
         var location = Location.Scoreboard(++Compiler.StackPointer);
         
-        AddCode($"scoreboard players set {location} {AsInteger}");
+        this.AddCode($"scoreboard players set {location} {AsInteger}");
         
         return new RuntimeBoolean
         {

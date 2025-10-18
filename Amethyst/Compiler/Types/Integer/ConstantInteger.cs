@@ -24,7 +24,7 @@ public class ConstantInteger : AbstractInteger, IConstantValue<int>, IScoreboard
     {
         var location = Location.Scoreboard(++Compiler.StackPointer);
         
-        AddCode($"scoreboard players set {location} {Value}");
+        this.AddCode($"scoreboard players set {location} {Value}");
         
         return new RuntimeInteger
         {

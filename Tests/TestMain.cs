@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
+using System.Reflection;
 using System.Text;
 using Amethyst;
 using Microsoft.Extensions.Configuration;
@@ -26,14 +27,18 @@ public static partial class TestMain
         _settings = configuration.GetSection("MinecraftServer").Get<MinecraftServerSettings>() 
                     ?? throw new InvalidOperationException("Failed to load MinecraftServer settings.");
         
-        var serverPropertiesTemplate = Path.Combine(Environment.CurrentDirectory, "server.properties.template");
-        if (!File.Exists(serverPropertiesTemplate))
+        var resourceName = Assembly.GetExecutingAssembly().GetManifestResourceNames().First(
+            n => n.EndsWith("server.properties.template", StringComparison.OrdinalIgnoreCase));
+        if (resourceName == null)
         {
-            throw new FileNotFoundException("server.properties.template not found.");
+            throw new FileNotFoundException("Embedded resource `server.properties.template` not found.");
         }
-        
+
+        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName)!;
+        using var reader = new StreamReader(stream, Encoding.UTF8);
+
         var serverProperties = Path.Combine(Environment.CurrentDirectory, "server.properties");
-        File.WriteAllText(serverProperties, File.ReadAllText(serverPropertiesTemplate, Encoding.UTF8)
+        File.WriteAllText(serverProperties, reader.ReadToEnd()
             .Replace("{RCON_PASSWORD}", _settings.RconPassword)
             .Replace("{RCON_PORT}", _settings.RconPort.ToString(NumberFormatInfo.InvariantInfo)));
     }

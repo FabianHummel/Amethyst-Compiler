@@ -27,11 +27,13 @@ public partial class Compiler
         if (containsRuntimeValues)
         {
             AbstractValue value = null!;
-            
-            var mcFunctionPath = this.EvaluateScoped("_create_selector", _ =>
+
+            string mcFunctionPath;
+            using (this.EvaluateScoped("_create_selector"))
             {
+                mcFunctionPath = Scope.McFunctionPath;
                 value = CreateSelector(isMacroInvocation: true);
-            });
+            }
             
             this.AddCode($"function {mcFunctionPath} with storage amethyst:");
 
@@ -87,12 +89,14 @@ public partial class Compiler
         
             this.AddCode($"data modify storage {location} set value []");
 
-            var mcFunctionPath = this.EvaluateScoped("_multi_selector", _ =>
+            string mcFunctionPath;
+            using (this.EvaluateScoped("_multi_selector"))
             {
+                mcFunctionPath = Scope.McFunctionPath;
                 this.AddCode("function amethyst:libraries/gu/generate");
                 this.AddCode($"data modify storage {location} append from storage gu:main out");
-            });
-        
+            }
+
             this.AddCode($"{prefix}execute as {selectorString} run function {mcFunctionPath}");
 
             return new RuntimeStaticArray
