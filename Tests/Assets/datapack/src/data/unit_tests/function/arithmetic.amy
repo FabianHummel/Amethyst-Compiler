@@ -1,7 +1,0 @@
-FROM `amethyst:test` complete;
-
-[test]
-function test_addition(x: int, y: int) {
-    var result = x + y;
-    complete();
-}

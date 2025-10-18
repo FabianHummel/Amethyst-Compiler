@@ -96,13 +96,14 @@ SELECTOR_NEAREST_ENTITY: '@n' ;
 
 WS: [ \r\t\u000C\n]+ -> skip ;
 SL_COMMENT: '#' ~[\r\n]* -> skip ;
-COMMAND: '/' ~[\r\n]+;
+COMMAND: BOL [ \r\t\u000C\n]* '/' ~[\r\n]+;
 NEWLINE: '\r'? '\n';
 STRING_LITERAL: '"' ~["\\\r\n]* '"' ; //STRING_LITERAL: '"' -> pushMode(IN_STRING) ;
 RESOURCE_LITERAL: '`' ~[`\\\r\n]* '`' ; //RESOURCE_LITERAL: '`' -> pushMode(IN_RESOURCE) ;
 INTEGER_LITERAL: '0'..'9'+ ;
 DECIMAL_LITERAL: '0'..'9'* '.' '0'..'9'+ ;
 IDENTIFIER: [a-zA-Z0-9_]+;
+BOL : [\r\n\f]+ ;
 //HEX: [0-9a-fA-F] ;
 
 //mode IN_STRING;

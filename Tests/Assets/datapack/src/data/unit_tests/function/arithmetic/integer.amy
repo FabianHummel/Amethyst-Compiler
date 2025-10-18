@@ -1,0 +1,31 @@
+FROM `amethyst:test` complete;
+
+[test]
+function test_addition(x: int, y: int) {
+    var result = x + y;
+    complete();
+}
+
+[test]
+function test_subtraction(x: int, y: int) {
+    var result = x - y;
+    complete();
+}
+
+[test]
+function test_multiplication(x: int, y: int) {
+    var result = x * y;
+    complete();
+}
+
+[test]
+function test_division(x: int, y: int) {
+    var result = x / y;
+    complete();
+}
+
+[test]
+function test_modulo(x: int, y: int) {
+    var result = x % y;
+    complete();
+}
