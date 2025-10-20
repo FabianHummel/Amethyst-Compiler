@@ -6,4 +6,9 @@ public static class MathUtility
     {
         return (x % y + y) % y;
     }
+    
+    public static double Modulo(double x, double y)
+    {
+        return (x % y + y) % y;
+    }
 }

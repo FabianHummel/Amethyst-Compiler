@@ -32,9 +32,8 @@ public partial class Compiler
                 numDecimalPlaces = int.Parse(integerLiteral.Symbol.Text);
             }
             
-            return new DecimalDatatype
+            return new DecimalDatatype(numDecimalPlaces)
             {
-                DecimalPlaces = numDecimalPlaces,
                 Modifier = modifier
             };
         }

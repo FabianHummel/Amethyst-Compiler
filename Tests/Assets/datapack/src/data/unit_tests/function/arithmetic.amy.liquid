@@ -1,0 +1,47 @@
+FROM `amethyst:test` complete;
+
+{% for numeric_type in default_numeric_types %}
+{% for arithmetic_operator in arithmetic_operators %}
+[test]
+function test_{{numeric_type.name}}_{{arithmetic_operator.name}}(
+    x: {{numeric_type.type}}, 
+    y: {{numeric_type.type}})
+{
+    var result = x {{arithmetic_operator.operator}} y;
+    complete();
+}
+{% endfor %}
+{% endfor %}
+
+{% for arithmetic_operator in arithmetic_operators %}
+[test]
+function test_integer_decimal2_{{arithmetic_operator}}(
+    x: int,
+    y: dec(2))
+{
+    var result = x {{arithmetic_operator.operator}} y;
+    complete();
+}
+{% endfor %}
+
+{% for arithmetic_operator in arithmetic_operators %}
+[test]
+function test_boolean_integer_{{arithmetic_operator}}(
+    x: bool,
+    y: int)
+{
+    var result = x {{arithmetic_operator.operator}} y;
+    complete();
+}
+{% endfor %}
+
+{% for arithmetic_operator in arithmetic_operators %}
+    [test]
+    function test_decimal1_decimal3_{{arithmetic_operator}}(
+    x: dec(1),
+    y: dec(3))
+{
+    var result = x {{arithmetic_operator.operator}} y;
+    complete();
+}
+{% endfor %}

@@ -1,5 +1,8 @@
+using System.Text.RegularExpressions;
 using Amethyst.Model;
 using NUnit.Framework;
+using NUnit.Framework.Interfaces;
+using NUnit.Framework.Internal;
 
 namespace Tests;
 
@@ -11,36 +14,37 @@ public abstract class ServerTestBase
     [SetUp]
     public async Task Setup()
     {
-        var currentTest = TestContext.CurrentContext.Test;
-        var methodName = currentTest.MethodName;
+        var currentTest = TestExecutionContext.CurrentContext.CurrentTest;
 
-        var linkAttribute = (LinkAttribute?) GetType()
-            .GetMethod(methodName!)!
-            .GetCustomAttributes(typeof(LinkAttribute), false)
+        var linkAttribute = currentTest.Method!
+            .GetCustomAttributes<LinkAttribute>(inherit: false)
             .First();
         
         if (linkAttribute == null)
         {
-            throw new InvalidOperationException($"Test method '{methodName}' must have a Link attribute when tested on a server.");
+            throw new InvalidOperationException($"Test method '{currentTest.MethodName}' must have a Link attribute when tested on a server.");
         }
         
-        if (!TestMain.Amethyst.Context.UnitTests.TryGetValue(linkAttribute.Path, out var testFunctionScope))
+        var linkPath = ExpandLinkPath(linkAttribute, currentTest);
+        
+        if (!TestMain.Amethyst.Context.UnitTests.TryGetValue(linkPath, out var testFunctionScope))
         {
-            throw new InvalidOperationException($"Test method '{methodName}' could not be linked to function in Amethyst code base.");
+            throw new InvalidOperationException($"Test method '{currentTest.MethodName}' could not be linked to function in Amethyst code base.");
         }
         
         // setup function arguments by sending commands to the server
-        var methodParameters = GetType()
-            .GetMethod(methodName!)!
-            .GetParameters();
+        var methodParameters = currentTest.Method!
+            .GetParameters()
+            .Where(p => p.IsDefined<FunctionParameterAttribute>(inherit: false))
+            .ToArray();
 
         for (var index = 0; index < methodParameters.Length; index++)
         {
             var methodParameter = methodParameters[index];
-            var parameterName = methodParameter.Name;
+            var parameterName = methodParameter.ParameterInfo.Name;
             if (!testFunctionScope.TryGetSymbol(parameterName!, out var parameterSymbol) || parameterSymbol is not Variable parameterVariable)
             {
-                throw new InvalidOperationException($"Test function '{linkAttribute.Path}' does not have a parameter '{parameterName}'.");
+                throw new InvalidOperationException($"Test function '{linkPath}' does not have a parameter '{parameterName}'.");
             }
             
             var argumentValue = currentTest.Arguments[index];
@@ -56,6 +60,44 @@ public abstract class ServerTestBase
         await Context.WaitForCompletion();
     }
 
+    private static string ExpandLinkPath(LinkAttribute linkAttribute, ITest test)
+    {
+        var methodParameters = test.Method!
+            .GetParameters();
+
+        var matches = Regex.Matches(linkAttribute.Path, "{(.*?)}")
+            .Select(m => m.Groups[1].Value);
+
+        var resultPath = linkAttribute.Path;
+            
+        foreach (var match in matches)
+        {
+            var objectPath = match.Split('.');
+            var parameterName = objectPath[0];
+            var parameterIndex = Array.FindIndex(methodParameters, p => p.ParameterInfo.Name == parameterName);
+            if (parameterIndex == -1)
+            {
+                throw new InvalidOperationException($"Parameter '{parameterName}' not found in method '{test.Method.Name}'.");
+            }
+                
+            var parameterValue = test.Arguments[parameterIndex];
+                
+            for (int i = 1; i < objectPath.Length && parameterValue != null; i++)
+            {
+                var prop = parameterValue.GetType().GetProperty(objectPath[i]);
+                if (prop == null)
+                {
+                    throw new InvalidOperationException($"Property '{objectPath[i]}' not found on '{parameterValue.GetType().Name}'.");
+                }
+                parameterValue = prop.GetValue(parameterValue);
+            }
+                
+            resultPath = resultPath.Replace("{" + match + "}", parameterValue?.ToString());
+        }
+        
+        return resultPath;
+    }
+    
     private static async Task SetVariableValue(Variable target, object value)
     {
         string mcfValue = target.ToMcfValue(value);
@@ -70,6 +112,7 @@ public abstract class ServerTestBase
             command = $"data modify storage amethyst {target.Location} set value {mcfValue}";
         }
 
+        TestContext.WriteLine($"-> {command}");
         await TestMain.Rcon.ExecuteCommandAsync(command);
     }
 }

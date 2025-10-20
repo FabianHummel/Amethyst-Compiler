@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Amethyst.Model;
 
 namespace Amethyst.Utility;
@@ -122,11 +120,8 @@ public static class NbtUtility
             {
                 decimalPlaces = decimalPart.Length;
             }
-            
-            return new DecimalDatatype
-            {
-                DecimalPlaces = decimalPlaces
-            };
+
+            return new DecimalDatatype(decimalPlaces);
         }
 
         throw new InvalidOperationException($"Could not parse '{element}' as storage value.");

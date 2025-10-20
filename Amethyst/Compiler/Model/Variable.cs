@@ -11,6 +11,11 @@ public class Variable : Symbol
     {
         if (Location.DataLocation == DataLocation.Scoreboard)
         {
+            if (Datatype is DecimalDatatype decimalDatatype)
+            {
+                value = Math.Round((double)value, decimalDatatype.DecimalPlaces);
+            }
+            
             if (!IScoreboardValue.TryParse(value, out var scoreboardValue))
             {
                 throw new InvalidOperationException($"Cannot convert value '{value}' to scoreboard value.");

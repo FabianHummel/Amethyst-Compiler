@@ -1,5 +1,6 @@
 using Amethyst.Model;
 using Amethyst.Utility;
+using NUnit.Framework;
 using OutParsing;
 using RconSharp;
 
@@ -15,29 +16,40 @@ public class McfTestContext
         this.rcon = rcon;
         this.scope = scope;
     }
+
+    public Task<T> Variable<T>(string identifier)
+    {
+        return Variable<T>(identifier, out _);
+    }
     
-    public async Task<T> Variable<T>(string identifier)
+    public Task<T> Variable<T>(string identifier, out Variable variable)
     {
         var symbol = GetSymbolOrThrow(identifier);
 
-        if (symbol is not Variable variable)
+        if (symbol is not Variable variable2)
         {
             throw new UnitTestException($"Symbol is not a variable: {identifier}");
         }
+        
+        variable = variable2;
 
-        if (variable.Location.DataLocation == DataLocation.Scoreboard)
+        if (variable2.Location.DataLocation == DataLocation.Scoreboard)
         {
-            var scoreboardValue = await GetScoreboardValue(variable.Location);
-            return (T)NbtUtility.ParseScoreboardValue(scoreboardValue, variable.Datatype);
+            return GetScoreboardValue(variable2.Location).ContinueWith(t =>
+            {
+                return (T)NbtUtility.ParseScoreboardValue(t.Result, variable2.Datatype);
+            });
         }
 
-        if (variable.Location.DataLocation == DataLocation.Storage)
+        if (variable2.Location.DataLocation == DataLocation.Storage)
         {
-            var storageValue = await GetStorageValue(variable.Location);
-            return (T)NbtUtility.ParseStorageValue(storageValue, variable.Datatype);
+            return GetStorageValue(variable2.Location).ContinueWith(t =>
+            {
+                return (T)NbtUtility.ParseStorageValue(t.Result, variable2.Datatype);
+            });
         }
 
-        throw new InvalidOperationException($"Unknown data location '{variable.Location.DataLocation}'.");
+        throw new InvalidOperationException($"Unknown data location '{variable2.Location.DataLocation}'.");
     }
     
     private Symbol GetSymbolOrThrow(string identifier)
@@ -53,6 +65,7 @@ public class McfTestContext
     private async Task<int> GetScoreboardValue(Location location)
     {
         var command = $"scoreboard players get {location}";
+        TestContext.WriteLine($"<- {command}");
         var result = await rcon.ExecuteCommandAsync(command);
         if (result == null)
         {
@@ -86,6 +99,7 @@ public class McfTestContext
     private async Task<string> GetStorageValue(Location location)
     {
         var command = $"data get storage {location}";
+        TestContext.WriteLine($"<- {command}");
         var result = await rcon.ExecuteCommandAsync(command);
         if (result == null)
         {

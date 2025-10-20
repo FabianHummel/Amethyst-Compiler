@@ -44,8 +44,10 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
         {
             var runtimeDecimalLhs = (RuntimeDecimal)decimalLhs.EnsureRuntimeValue();
             var runtimeDecimalRhs = (RuntimeDecimal)decimalRhs.EnsureRuntimeValue();
-            ApplyDecimalScaling(ref runtimeDecimalLhs, ref runtimeDecimalRhs);
-            return PerformCalculation(runtimeDecimalLhs, runtimeDecimalRhs, op);
+            var resultScaling = ApplyDecimalScaling(ref runtimeDecimalLhs, ref runtimeDecimalRhs, op);
+            var decimalResult = (RuntimeDecimal)PerformCalculation(runtimeDecimalLhs, runtimeDecimalRhs, op);
+            decimalResult.DecimalPlaces = resultScaling;
+            return decimalResult;
         }
         
         var runtimeLhs = lhs.EnsureRuntimeValue();
@@ -203,26 +205,46 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
     /// Applies decimal scaling to two runtime decimal values so that they have the same number
     /// of decimal places in order to perform arithmetic operations on them through scoreboards.
     /// </summary>
-    private void ApplyDecimalScaling(ref RuntimeDecimal lhs, ref RuntimeDecimal rhs)
+    private int ApplyDecimalScaling(ref RuntimeDecimal lhs, ref RuntimeDecimal rhs, ArithmeticOperator? op = null)
     {
-        var weightedDecimalPlaces = lhs.DecimalPlaces - rhs.DecimalPlaces;
-        var highestDecimalPlaces = Math.Max(lhs.DecimalPlaces, rhs.DecimalPlaces);
-        
-        var scale = (int)Math.Pow(10, Math.Abs(weightedDecimalPlaces));
-        
-        if (weightedDecimalPlaces < 0)
+        switch (op)
         {
-            lhs = (RuntimeDecimal)lhs.EnsureBackedUp();
-            lhs.DecimalPlaces = highestDecimalPlaces;
-            this.AddCode($"scoreboard players operation {lhs.Location} *= .{scale} amethyst_const");
+            case ArithmeticOperator.ADD or ArithmeticOperator.SUBTRACT or ArithmeticOperator.MODULO:
+            {
+                var weightedDecimalPlaces = lhs.DecimalPlaces - rhs.DecimalPlaces;
+                var highestDecimalPlaces = Math.Max(lhs.DecimalPlaces, rhs.DecimalPlaces);
+        
+                var scale = (int)Math.Pow(10, Math.Abs(weightedDecimalPlaces));
+        
+                if (weightedDecimalPlaces < 0)
+                {
+                    lhs = (RuntimeDecimal)lhs.EnsureBackedUp();
+                    lhs.DecimalPlaces = highestDecimalPlaces;
+                    this.AddCode($"scoreboard players operation {lhs.Location} *= .{scale} amethyst_const");
+                }
+        
+                if (weightedDecimalPlaces > 0)
+                {
+                    rhs = (RuntimeDecimal)rhs.EnsureBackedUp();
+                    lhs.DecimalPlaces = highestDecimalPlaces;
+                    this.AddCode($"scoreboard players operation {rhs.Location} *= .{scale} amethyst_const");
+                }
+
+                return highestDecimalPlaces;
+            }
+            
+            case ArithmeticOperator.MULTIPLY:
+            {
+                return lhs.DecimalPlaces + rhs.DecimalPlaces;
+            }
+            
+            case ArithmeticOperator.DIVIDE:
+            {
+                return lhs.DecimalPlaces - rhs.DecimalPlaces;
+            }
         }
         
-        if (weightedDecimalPlaces > 0)
-        {
-            rhs = (RuntimeDecimal)rhs.EnsureBackedUp();
-            lhs.DecimalPlaces = highestDecimalPlaces;
-            this.AddCode($"scoreboard players operation {rhs.Location} *= .{scale} amethyst_const");
-        }
+        throw new InvalidOperationException("Decimal scaling can only be applied for arithmetic operations.");
     }
 
     /// <summary>

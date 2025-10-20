@@ -33,7 +33,13 @@ public interface IScoreboardValue : IConstantValue
         
         if (value is double doubleValue)
         {
-            var decimalPlaces = doubleValue.ToString(CultureInfo.InvariantCulture).Split('.').Last().Length;
+            var invariantDoubleString = doubleValue.ToString(CultureInfo.InvariantCulture);
+            
+            var decimalPlaces = 0;
+            if (invariantDoubleString.Contains('.'))
+            {
+                decimalPlaces = invariantDoubleString.Split('.').Last().Length;
+            }
             
             result = new ConstantDecimal
             {

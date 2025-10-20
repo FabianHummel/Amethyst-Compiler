@@ -1,19 +1,25 @@
 using System.Diagnostics;
 using System.Net.Sockets;
+using System.Text.RegularExpressions;
 using Amethyst;
+using Fluid;
 using NUnit.Framework;
 using RconSharp;
+using Tests.Presets;
 
 namespace Tests;
 
 [SetUpFixture]
 public static partial class TestMain
 {
+    private static readonly FluidParser _parser = new();
+    
     [OneTimeSetUp]
     public static async Task SetupTestEnvironment()
     {
         ResetServerWorld();
-        Amethyst = new Processor("datapack", 0, rethrowErrors: true);
+        ExpandFluidTemplates();
+        CompileAmethystDatapack();
         StartServer();
         await ConnectToServerRcon();
     }
@@ -33,6 +39,39 @@ public static partial class TestMain
         }
         
         Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "world/datapacks"));
+    }
+
+    private static void ExpandFluidTemplates()
+    {
+        var model = new
+        {
+            ArithmeticOperators = ArithmeticOperatorTestCase.Preset,
+            DefaultNumericTypes = NumericTypeTestCase.DefaultPreset,
+            AllNumericTypes = NumericTypeTestCase.AllPreset
+        };
+
+        var context = new TemplateContext(model, new TemplateOptions
+        {
+            MemberAccessStrategy = new UnsafeMemberAccessStrategy
+            {
+                MemberNameStrategy = MemberNameStrategies.SnakeCase
+            }
+        });
+
+        foreach (var liquidTemplatePath in Directory.GetFiles("datapack", "*.liquid", SearchOption.AllDirectories))
+        {
+            var templateContent = File.ReadAllText(liquidTemplatePath);
+            var template = _parser.Parse(templateContent);
+            var renderedContent = template.Render(context);
+
+            var outputPath = Regex.Replace(liquidTemplatePath, @"\.liquid$", "");
+            File.WriteAllText(outputPath, renderedContent);
+        }
+    }
+    
+    private static void CompileAmethystDatapack()
+    {
+        Amethyst = new Processor("datapack", 0, rethrowErrors: true);
     }
 
     private static void StartServer()
