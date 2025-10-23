@@ -2,7 +2,7 @@ using Amethyst.Language;
 
 namespace Amethyst;
 
-public class AmethystParseListener : AmethystBaseListener
+public class AmethystParseListener : AmethystParserBaseListener
 {
     private Parser Parser { get; }
     private int _depth;
@@ -28,30 +28,30 @@ public class AmethystParseListener : AmethystBaseListener
 
     public override void ExitPreprocessorFromDeclaration(AmethystParser.PreprocessorFromDeclarationContext context)
     {
-        if (context.RESOURCE_LITERAL() is not { } resourcePath)
+        if (context.RESOURCE_LITERAL() is not { } resourceLiteral)
         {
             return;
         }
-
+        
         var symbols = context.IDENTIFIER()
             .Select(s => s.GetText())
             .ToList();
 
         foreach (var symbolName in symbols)
         {
-            if (!Parser.SourceFile!.ExportedSymbols.ContainsKey(symbolName) &&
-                !Parser.SourceFile!.ImportedSymbols.TryAdd(symbolName, resourcePath.GetText()[1..^1]))
+            if (!Parser.SourceFile.ExportedSymbols.ContainsKey(symbolName) &&
+                !Parser.SourceFile.ImportedSymbols.TryAdd(symbolName, resourceLiteral.GetText()[1..^1]))
             {
-                throw new SyntaxException($"'{symbolName}' is already declared in this scope.", context);
+                throw new SymbolAlreadyDeclaredException(symbolName, context);
             }
         }
     }
     
     public override void ExitDeclaration(AmethystParser.DeclarationContext context)
     {
-        if (Parser.RegistryName != Constants.DATAPACK_FUNCTIONS_DIRECTORY)
+        if (Parser.SourceFile.Registry != Constants.DatapackFunctionsDirectory)
         {
-            throw new SyntaxException($"Runtime declarations must go inside the '{Constants.DATAPACK_FUNCTIONS_DIRECTORY}' registry.", context);
+            throw new SyntaxException($"Runtime declarations must go inside the '{Constants.DatapackFunctionsDirectory}' registry.", context);
         }
 
         string? symbolName = null;
@@ -78,10 +78,10 @@ public class AmethystParseListener : AmethystBaseListener
             return; // Only register top-level declarations
         }
         
-        if (!Parser.SourceFile!.ExportedSymbols.TryAdd(symbolName, context) && 
-            !Parser.SourceFile!.ImportedSymbols.ContainsKey(symbolName))
+        if (!Parser.SourceFile.ExportedSymbols.TryAdd(symbolName, context) && 
+            !Parser.SourceFile.ImportedSymbols.ContainsKey(symbolName))
         {
-            throw new SemanticException($"Symbol '{symbolName}' is already declared in this scope.", context);
+            throw new SymbolAlreadyDeclaredException(symbolName, context);
         }
     }
 
@@ -96,12 +96,12 @@ public class AmethystParseListener : AmethystBaseListener
         
         var entryPointAttributes = new HashSet<string>
         {
-            Constants.ATTRIBUTE_LOAD_FUNCTION,
-            Constants.ATTRIBUTE_TICK_FUNCTION
+            Constants.AttributeLoadFunction,
+            Constants.AttributeTickFunction
         };
         if (attributes.Overlaps(entryPointAttributes))
         {
-            Parser.SourceFile!.EntryPointFunctions.Add(fnName, context);
+            Parser.SourceFile.EntryPointFunctions.Add(fnName, context);
         }
     }
 }

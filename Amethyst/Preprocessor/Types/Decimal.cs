@@ -6,7 +6,7 @@ public partial class PreprocessorDecimal : AbstractNumericPreprocessorValue, IPr
 {
     public required double Value { get; set; }
     
-    public override PreprocessorDataType DataType => new()
+    public override PreprocessorDatatype Datatype => new()
     {
         BasicType = BasicPreprocessorType.Dec
     };

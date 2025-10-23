@@ -6,19 +6,23 @@ namespace Amethyst;
 
 public class Parser
 {
-    public string? RegistryName { get; set; }
-    public SourceFile? SourceFile { get; set; }
+    public SourceFile SourceFile { get; set; } = null!;
     
-    public AmethystParser.FileContext Parse(SourceFile sourceFile)
+    public void Parse(SourceFile sourceFile, string path)
+    {
+        var stream = File.OpenRead(path);
+        Parse(sourceFile, stream);
+    }
+
+    public void Parse(SourceFile sourceFile, Stream fileStream)
     {
         SourceFile = sourceFile;
-        var stream = File.OpenRead(sourceFile.Path);
-        var inputStream = new AmethystInputStream(stream, sourceFile);
+        var inputStream = new AmethystInputStream(fileStream, sourceFile);
         var lexer = new AmethystLexer(inputStream);
         var tokenStream = new CommonTokenStream(lexer);
         var parser = new AmethystParser(tokenStream);
         parser.AddErrorListener(new AmethystErrorListener(this));
         parser.AddParseListener(new AmethystParseListener(this));
-        return parser.file();
+        parser.file();
     }
 }

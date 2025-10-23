@@ -1,6 +1,4 @@
 using System.Diagnostics;
-using Amethyst.Model;
-using static Amethyst.Constants;
 using static Crayon.Output;
 
 namespace Amethyst.Utility;
@@ -108,46 +106,5 @@ public static class ConsoleUtility
     private static string UseColorOption(string withColor, string withoutColor)
     {
         return IsReducedColors ? withoutColor : withColor;
-    }
-}
-
-public static class AmethystExtensions
-{
-    public static void PrintAmethystLogoAndVersion(this Processor amethyst)
-    {
-        if (ConsoleUtility.IsReducedColors)
-        {
-            Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.Write(" Amethyst ");
-        }
-        else
-        {
-            Console.Write(" \e[1m");
-            Console.Write($"\e[38;5;{98}mA");
-            Console.Write($"\e[38;5;{98}mm");
-            Console.Write($"\e[38;5;{98}me");
-            Console.Write($"\e[38;5;{140}mt");
-            Console.Write($"\e[38;5;{140}mh");
-            Console.Write($"\e[38;5;{183}my");
-            Console.Write($"\e[38;5;{183}ms");
-            Console.Write($"\e[38;5;{183}mt");
-            Console.Write("\e[22m ");
-        }
-        
-        Console.ForegroundColor = ConsoleColor.DarkGray;
-        Console.Write("v" + AMETHYST_VERSION);
-        if (amethyst.Context.CompilerFlags.HasFlag(CompilerFlags.Watch))
-        {
-            Console.ForegroundColor = ConsoleColor.DarkCyan;
-            Console.Write(" (watch mode)");
-        }
-        if (amethyst.Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
-        {
-            Console.ForegroundColor = ConsoleColor.DarkYellow;
-            Console.Write(" (debug mode)");
-        }
-        Console.WriteLine();
-        Console.ResetColor();
-        Console.WriteLine();
     }
 }

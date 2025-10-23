@@ -17,7 +17,7 @@ public partial class Compiler
 
         if (result is not IIndexable indexable)
         {
-            throw new SyntaxException($"Type '{result.DataType}' is not indexable.", context);
+            throw new SyntaxException($"Type '{result.Datatype}' is not indexable.", context);
         }
 
         return indexable.GetIndex(index);

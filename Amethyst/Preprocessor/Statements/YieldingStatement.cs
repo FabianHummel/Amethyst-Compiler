@@ -1,5 +1,4 @@
 using Amethyst.Language;
-using System.Collections.Generic;
 using Amethyst.Model;
 using Antlr4.Runtime;
 

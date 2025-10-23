@@ -2,23 +2,15 @@ using Antlr4.Runtime;
 
 namespace Amethyst;
 
-public class SemanticException : Exception
+public class SemanticException : AmethystException
 {
-    public int Line { get; }
-    public int Column { get; }
-    public string File { get; }
-    
-    public SemanticException(string message, int line, int column, string file) : base(message)
+    public SemanticException(string message, int line, int column, string file) : base(
+        $"Semantic error: {file} ({line}:{column}): {message}")
     {
-        Line = line;
-        Column = column;
-        File = file;
     }
     
-    public SemanticException(string message, ParserRuleContext context) : base(message)
+    public SemanticException(string message, ParserRuleContext context) : this(
+        message, context.Start.Line, context.Start.Column, context.Start.InputStream.SourceName)
     {
-        Line = context.Start.Line;
-        Column = context.Start.Column;
-        File = context.Start.InputStream.SourceName;
     }
 }

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Amethyst.Language;
 using Amethyst.Model;
 
@@ -16,7 +15,7 @@ public partial class Compiler
             {
                 Compiler = this,
                 Context = literalContext,
-                Value = stringLiteral.Symbol.Text.Substring(1, stringLiteral.Symbol.Text.Length - 2) // Remove quotes
+                Value = stringLiteral.GetText()[1..^1]
             };
         }
         
@@ -27,7 +26,7 @@ public partial class Compiler
                 throw new SyntaxException($"Invalid decimal literal '{decimalLiteral.GetText()}'.", literalContext);
             }
 
-            var decimalPlaces = DecimalDataType.DEFAULT_DECIMAL_PLACES;
+            var decimalPlaces = DecimalDatatype.DEFAULT_DECIMAL_PLACES;
             
             if (decimalLiteral.GetText().Split('.').LastOrDefault() is { } decimalPart)
             {
@@ -83,7 +82,18 @@ public partial class Compiler
         {
             return VisitObjectCreation(objectCreation);
         }
+
+        if (literalContext.rawLocation() is { } rawLocationContext)
+        {
+            var rawLocation = VisitRawLocation(rawLocationContext);
+            return new RawLocation
+            {
+                Compiler = this,
+                Context = literalContext,
+                Location = rawLocation
+            };
+        }
         
-        throw new InvalidOperationException($"Invalid literal '{literalContext}'.");
+        throw new InvalidOperationException($"Invalid literal '{literalContext.GetText()}'.");
     }
 }

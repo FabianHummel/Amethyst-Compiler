@@ -6,3 +6,5 @@ riderModule.iml
 .DS_Store
 .idea/
 .texpadtmp/
+*.DotSettings.user
+Amethyst/Playground/output/

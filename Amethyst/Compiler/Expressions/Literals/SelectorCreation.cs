@@ -27,13 +27,15 @@ public partial class Compiler
         if (containsRuntimeValues)
         {
             AbstractValue value = null!;
-            
-            var scope = EvaluateScoped("_create_selector", _ =>
+
+            string mcFunctionPath;
+            using (this.EvaluateScoped("_create_selector"))
             {
+                mcFunctionPath = Scope.McFunctionPath;
                 value = CreateSelector(isMacroInvocation: true);
-            });
+            }
             
-            AddCode($"function {scope.McFunctionPath} with storage amethyst:");
+            this.AddCode($"function {mcFunctionPath} with storage amethyst:");
 
             return value;
         }
@@ -69,12 +71,12 @@ public partial class Compiler
         {
             var prefix = isMacroInvocation ? "$" : string.Empty;
             
-            var location = ++StackPointer;
+            var location = Location.Storage(++StackPointer);
 
             if (IsSelectorSingleTarget(selector, limitExpression))
             {
-                AddCode($"{prefix}execute as {selectorString} run function amethyst:libraries/gu/generate");
-                AddCode($"data modify storage amethyst: {location} set from storage gu:main out");
+                this.AddCode($"{prefix}execute as {selectorString} run function amethyst:libraries/gu/generate");
+                this.AddCode($"data modify storage {location} set from storage gu:main out");
             
                 return new RuntimeEntity
                 {
@@ -85,15 +87,17 @@ public partial class Compiler
                 };
             }
         
-            AddCode($"data modify storage amethyst: {location} set value []");
+            this.AddCode($"data modify storage {location} set value []");
 
-            var scope = EvaluateScoped("_multi_selector", _ =>
+            string mcFunctionPath;
+            using (this.EvaluateScoped("_multi_selector"))
             {
-                AddCode("function amethyst:libraries/gu/generate");
-                AddCode($"data modify storage amethyst: {location} append from storage gu:main out");
-            });
-        
-            AddCode($"{prefix}execute as {selectorString} run function {scope.McFunctionPath}");
+                mcFunctionPath = Scope.McFunctionPath;
+                this.AddCode("function amethyst:libraries/gu/generate");
+                this.AddCode($"data modify storage {location} append from storage gu:main out");
+            }
+
+            this.AddCode($"{prefix}execute as {selectorString} run function {mcFunctionPath}");
 
             return new RuntimeStaticArray
             {
@@ -106,7 +110,7 @@ public partial class Compiler
         }
     }
     
-    public override SelectorQueryResult VisitSelectorKvp(AmethystParser.SelectorKvpContext context)
+    public SelectorQueryResult VisitSelectorKvp(AmethystParser.SelectorKvpContext context)
     {
         if (context is AmethystParser.ExpressionSelectorContext expressionSelectorContext)
         {
@@ -210,7 +214,7 @@ public partial class Compiler
             "type", "level", "gamemode", "team",
             "tag", "name", "records", "distance",
             "x_rotation", "y_rotation", "advancement",
-            "predicate", "nbt", "limit", "sort",
+            "predicate", "nbt", "limit", "sort"
         };
         
         var queryString = new List<string>();

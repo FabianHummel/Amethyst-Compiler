@@ -6,7 +6,7 @@ public partial class PreprocessorInteger : AbstractNumericPreprocessorValue, IPr
 {
     public required int Value { get; set; }
     
-    public override PreprocessorDataType DataType => new()
+    public override PreprocessorDatatype Datatype => new()
     {
         BasicType = BasicPreprocessorType.Int
     };

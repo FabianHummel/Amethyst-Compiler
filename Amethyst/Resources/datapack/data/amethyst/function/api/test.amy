@@ -1,0 +1,8 @@
+#| Tells the test runner that a unit test is completed arranging and acting.
+#| Whether the test is successful is up to the assertions at the C# side.
+[no_mangle]
+function complete()
+{
+    /execute if function amethyst:internal/test/complete_extended_protocol run return fail
+    /scoreboard players set #completed amethyst_test 1
+}

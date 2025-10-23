@@ -6,73 +6,94 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override DataType VisitType(AmethystParser.TypeContext context)
+    public override AbstractDatatype VisitType(AmethystParser.TypeContext context)
     {
         Modifier? modifier = null;
-        
-        if (context.GetChild(1) is { } modifierContext)
+        if (context.LRBRACKET() != null)
+        {
+            modifier = Modifier.Array;
+        }
+        else if (context.LRBRACE() != null)
+        {
+            modifier = Modifier.Object;
+        }
+        else if (context.GetChild(1) is { } modifierContext)
         {
             var modifierString = modifierContext.GetText();
-            modifier = modifierString switch
-            {
-                "[]" => Modifier.Array,
-                "{}" => Modifier.Object,
-                _ => throw new SyntaxException($"Invalid type modifier '{modifierString}'.", context)
-            };
+            throw new InvalidOperationException($"Invalid type modifier '{modifierString}'.");
         }
         
         if (context.@decimal() is { } decimalContext)
         {
-            var numDecimalPlaces = DecimalDataType.DEFAULT_DECIMAL_PLACES;
+            var numDecimalPlaces = DecimalDatatype.DEFAULT_DECIMAL_PLACES;
 
             if (decimalContext.INTEGER_LITERAL() is { } integerLiteral)
             {
                 numDecimalPlaces = int.Parse(integerLiteral.Symbol.Text);
             }
             
-            return new DecimalDataType
+            return new DecimalDatatype(numDecimalPlaces)
             {
-                BasicType = BasicType.Dec,
-                DecimalPlaces = numDecimalPlaces,
                 Modifier = modifier
             };
         }
 
-        var basicTypeString = context.GetChild(0).GetText();
-        var basicType = basicTypeString switch
+        if (context.rawLocation() is { } rawLocationContext)
         {
-            "int" => BasicType.Int,
-            "string" => BasicType.String,
-            "bool" => BasicType.Bool,
-            "array" => BasicType.Array,
-            "object" => BasicType.Object,
-            _ => throw new SyntaxException($"Invalid basic type '{basicTypeString}'.", context)
-        };
+            return VisitRawLocation(rawLocationContext);
+        }
+
+        BasicType basicType;
+        if (context.INT() != null)
+        {
+            basicType = BasicType.Int;
+        }
+        else if (context.STRING() != null)
+        {
+            basicType = BasicType.String;
+        }
+        else if (context.BOOL() != null)
+        {
+            basicType = BasicType.Bool;
+        }
+        else if (context.ARRAY() != null)
+        {
+            basicType = BasicType.Array;
+        }
+        else if (context.OBJECT() != null)
+        {
+            basicType = BasicType.Object;
+        }
+        else if (context.ENTITY() != null)
+        {
+            basicType = BasicType.Entity;
+        }
+        else
+        {
+            var basicTypeString = context.GetChild(0).GetText();
+            throw new InvalidOperationException($"Invalid basic type '{basicTypeString}'.");
+        }
         
-        return new DataType
-        {
-            BasicType = basicType,
-            Modifier = modifier
-        };
+        return AbstractDatatype.Parse(basicType, modifier);
     }
     
-    private DataType GetOrInferTypeResult(IRuntimeValue result, AmethystParser.TypeContext? typeContext, ParserRuleContext context)
+    private AbstractDatatype GetOrInferTypeResult(IRuntimeValue result, AmethystParser.TypeContext? typeContext, ParserRuleContext context)
     {
-        DataType? type = null;
+        AbstractDatatype? type = null;
         
         if (typeContext != null)
         {
             type = VisitType(typeContext);
         }
         // if two types are defined, check if they match
-        if (type != null && type != result.DataType)
+        if (type != null && type != result.Datatype)
         {
-            throw new SyntaxException($"The type '{type}' does not match the inferred type '{result.DataType}'.", context);
+            throw new SyntaxException($"The type '{type}' does not match the inferred type '{result.Datatype}'.", context);
         }
         // if no type is defined, we infer it
         if (type == null)
         {
-            type = result.DataType;
+            type = result.Datatype;
         }
         
         return type;

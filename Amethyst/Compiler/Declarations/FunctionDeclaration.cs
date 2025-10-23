@@ -8,36 +8,99 @@ public partial class Compiler
 {
     public override object? VisitFunctionDeclaration(AmethystParser.FunctionDeclarationContext context)
     {
-        if (Context.Datapack is null)
+        if (Context.Configuration.Datapack is null)
         {
-            throw new SyntaxException($"Consider configuring a datapack in '{CONFIG_FILE}' in order to use functions.", context);
+            throw new SyntaxException($"Consider configuring a datapack in '{ConfigFile}' in order to use functions.", context);
         }
         
         var functionName = context.IDENTIFIER().GetText();
-        if (Scope.TryGetSymbol(functionName, out _))
+        if (TryGetSymbol(functionName, out _, context, checkExportedSymbols: false))
         {
             throw new SymbolAlreadyDeclaredException(functionName, context);
         }
         
-        var scope = VisitBlockNamed(context.block(), "_func");
-
         var attributes = VisitAttributeList(context.attributeList());
-        
-        if (attributes.Contains(ATTRIBUTE_TICK_FUNCTION))
+
+        var isNoMangle = attributes.Contains(AttributeUnitTestFunction) || attributes.Contains(AttributeNoMangle);
+
+        var parameters = Array.Empty<Variable>();
+
+        string mcFunctionPath;
+        using (this.EvaluateScoped(isNoMangle ? functionName : "_func", preserveName: isNoMangle))
         {
-            Context.Datapack.TickFunctions.Add(scope.McFunctionPath);
+            mcFunctionPath = Scope.McFunctionPath;
+            
+            if (context.parameterList() is { } parameterListContext)
+            {
+                parameters = VisitParameterList(parameterListContext);
+            }
+        
+            if (attributes.Contains(AttributeUnitTestFunction))
+            {
+                Context.UnitTests.Add(Scope.McFunctionPath, Scope);
+            }
+            
+            VisitBlockInline(context.block());
         }
         
-        if (attributes.Contains(ATTRIBUTE_LOAD_FUNCTION))
+        if (attributes.Contains(AttributeTickFunction))
         {
-            Context.Datapack.LoadFunctions.Add(scope.McFunctionPath);
+            Context.Configuration.Datapack.TickFunctions.Add(mcFunctionPath);
         }
         
-        Scope.Symbols.Add(functionName, new Function
+        if (attributes.Contains(AttributeLoadFunction))
         {
-            Attributes = attributes
-        });
+            Context.Configuration.Datapack.LoadFunctions.Add(mcFunctionPath);
+        }
+        
+        var function = new Function
+        {
+            Attributes = attributes,
+            Parameters = parameters,
+            McFunctionPath = mcFunctionPath
+        };
+
+        if (!Scope.Symbols.TryAdd(functionName, function)) 
+        {
+           throw new SymbolAlreadyDeclaredException(functionName, context); 
+        }
         
         return null;
+    }
+    
+    public override Variable[] VisitParameterList(AmethystParser.ParameterListContext context)
+    {
+        var parameters = new List<Variable>();
+        foreach (var parameterContext in context.parameter())
+        {
+            var parameter = VisitParameter(parameterContext);
+            
+            if (!Scope.Symbols.TryAdd(parameter.Name, parameter))
+            {
+                throw new SymbolAlreadyDeclaredException(parameter.Name, context);
+            }
+            
+            parameters.Add(parameter);
+        }
+        
+        return parameters.ToArray();
+    }
+    
+    public override Variable VisitParameter(AmethystParser.ParameterContext context)
+    {
+        var datatype = VisitType(context.type());
+        var numericLocation = ++StackPointer;
+        
+        return new Variable
+        {
+            Name = context.IDENTIFIER().GetText(),
+            Datatype = datatype,
+            Attributes = VisitAttributeList(context.attributeList()),
+            Location = new Location
+            {
+                Name = numericLocation.ToString(),
+                DataLocation = datatype.DataLocation
+            }
+        };
     }
 }

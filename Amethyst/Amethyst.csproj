@@ -8,24 +8,17 @@
         <LangVersion>preview</LangVersion>
         <Version>1.0.1</Version>
     </PropertyGroup>
-
-    <ItemGroup>
-        <AdditionalFiles Include="Language/Amethyst.g4" />
-    </ItemGroup>
     
     <ItemGroup>
-      <PackageReference Include="Antlr4" Version="4.6.6">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-      <PackageReference Include="Antlr4.Runtime" Version="4.6.6" />
+      <PackageReference Include="Autofac" Version="8.4.0" />
       <PackageReference Include="CommandLineParser" Version="2.9.1" />
       <PackageReference Include="Crayon" Version="2.0.69" />
       <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
-      <PackageReference Include="Tommy" Version="3.1.2" />
+      <PackageReference Include="Samboy063.Tomlet" Version="6.1.0" />
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Language\Language.csproj" />
         <ProjectReference 
                 Include="..\SourceGenerators\SourceGenerators.csproj" 
                 OutputItemType="Analyzer" 
@@ -42,7 +35,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Playground\output\Test Project\data\test\" />
+      <Folder Include="Playground\output\" />
       <Folder Include="Playground\src\" />
       <Folder Include="Resources\resourcepack\assets\" />
     </ItemGroup>

@@ -2,16 +2,30 @@ namespace Amethyst.Model;
 
 public class Context
 {
-    public string ProjectId { get; set; } = null!;
-    public CompilerFlags CompilerFlags { get; set; }
-    public string? MinecraftRoot { get; set; }
-    public string SourcePath { get; set; } = null!;
-    public Datapack? Datapack { get; set; }
-    public Resourcepack? Resourcepack { get; set; }
-    public Dictionary<string, Namespace> Namespaces { get; } = new();
+    public string RootDir { get; }
+    public CompilerFlags CompilerFlags { get; }
+    public string SourcePath { get; }
+    public Configuration Configuration { get; }
+    public Dictionary<string, SourceFile> SourceFiles { get; } = new();
+    public Dictionary<string, Scope> UnitTests { get; } = new();
 
-    public void Clear()
+    public Context(string rootDir, CompilerFlags compilerFlags, Configuration configuration)
     {
-        Namespaces.Clear();
+        RootDir = rootDir;
+        CompilerFlags = compilerFlags;
+        Configuration = configuration;
+        SourcePath = Path.Combine(RootDir, Constants.SourceDirectory);
     }
+
+    public Context(Context copy)
+    {
+        RootDir = copy.RootDir;
+        CompilerFlags = copy.CompilerFlags;
+        SourcePath = copy.SourcePath;
+        Configuration = copy.Configuration;
+    }
+
+    public IEnumerable<string> Namespaces => SourceFiles.Values
+        .GroupBy(sf => sf.Namespace)
+        .Select(g => g.Key);
 }

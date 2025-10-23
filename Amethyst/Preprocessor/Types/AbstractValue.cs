@@ -5,7 +5,7 @@ namespace Amethyst;
 
 public abstract partial class AbstractPreprocessorValue : IPreprocessorValue
 {
-    public abstract PreprocessorDataType DataType { get; }
+    public abstract PreprocessorDatatype Datatype { get; }
     
     public required Compiler Compiler { get; init; }
     

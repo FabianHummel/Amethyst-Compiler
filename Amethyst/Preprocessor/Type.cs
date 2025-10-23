@@ -1,26 +1,27 @@
 using Amethyst.Language;
 using Amethyst.Model;
+using Amethyst.Utility;
 
 namespace Amethyst;
 
 public partial class Compiler
 {
-    public override PreprocessorDataType VisitPreprocessorType(AmethystParser.PreprocessorTypeContext context)
+    public override PreprocessorDatatype VisitPreprocessorType(AmethystParser.PreprocessorTypeContext context)
     {
         var basicTypeString = context.GetChild(0).GetText();
-        var basicType = basicTypeString switch
-        {
-            "INT" => BasicPreprocessorType.Int,
-            "STRING" => BasicPreprocessorType.String,
-            "BOOL" => BasicPreprocessorType.Bool,
-            "DEC" => BasicPreprocessorType.Dec,
-            "RESOURCE" => BasicPreprocessorType.Resource,
-            _ => throw new SyntaxException($"Invalid basic type '{basicTypeString}'.", context)
-        };
 
-        return new PreprocessorDataType
+        var basicType = Enum.GetValues<BasicPreprocessorType>()
+            .Cast<BasicPreprocessorType?>()
+            .FirstOrDefault(t => t?.GetDescription() == basicTypeString);
+
+        if (basicType == null)
         {
-            BasicType = basicType
+            throw new InvalidOperationException($"Unknown basic type: {basicTypeString}");
+        }
+
+        return new PreprocessorDatatype
+        {
+            BasicType = basicType.Value
         };
     }
 }

@@ -1,0 +1,6 @@
+id = "amethyst_unit_tests"
+minecraft = "./"
+
+[datapack]
+name = "Amethyst Unit Tests"
+description = "A collection of unit tests to verify Amethyst's functionality."

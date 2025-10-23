@@ -1,44 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
 using Amethyst.Language;
 using Amethyst.Model;
-using Antlr4.Runtime;
 
 namespace Amethyst;
 
 public partial class Compiler
 {
-    private Symbol GetSymbol(string symbolName, ParserRuleContext context)
-    {
-        var sourceFile = SourceFile;
-        return FindSymbolRecursive();
-
-        Symbol FindSymbolRecursive()
-        {
-            if (Scope.TryGetSymbol(symbolName, out var symbol))
-            {
-                return symbol;
-            }
-
-            if (sourceFile.ExportedSymbols.TryGetValue(symbolName, out var declarationContext))
-            {
-                VisitDeclaration(declarationContext);
-                return FindSymbolRecursive();
-            }
-
-            if (sourceFile.ImportedSymbols.TryGetValue(symbolName, out var resourcePath))
-            {
-                sourceFile = VisitResource(resourcePath, Constants.DATAPACK_FUNCTIONS_DIRECTORY, context);
-                var previousScope = Scope;
-                Scope = sourceFile.RootScope;
-                symbol = FindSymbolRecursive();
-                Scope = previousScope;
-                return symbol;
-            }
-
-            throw new SemanticException($"Symbol '{symbolName}' does not exist in the current scope.", context);
-        }
-    }
-    
     public override AbstractValue VisitIdentifierExpression(AmethystParser.IdentifierExpressionContext context)
     {
         var symbolName = context.IDENTIFIER().GetText();
@@ -46,7 +12,7 @@ public partial class Compiler
         
         if (symbol is Variable variable)
         {
-            if (variable.DataType.Modifier is { } modifier)
+            if (variable.Datatype.Modifier is { } modifier)
             {
                 return modifier switch
                 {
@@ -55,20 +21,20 @@ public partial class Compiler
                         Compiler = this,
                         Context = context,
                         Location = variable.Location,
-                        BasicType = variable.DataType.BasicType
+                        BasicType = variable.Datatype.BasicType
                     },
                     Modifier.Object => new RuntimeStaticObject
                     { 
                         Compiler = this, 
                         Context = context, 
                         Location = variable.Location, 
-                        BasicType = variable.DataType.BasicType
+                        BasicType = variable.Datatype.BasicType
                     },
                     _ => throw new InvalidOperationException($"Invalid type modifier '{modifier}'.")
                 };
             }
 
-            return variable.DataType.BasicType switch
+            return variable.Datatype.BasicType switch
             {
                 BasicType.Int => new RuntimeInteger
                 { 
@@ -81,7 +47,7 @@ public partial class Compiler
                     Compiler = this, 
                     Context = context, 
                     Location = variable.Location,
-                    DecimalPlaces = (variable.DataType as DecimalDataType)!.DecimalPlaces
+                    DecimalPlaces = (variable.Datatype as DecimalDatatype)!.DecimalPlaces
                 },
                 BasicType.Bool => new RuntimeBoolean
                 { 
@@ -107,7 +73,19 @@ public partial class Compiler
                     Context = context, 
                     Location = variable.Location
                 },
-                _ => throw new InvalidOperationException($"Invalid basic type '{variable.DataType.BasicType}'.")
+                BasicType.Raw => new RawLocation
+                {
+                    Compiler = this,
+                    Context = context,
+                    Location = variable.Location
+                },
+                BasicType.Entity => new RuntimeEntity
+                {
+                    Compiler = this,
+                    Context = context,
+                    Location = variable.Location
+                },
+                _ => throw new InvalidOperationException($"Invalid basic type '{variable.Datatype.BasicType}'.")
             };
         }
 
@@ -118,7 +96,8 @@ public partial class Compiler
 
         if (symbol is Function function)
         {
-            throw new NotImplementedException("TODO: What to do here?");
+            // HINT: Traditionally, functions are values just like any other value, but not in amethyst. I'm not dealing with that shit
+            throw new SemanticException("Functions cannot be used as values.", context);
         }
 
         throw new InvalidOperationException($"Invalid symbol '{symbol.GetType()}'.");

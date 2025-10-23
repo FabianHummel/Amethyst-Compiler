@@ -3,16 +3,17 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
-public partial class Compiler : AmethystBaseVisitor<object?>
+public partial class Compiler : AmethystParserBaseVisitor<object?>
 {
-    internal Context Context { get; }
-    internal int TotalRecordCount { get; set; } = 0;
-    internal int StackPointer { get; set; } = 0;
+    public Context Context { get; }
+    public SourceFile SourceFile { get; internal set; } = null!;
+    public Scope Scope { get; internal set; } = null!;
+    public Namespace Namespace { get; internal set; } = null!;
+    public int TotalRecordCount { get; internal set; }
+    public int StackPointer { get; internal set; }
     
-    internal Namespace Namespace { get; set; } = null!;
-    internal SourceFile SourceFile { get; set; } = null!;
-    internal Scope Scope { get; set; } = null!;
-    
+    private Dictionary<string, Namespace> _namespaces { get; } = new();
+
     public Compiler(Context context)
     {
         Context = context;
@@ -20,82 +21,47 @@ public partial class Compiler : AmethystBaseVisitor<object?>
     
     public void CompileProject()
     {
-        foreach (var ns in Context.Namespaces.Values)
+        foreach (var sourceFile in Context.SourceFiles.Values)
         {
-            Namespace = ns;
-            CompileNamespace();
+            CompileSourceFile(sourceFile);
+        }
+
+        foreach (var ns in _namespaces.Values)
+        {
+            ns.Dispose();
         }
     }
     
-    public void CompileNamespace()
+    private void CompileSourceFile(SourceFile sourceFile)
     {
-        foreach (var registry in Namespace.Registries.Values)
+        SourceFile = sourceFile;
+        Scope = sourceFile.Scope!;
+        Namespace = GetOrCreateNamespace(sourceFile.Namespace);
+        
+        foreach (var entryPoint in sourceFile.EntryPointFunctions.Values)
         {
-            foreach (var sourceFile in GetSourceFilesInFolder(registry))
+            VisitFunctionDeclaration(entryPoint);
+        }
+            
+        foreach (var (symbolName, symbol) in sourceFile.ExportedSymbols)
+        {
+            if (Scope.Symbols.ContainsKey(symbolName))
             {
-                SourceFile = sourceFile;
-                Scope = sourceFile.RootScope;
-             
-                foreach (var entryPoint in sourceFile.EntryPointFunctions.Values)
-                {
-                    VisitFunctionDeclaration(entryPoint);
-                }
-                
-                foreach (var (symbolName, symbol) in sourceFile.ExportedSymbols)
-                {
-                    if (Scope.Symbols.ContainsKey(symbolName))
-                    {
-                        continue;
-                    }
-                    
-                    VisitDeclaration(symbol);
-                }
+                continue;
             }
+            
+            VisitDeclaration(symbol);
         }
     }
 
-    public static IEnumerable<SourceFile> GetSourceFilesInFolder(SourceFolder sourceFolder)
+    private Namespace GetOrCreateNamespace(string nsName)
     {
-        return sourceFolder.SourceFiles.Values
-            .Concat(sourceFolder.Children.SelectMany(pair => GetSourceFilesInFolder(pair.Value)));
-    }
-    
-    internal void AddCode(string code)
-    {
-        Scope.AddCode(code);
-    }
-    
-    internal void AddInitCode(string code)
-    {
-        Namespace.AddInitCode(code);
-    }
-    
-    internal Scope EvaluateScoped(string name, Action<Action> action)
-    {
-        if (!Scope.Scopes.TryAdd(name, 0))
+        if (!_namespaces.TryGetValue(nsName, out var ns))
         {
-            Scope.Scopes[name]++;
+            ns = new Namespace(nsName, Context);
+            _namespaces[nsName] = ns;
         }
-        
-        var previousScope = Scope;
-        var newScope = Scope = new Scope
-        {
-            Name = name + Scope.Scopes[name],
-            Parent = previousScope,
-            Context = Context
-        };
-        
-        var isCancelled = false;
-        
-        action(() => isCancelled = true);
 
-        if (!isCancelled)
-        {
-            Scope.Dispose();
-        }
-        
-        Scope = previousScope;
-        
-        return newScope;
+        return ns;
     }
 }

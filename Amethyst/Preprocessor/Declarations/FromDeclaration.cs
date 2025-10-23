@@ -6,8 +6,9 @@ public partial class Compiler
 {
     public override object? VisitPreprocessorFromDeclaration(AmethystParser.PreprocessorFromDeclarationContext context)
     {
+        // var resourcePath = VisitResourceLiteral(context.resourceLiteral());
         var resourcePath = context.RESOURCE_LITERAL().GetText()[1..^1];
-        var resource = VisitResource(resourcePath, Constants.DATAPACK_FUNCTIONS_DIRECTORY, context);
+        var resource = VisitResource(resourcePath, Constants.DatapackFunctionsDirectory, context);
 
         var symbols = context.IDENTIFIER()
             .Select(s => s.GetText())

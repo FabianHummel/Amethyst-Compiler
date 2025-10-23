@@ -7,7 +7,7 @@ public partial class Compiler
 {
     public override AbstractValue VisitObjectCreation(AmethystParser.ObjectCreationContext context)
     {
-        DataType? dataType = null;
+        AbstractDatatype? dataType = null;
         var dynamic = false;
         var map = new Dictionary<string, AbstractValue>();
         
@@ -28,7 +28,7 @@ public partial class Compiler
                 {
                     Compiler = this,
                     Context = context,
-                    Value = value,
+                    Value = value
                 };
             }
 
@@ -93,7 +93,7 @@ public partial class Compiler
                     var result = VisitExpression(objectKvpContext.expression());
             
                     // if the initial data type differs from the current data type, we need to make the array dynamic
-                    if (!dynamic && dataType != null && dataType != result.DataType)
+                    if (!dynamic && dataType != null && dataType != result.Datatype)
                     {
                         dynamic = true;
                     }
@@ -101,7 +101,7 @@ public partial class Compiler
                     // set the initial data type if it is not set yet
                     if (!dynamic)
                     {
-                        dataType ??= result.DataType;
+                        dataType ??= result.Datatype;
                     }
             
                     map.Add(key, result);

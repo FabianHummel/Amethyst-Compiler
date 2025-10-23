@@ -7,7 +7,7 @@ public partial class Compiler
 {
     public override AbstractValue VisitArrayCreation(AmethystParser.ArrayCreationContext context)
     {
-        DataType? dataType = null;
+        AbstractDatatype? dataType = null;
         var isDynamic = false;
         var elements = new List<AbstractValue>();
 
@@ -29,7 +29,7 @@ public partial class Compiler
                 {
                     Compiler = this,
                     Context = context,
-                    Value = value,
+                    Value = value
                 };
             }
 
@@ -95,7 +95,7 @@ public partial class Compiler
                     var result = VisitExpression(expressionContext);
                 
                     // if the initial data type differs from the current data type, we need to make the array dynamic
-                    if (!isDynamic && dataType != null && dataType != result.DataType)
+                    if (!isDynamic && dataType != null && dataType != result.Datatype)
                     {
                         isDynamic = true;
                     }
@@ -103,7 +103,7 @@ public partial class Compiler
                     // set the initial data type if it is not set yet
                     if (!isDynamic)
                     {
-                        dataType ??= result.DataType;
+                        dataType ??= result.Datatype;
                     }
                     
                     elements.Add(result);

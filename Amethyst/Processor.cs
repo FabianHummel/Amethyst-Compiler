@@ -1,8 +1,10 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Reflection;
+using System.Resources;
 using Amethyst.Model;
 using Amethyst.Utility;
-using Tommy;
+using Tomlet;
 
 namespace Amethyst;
 
@@ -11,25 +13,52 @@ using static ConsoleUtility;
 
 public class Processor
 {
-    private TomlTable Table { get; set; } = null!;
-    public Context Context { get; } = new();
+    private readonly bool _rethrowErrors;
+    private readonly Parser _parser = new();
     
-    public void ReinitializeProject()
+    public Context Context { get; }
+    
+    public Processor(string rootDir, CompilerFlags compilerFlags, bool rethrowErrors = false)
     {
-        ReadAndSetConfigFile();
-        SetMinecraftRootFolder();
-        SetSourcePath();
+        _rethrowErrors = rethrowErrors;
+        var configuration = ReadAndSetConfigFile(rootDir);
+        if (!Regex.IsMatch(configuration.ProjectId, "^[a-z0-9_]+$"))
+        {
+            throw new InvalidOperationException("Project ID must contain only lowercase letters, digits, or underscores.");
+        }
+        Context = new Context(rootDir, compilerFlags, configuration);
+        PrintConfigInfo(configuration);
         RecompileProject();
     }
     
-    public void RecompileProject()
+    public Processor(Context context, bool rethrowErrors = false)
     {
-        Context.Clear();
+        _rethrowErrors = rethrowErrors;
+        Context = new Context(context);
+        RecompileProject();
+    }
+    
+    public static void CreateFunctionFile(string filePath)
+    {
+        var dirPath = Path.GetDirectoryName(filePath)!;
+        Directory.CreateDirectory(dirPath);
+        
+        using var writer = File.CreateText(filePath);
+        var assembly = Assembly.GetExecutingAssembly();
+        using var stream = assembly.GetManifestResourceStream("Amethyst.Resources.template.mcfunction")!;
+        using var reader = new StreamReader(stream);
+        var template = reader.ReadToEnd();
+        template = template.Replace(Substitutions["amethyst_version"], SubstitutionValues["amethyst_version"].ToString());
+        template = template.Replace(Substitutions["date"], SubstitutionValues["date"].ToString());
+        writer.Write(template);
+    }
+    
+    private void RecompileProject()
+    {
         try
         {
-            SetProjectId();
-            CreateDatapackAndResourcepackContext();
-            CompileProject();
+            CreateDatapackAndResourcepackContext(Context.Configuration);
+            CompileProject(Context.Configuration);
         }
         catch (Exception e)
         {
@@ -39,246 +68,205 @@ public class Processor
             {
                 PrintError(e.StackTrace ?? string.Empty);
             }
+            
+            if (_rethrowErrors)
+            {
+                throw;
+            }
         }
     }
 
-    private void ReadAndSetConfigFile()
+    private static Configuration ReadAndSetConfigFile(string rootDir)
     {
         try
         {
-            using (var reader = File.OpenText(CONFIG_FILE))
-            {
-                Table = TOML.Parse(reader);
-            }
+            var configPath = Path.Combine(rootDir, ConfigFile);
+            using var reader = File.OpenText(configPath);
+            var tomlConfiguration = reader.ReadToEnd();
+            return TomletMain.To<Configuration>(tomlConfiguration);
         }
         catch (Exception)
         {
-            PrintError($"Missing or invalid configuration file '{CONFIG_FILE}' found in current working directory '{Environment.CurrentDirectory}'");
+            PrintError($"Missing or invalid configuration file '{ConfigFile}' found in project directory '{rootDir}'");
             throw;
         }
     }
 
-    private void SetMinecraftRootFolder()
+    private void PrintConfigInfo(Configuration config)
     {
-        if (Table["minecraft"].AsString is { } dir)
+        var minecraftRootFolder = GetMinecraftRootFolder(config.MinecraftRoot);
+        if (!Directory.Exists(minecraftRootFolder))
         {
-            Context.MinecraftRoot = dir;
+            var defaultPath = Path.Combine(Context.RootDir, SourceDirectory, DefaultOutputDirectory);
+            PrintWarning($"Minecraft root not found at default locations, using current directory as source if a world name has been specified for the output. ({defaultPath})");
         }
-        else if (Environment.OSVersion.Platform == PlatformID.Win32NT ||
-                 Environment.OSVersion.Platform == PlatformID.Win32S ||
-                 Environment.OSVersion.Platform == PlatformID.Win32Windows ||
-                 Environment.OSVersion.Platform == PlatformID.WinCE)
+        
+        if (!Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
-            Context.MinecraftRoot = MINECRAFT_ROOT_WINDOWS;
+            return;
         }
-        else if (Environment.OSVersion.Platform == PlatformID.MacOSX ||
+        
+        PrintDebug($"Minecraft root = '{config.MinecraftRoot}'.");
+
+        if (config.Datapack is { } datapack)
+        {
+            PrintDebug($"Datapack name = '{datapack.Name}'.");
+        }
+
+        if (config.Resourcepack is { } resourcepack)
+        {
+            PrintDebug($"Resourcepack name = '{resourcepack.Name}'.");
+        }
+    }
+
+    private static string GetMinecraftRootFolder(string? minecraftRoot)
+    {
+        if (minecraftRoot != null)
+        {
+            return minecraftRoot;
+        }
+        
+        if (Environment.OSVersion.Platform == PlatformID.Win32NT ||
+            Environment.OSVersion.Platform == PlatformID.Win32S ||
+            Environment.OSVersion.Platform == PlatformID.Win32Windows ||
+            Environment.OSVersion.Platform == PlatformID.WinCE)
+        {
+            return MinecraftRootWindows;
+        }
+        if (Environment.OSVersion.Platform == PlatformID.MacOSX ||
                  Environment.OSVersion.Platform == PlatformID.Unix)
         {
-            Context.MinecraftRoot = MINECRAFT_ROOT_MACOS;
-        }
-        else
-        {
-            Context.MinecraftRoot = MINECRAFT_ROOT_LINUX;
+            return MinecraftRootMacos;
         }
         
-        if (!Directory.Exists(Context.MinecraftRoot))
-        {
-            var defaultPath = Path.Combine(Environment.CurrentDirectory, SOURCE_DIRECTORY, DEFAULT_OUTPUT_DIRECTORY);
-            PrintWarning($"Minecraft root not found at default locations, using current directory as source if a world name has been specified for the output. ({defaultPath})");
-            Context.MinecraftRoot = null;
-        }
+        return MinecraftRootLinux;
     }
 
-    private void SetSourcePath()
+    private void SetDatapackOutputDirectory(Datapack datapack, string? minecraftRoot)
     {
-        Context.SourcePath = Path.Combine(Environment.CurrentDirectory, SOURCE_DIRECTORY);
-    }
-
-    private void SetProjectId()
-    {
-        var projectId = Table["id"].AsString;
-
-        if (projectId == null)
+        string actualOutDir;
+        if (datapack.Output == null && minecraftRoot != null)
         {
-            throw new InvalidOperationException($"Project ID not specified in '{CONFIG_FILE}'. Please set the 'id' field to a unique identifier for your project.");
-        }
-
-        if (!Regex.IsMatch(projectId, @"^[a-z0-9_]+$"))
-        {
-            throw new InvalidOperationException("Project ID must contain only lowercase letters, digits, or underscores.");
-        }
-
-        Context.ProjectId = projectId;
-    }
-    
-    private void SetDatapackName()
-    {
-        Context.Datapack!.Name = Table["datapack"]["name"].AsString ?? DEFAULT_DATAPACK_NAME;
-
-        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
-        {
-            PrintDebug($"Datapack name = '{Context.Datapack.Name}'.");
-        }
-    }
-    
-    private void SetResourcepackName()
-    {
-        Context.Resourcepack!.Name = Table["resourcepack"]["name"].AsString ?? DEFAULT_RESOURCEPACK_NAME;
-
-        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
-        {
-            PrintDebug($"Resourcepack name = '{Context.Resourcepack.Name}'.");
-        }
-    }
-
-    private void SetDatapackOutputDirectory()
-    {
-        var outDir = Table["datapack"]["output"].AsString ?? (string?)null;
-
-        if (outDir == null)
-        {
-            Context.Datapack!.OutputDir = Path.Combine(Environment.CurrentDirectory, DEFAULT_OUTPUT_DIRECTORY, Context.Datapack!.Name);
-        }
-        else if (outDir.StartsWith(@".\") || outDir.StartsWith("./"))
-        {
-            Context.Datapack!.OutputDir = Path.Combine(Environment.CurrentDirectory, outDir[2..], Context.Datapack!.Name);
-        }
-        else if (outDir.StartsWith(@"\") || outDir.StartsWith("/"))
-        {
-            Context.Datapack!.OutputDir = Path.Combine(outDir, Context.Datapack!.Name);
-        }
-        else if (Context.MinecraftRoot == null)
-        {
-            Context.Datapack!.OutputDir = Path.Combine(Environment.CurrentDirectory, outDir, Context.Datapack!.Name);
-        }
-        else
-        {
-            if (!Path.Exists(Path.Combine(Context.MinecraftRoot, "saves", outDir)))
+            var minecraftRootFolder = GetMinecraftRootFolder(minecraftRoot);
+            if (Path.Exists(Path.Combine(minecraftRootFolder, "world")))
             {
-                throw new Exception(
-                    $"World '{outDir}' not found in Minecraft saves directory '{Path.Combine(Context.MinecraftRoot, "saves")}'\n" +
-                    "Available worlds: " + string.Join(", ", Directory.GetDirectories(Path.Combine(Context.MinecraftRoot, "saves")).Select(Path.GetFileName)));
+                actualOutDir = Path.Combine(minecraftRootFolder, "world", "datapacks");
+                goto end;
             }
-            Context.Datapack!.OutputDir = Path.Combine(Context.MinecraftRoot, "saves", outDir, "datapacks", Context.Datapack!.Name);
         }
-
-        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
-        {
-            PrintDebug($"Datapack output directory: '{Context.Datapack.OutputDir}'.");
-        }
-    }
-    
-    private void SetResourcepackOutputDirectory()
-    {
-        var outDir = Table["resourcepack"]["output"].AsString ?? (string?)null;
         
-        if (outDir != null && (outDir.StartsWith(@".\") || outDir.StartsWith("./")))
+        if (datapack.Output == null)
         {
-            Context.Resourcepack!.OutputDir = Path.Combine(Environment.CurrentDirectory, outDir[2..], Context.Resourcepack!.Name);
+            actualOutDir = Path.Combine(Context.RootDir, DefaultOutputDirectory);
         }
-        else if (outDir != null && (outDir.StartsWith(@"\") || outDir.StartsWith("/")))
+        else if (minecraftRoot == null)
         {
-            Context.Resourcepack!.OutputDir = Path.Combine(outDir, Context.Resourcepack!.Name);
-        }
-        else if (Context.MinecraftRoot == null)
-        {
-            Context.Resourcepack!.OutputDir = Path.Combine(Environment.CurrentDirectory, outDir ?? DEFAULT_OUTPUT_DIRECTORY, Context.Resourcepack!.Name);
+            actualOutDir = Path.Combine(Context.RootDir, datapack.Output);
         }
         else
         {
-            Context.Resourcepack!.OutputDir = Path.Combine(Context.MinecraftRoot, "resourcepacks", Context.Resourcepack!.Name);
+            var minecraftRootFolder = GetMinecraftRootFolder(minecraftRoot);
+            if (!Path.Exists(Path.Combine(minecraftRootFolder, "saves", datapack.Output)))
+            {
+                throw new InvalidOperationException(
+                    $"World '{datapack.Output}' not found in Minecraft saves directory '{Path.Combine(minecraftRootFolder, "saves")}'\n" +
+                    "Available worlds: " + string.Join(", ", Directory.GetDirectories(Path.Combine(minecraftRootFolder, "saves")).Select(Path.GetFileName)));
+
+            }
+
+            actualOutDir = Path.Combine(minecraftRootFolder, "saves", datapack.Output, "datapacks");
         }
+        
+        end:
+        datapack.OutputDir = Path.Combine(actualOutDir, datapack.Name);
 
         if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
-            PrintDebug($"Resourcepack output directory: '{Context.Resourcepack.OutputDir}'.");
+            PrintDebug($"Datapack output directory: '{datapack.OutputDir}'.");
         }
     }
     
-    private void CreateDatapackOutputFolder()
+    private void SetResourcepackOutputDirectory(Resourcepack resourcepack, string? minecraftRoot)
     {
-        if (Directory.Exists(Context.Datapack!.OutputDir))
+        string actualOutDir;
+        if (resourcepack.Output == null && minecraftRoot != null)
         {
-            Directory.Delete(Context.Datapack!.OutputDir, true);
+            var minecraftRootFolder = GetMinecraftRootFolder(minecraftRoot);
+            if (Path.Exists(Path.Combine(minecraftRootFolder, "world")))
+            {
+                actualOutDir = Path.Combine(minecraftRootFolder, "world", "_tmp_resourcepack");
+                Directory.CreateDirectory(actualOutDir);
+                goto end;
+            }
         }
         
-        Directory.CreateDirectory(Context.Datapack!.OutputDir);
+        if (resourcepack.Output == null)
+        {
+            actualOutDir = Path.Combine(Context.RootDir, DefaultOutputDirectory);
+        }
+        else if (minecraftRoot == null)
+        {
+            actualOutDir = Path.Combine(Context.RootDir, resourcepack.Output);
+        }
+        else
+        {
+            var minecraftRootFolder = GetMinecraftRootFolder(minecraftRoot);
+            actualOutDir = Path.Combine(minecraftRootFolder, "resourcepacks", resourcepack.Output);
+        }
+        
+        end:
+        resourcepack.OutputDir = Path.Combine(actualOutDir, resourcepack.Name);
+
+        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
+        {
+            PrintDebug($"Resourcepack output directory: '{resourcepack.OutputDir}'.");
+        }
     }
     
-    private void CreateResourcepackOutputFolder()
+    private static void CreateOutputFolder(string outputDir)
     {
-        if (Directory.Exists(Context.Resourcepack!.OutputDir))
+        if (Directory.Exists(outputDir))
         {
-            Directory.Delete(Context.Resourcepack!.OutputDir, true);
+            Directory.Delete(outputDir, true);
         }
         
-        Directory.CreateDirectory(Context.Resourcepack!.OutputDir);
+        Directory.CreateDirectory(outputDir);
     }
 
-    private void CreateDatapackMeta()
+    private void CreateMeta(string outputDir, string datapackOrResourcepack, Func<string, string> substitutions)
     {
-        var cts = PrintLongTask("Creating datapack meta file", out var getElapsed);
-        var mcMeta = Path.Combine(Context.Datapack!.OutputDir, "pack.mcmeta");
+        var cts = PrintLongTask($"Creating {datapackOrResourcepack.ToLower(CultureInfo.InvariantCulture)} meta file", out var getElapsed);
+        var mcMeta = Path.Combine(outputDir, "pack.mcmeta");
     
         var assembly = Assembly.GetExecutingAssembly();
-        using var stream = assembly.GetManifestResourceStream("Amethyst.Resources.datapack.pack.mcmeta")!;
+        using var stream = assembly.GetManifestResourceStream($"Amethyst.Resources.{datapackOrResourcepack.ToLower(CultureInfo.InvariantCulture)}.pack.mcmeta")!;
         using var reader = new StreamReader(stream);
-        
         var mcMetaContents = reader.ReadToEnd();
-        var description = Table["datapack"]["description"].AsString ?? DEFAULT_DATAPACK_DESCRIPTION;
-        var packFormat = Table["datapack"]["pack_format"].AsInteger ?? DEFAULT_DATAPACK_FORMAT;
-        
-        File.WriteAllText(mcMeta, mcMetaContents
-            .Replace(SUBSTITUTIONS["pack_id"], $"\"{Context.ProjectId}\"")
-            .Replace(SUBSTITUTIONS["description"], $"\"{description}\"")
-            .Replace(SUBSTITUTIONS["pack_format"], packFormat.ToString()));
-
-        cts.Cancel();
-
-        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
-        {
-            PrintDebugMessageWithTime($"Datapack meta file created at '{mcMeta}'.", getElapsed());
-        }
-    }
-    
-    private void CreateResourcepackMeta()
-    {
-        var cts = PrintLongTask("Creating resourcepack meta file", out var getElapsed);
-        var mcMeta = Path.Combine(Context.Resourcepack!.OutputDir, "pack.mcmeta");
-    
-        var assembly = Assembly.GetExecutingAssembly();
-        using var stream = assembly.GetManifestResourceStream("Amethyst.Resources.resourcepack.pack.mcmeta")!;
-        using var reader = new StreamReader(stream);
-        
-        var mcMetaContents = reader.ReadToEnd();
-        var description = Table["resourcepack"]["description"].AsString ?? DEFAULT_RESOURCEPACK_DESCRIPTION;
-        mcMetaContents = mcMetaContents.Replace(SUBSTITUTIONS["description"], $"\"{description}\"");
-        var packFormat = Table["resourcepack"]["pack_format"].AsInteger ?? DEFAULT_RESOURCEPACK_FORMAT;
-        mcMetaContents = mcMetaContents.Replace(SUBSTITUTIONS["pack_format"], packFormat.ToString());
-        
-        File.WriteAllText(mcMeta, mcMetaContents);
+        File.WriteAllText(mcMeta, substitutions(mcMetaContents));
 
         cts.Cancel();
         
         if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
-            PrintDebugMessageWithTime($"Resourcepack meta file created at '{mcMeta}'.", getElapsed());
+            PrintDebugMessageWithTime($"{datapackOrResourcepack} meta file created at '{mcMeta}'.", getElapsed());
         }
     }
     
-    private void CreateFunctionTags()
+    private void CreateFunctionTags(Datapack datapack)
     {
         var cts = PrintLongTask("Creating function tags", out var getElapsed);
         {
-            var path = Path.Combine(Context.Datapack!.OutputDir, $"data/minecraft/tags/{DATAPACK_FUNCTIONS_DIRECTORY}/load.json");
+            var path = Path.Combine(datapack.OutputDir, $"data/minecraft/tags/{DatapackFunctionsDirectory}/load.json");
             var content = File.ReadAllText(path);
-            content = content.Replace(SUBSTITUTIONS["loading_functions"], string.Join("", Context.Datapack!.LoadFunctions.Select(f => $",\n    \"{f}\"")));
+            var loadFunctionsText = string.Join("", datapack.LoadFunctions.Select(f => $",\n    \"{f}\""));
+            content = content.Replace(Substitutions["loading_functions"], loadFunctionsText);
             File.WriteAllText(path, content);
         }
         {
-            var path = Path.Combine(Context.Datapack!.OutputDir, $"data/minecraft/tags/{DATAPACK_FUNCTIONS_DIRECTORY}/tick.json");
+            var path = Path.Combine(datapack.OutputDir, $"data/minecraft/tags/{DatapackFunctionsDirectory}/tick.json");
             var content = File.ReadAllText(path);
-            content = content.Replace(SUBSTITUTIONS["ticking_functions"], string.Join("", Context.Datapack!.TickFunctions.Select(f => $",\n    \"{f}\"")));
+            var tickFunctionsText = string.Join("", datapack.TickFunctions.Select(f => $",\n    \"{f}\""));
+            content = content.Replace(Substitutions["ticking_functions"], tickFunctionsText);
             File.WriteAllText(path, content);
         }
         
@@ -290,162 +278,194 @@ public class Processor
         }
     }
     
-    private void CopyDatapackTemplate()
+    private void CopyTemplate(string outputDir, string datapackOrResourcepack)
     {
-        var cts = PrintLongTask("Copying datapack template", out var getElapsed);
-        
-        AssemblyUtility.CopyAssemblyFolder("Amethyst.Resources.datapack", Context.Datapack!.OutputDir);
+        var cts = PrintLongTask($"Copying {datapackOrResourcepack.ToLower(CultureInfo.InvariantCulture)} template", out var getElapsed);
+
+        var assemblyPath = $"Amethyst.Resources.{datapackOrResourcepack.ToLower(CultureInfo.InvariantCulture)}";
+        AssemblyUtility.CopyAssemblyFolder(assemblyPath, outputDir, exclude: SourceFileExtension);
         
         cts.Cancel();
 
         if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
-            PrintDebugMessageWithTime("Datapack template copied.", getElapsed());
+            PrintDebugMessageWithTime($"{datapackOrResourcepack} template copied.", getElapsed());
         }
     }
     
-    private void CopyResourcepackTemplate()
-    {
-        var cts = PrintLongTask("Copying resourcepack template", out var getElapsed);
-        
-        AssemblyUtility.CopyAssemblyFolder("Amethyst.Resources.resourcepack", Context.Resourcepack!.OutputDir);
-        
-        cts.Cancel();
-
-        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
-        {
-            PrintDebugMessageWithTime("Resourcepack template copied.", getElapsed());
-        }
-    }
-    
-    private void CreateDatapackAndResourcepackContext()
+    private void CreateDatapackAndResourcepackContext(Configuration configuration)
     {
         var cts = PrintLongTask("Creating project structure", out var getElapsed);
         
-        if (Table.HasKey("datapack"))
+        if (configuration.Datapack is { } datapack)
         {
-            Context.Datapack = new Datapack { Context = Context };
-            SetDatapackName();
-            SetDatapackOutputDirectory();
-            CreateDatapackOutputFolder();
-            CopyDatapackTemplate();
-            CreateDatapackMeta();
+            SetDatapackOutputDirectory(datapack, configuration.MinecraftRoot);
+            CreateOutputFolder(datapack.OutputDir);
+            CopyTemplate(datapack.OutputDir, "Datapack");
+            CreateMeta(datapack.OutputDir, "Datapack", content => content
+                .Replace(Substitutions["description"], $"\"{datapack.Description}\"")
+                .Replace(Substitutions["pack_format"], datapack.PackFormat.ToString(), StringComparison.InvariantCulture)
+                .Replace(Substitutions["pack_id"], $"\"{configuration.ProjectId}\""));
         }
-        if (Table.HasKey("resourcepack"))
+        if (configuration.Resourcepack is { } resourcepack)
         {
-            Context.Resourcepack = new Resourcepack { Context = Context };
-            SetResourcepackName();
-            SetResourcepackOutputDirectory();
-            CreateResourcepackOutputFolder();
-            CopyResourcepackTemplate();
-            CreateResourcepackMeta();
+            SetResourcepackOutputDirectory(resourcepack, configuration.MinecraftRoot);
+            CreateOutputFolder(resourcepack.OutputDir);
+            CopyTemplate(resourcepack.OutputDir, "Resourcepack");
+            CreateMeta(resourcepack.OutputDir, "Datapack", content => content
+                .Replace(Substitutions["description"], $"\"{resourcepack.Description}\"")
+                .Replace(Substitutions["pack_format"], resourcepack.PackFormat.ToString(), StringComparison.InvariantCulture)
+                .Replace(Substitutions["pack_id"], $"\"{configuration.ProjectId}\""));
         }
         
         cts.Cancel();
         PrintMessageWithTime("Project structure created.", getElapsed());
     }
     
-    private void CompileProject()
+    private void CompileProject(Configuration configuration)
     {
         var cts = PrintLongTask("Compiling program", out var getElapsed);
         try
         {
-            if (Context.Datapack != null)
+            if (configuration.Datapack is { } datapack)
             {
-                ProcessDatapackOrResourcepack(true);
+                ProcessDatapackOrResourcepack(true, datapack.OutputDir);
             }
-            if (Context.Resourcepack != null)
+
+            if (configuration.Resourcepack is { } resourcepack)
             {
-                ProcessDatapackOrResourcepack(false);
+                ProcessDatapackOrResourcepack(false, resourcepack.OutputDir);
             }
-        
+
             var compiler = new Compiler(Context);
             compiler.CompileProject();
         }
-        catch (SyntaxException e)
+        catch (AmethystException e)
         {
             cts.Cancel();
-            PrintError($"Syntax error: {e.File} ({e.Line}:{e.Column}): {e.Message}");
+            PrintError(e.Message);
+
+            if (_rethrowErrors)
+            {
+                throw;
+            }
+
             return;
         }
         
-        CreateFunctionTags();
+        if (configuration.Datapack is { } datapack2)
+        {
+            CreateFunctionTags(datapack2);
+        }
         
         cts.Cancel();
         PrintMessageWithTime("Program compiled.", getElapsed());
     }
 
-    private void ProcessDatapackOrResourcepack(bool isDatapack)
+    private void ProcessDatapackOrResourcepack(bool isDatapack, string outputDir)
     {
-        var dirName = isDatapack ? "data" : "assets";
-        var sourceDir = Path.Combine(Context.SourcePath, dirName);
-        var outputDir = Path.Combine(isDatapack ? Context.Datapack!.OutputDir : Context.Resourcepack!.OutputDir, dirName);
+        var packDirName = isDatapack ? "data" : "assets";
+        var sourceDir = Path.Combine(Context.SourcePath, packDirName);
+        var dataOrAssetsDir = Path.Combine(outputDir, packDirName);
         
         // Copy everything except amethyst source code to output folder
-        FilesystemUtility.CopyDirectory(sourceDir, outputDir, filePath => {
-            return Path.GetExtension(filePath) != SOURCE_FILE_EXTENSION;
+        FilesystemUtility.CopyDirectory(sourceDir, dataOrAssetsDir, filePath =>
+        {
+            return Path.GetExtension(filePath) != SourceFileExtension;
         });
 
         // Scan namespaces
-        foreach (var nsPath in Directory.GetDirectories(sourceDir))
+        ParseUserNamespaces(packDirName, sourceDir);
+        
+        ParseInternalNamespace(packDirName, isDatapack);
+    }
+    
+    private void ParseUserNamespaces(string packDirName, string sourceDir)
+    {
+        // Scan amethyst source code files in each registry
+        foreach (var filePath in Directory.GetFiles(sourceDir, SourceFile, SearchOption.AllDirectories))
         {
-            RegisterAndIndexNamespace(nsPath);
+            var fileName = Path.GetFileNameWithoutExtension(filePath);
+            var relativePath = Path.GetRelativePath(sourceDir, filePath);
+            var pathSegments = relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var sourceFile = new SourceFile([packDirName, ..pathSegments[..^1], fileName]);
+            Context.SourceFiles.Add(sourceFile.GetFullPath(), sourceFile);
+            sourceFile.Scope = new Scope(Context, sourceFile)
+            {
+                Parent = null
+            };
+            
+            _parser.Parse(sourceFile, filePath);
         }
     }
     
-    private void RegisterAndIndexNamespace(string nsPath)
+    private void ParseInternalNamespace(string packDirName, bool isDatapack)
     {
-        var nsName = Path.GetFileName(nsPath);
+        var packGroupName = isDatapack ? "datapack" : "resourcepack";
+        var resourcePath = $"Amethyst.Resources.{packGroupName}.{packDirName}";
         
-        if (!Context.Namespaces.TryGetValue(nsName, out var ns))
+        var sourceFilePaths = AssemblyUtility.GetEmbeddedResources(resourcePath)
+            .Where(path => path.EndsWith(SourceFileExtension));
+        
+        foreach (var absoluteResourcePath in sourceFilePaths)
         {
-            if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
-            {
-                PrintDebug($"Registering namespace: {nsName}");
-            }
+            var relativeResourcePath = absoluteResourcePath[(resourcePath.Length + 1)..];
+            var pathComponents = relativeResourcePath.Split('.').ToList();
             
-            Context.Namespaces.Add(nsName, ns = new Namespace
+            var apiFolder = pathComponents[2];
+            if (apiFolder != "api")
             {
-                Context = Context,
-                Name = nsName
-            });
-        }
-        
-        var parser = new Parser();
+                throw new InvalidOperationException($"Invalid internal namespace structure, expected 'api' folder but got '{apiFolder}'");
+            }
+            pathComponents.RemoveAt(index: 2);
 
-        foreach (var registryPath in Directory.GetDirectories(nsPath))
-        {
-            var registryName = Path.GetFileName(registryPath);
-            parser.RegistryName = registryName;
-            
-            // Scan amethyst source code files in each registry
-            foreach (var filePath in Directory.GetFiles(registryPath, SOURCE_FILE, SearchOption.AllDirectories))
+            var sourceFile = new SourceFile([packDirName, ..pathComponents[..^1]], isInternal: true);
+            Context.SourceFiles.Add(sourceFile.GetFullPath(), sourceFile);
+            sourceFile.Scope = new Scope(Context, sourceFile)
             {
-                if (!ns.Registries.TryGetValue(registryName, out var registry))
-                {
-                    ns.Registries.Add(registryName, registry = new SourceFolder
-                    {
-                        Context = Context,
-                    });
-                }
-                
-                var relativePath = Path.GetRelativePath(registryPath, filePath);
-                var fileName = Path.GetFileNameWithoutExtension(filePath);
-                var folder = registry.CreateOrGetFolderForPath(relativePath);
-                var sourceFile = new SourceFile
-                {
-                    Path = filePath,
-                    Name = $"{nsName}:{relativePath}",
-                    RootScope = new Scope
-                    {
-                        Context = Context,
-                        Name = nsName,
-                        Parent = null
-                    }
-                };
-                parser.Parse(sourceFile);
-                folder.SourceFiles.Add(fileName, sourceFile);
-            }
+                Parent = null
+            };
+            
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(absoluteResourcePath)!;
+            _parser.Parse(sourceFile, stream);
         }
+    }
+    
+    public static void PrintAmethystLogoAndVersion(bool reduceColors, CompilerFlags compilerFlags)
+    {
+        if (reduceColors)
+        {
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.Write(" Amethyst ");
+        }
+        else
+        {
+            Console.Write(" \e[1m" +
+                          $"\e[38;5;{98}mA" +
+                          $"\e[38;5;{98}mm" +
+                          $"\e[38;5;{98}me" +
+                          $"\e[38;5;{140}mt" +
+                          $"\e[38;5;{140}mh" +
+                          $"\e[38;5;{183}my" +
+                          $"\e[38;5;{183}ms" +
+                          $"\e[38;5;{183}mt" +
+                          "\e[22m ");
+        }
+        
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("v" + AmethystVersion);
+        if (compilerFlags.HasFlag(CompilerFlags.Watch))
+        {
+            Console.ForegroundColor = ConsoleColor.DarkCyan;
+            Console.Write(" (watch mode)");
+        }
+        if (compilerFlags.HasFlag(CompilerFlags.Debug))
+        {
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.Write(" (debug mode)");
+        }
+        Console.WriteLine();
+        Console.ResetColor();
+        Console.WriteLine();
     }
 }

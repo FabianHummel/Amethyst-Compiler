@@ -19,7 +19,7 @@ public partial class Compiler
         
         if (result is not IMemberAccess memberAccess)
         {
-            throw new SyntaxException($"Type '{result.DataType}' does not support accessing members.", expressionContext);
+            throw new SyntaxException($"Type '{result.Datatype}' does not support accessing members.", expressionContext);
         }
 
         var identifier = context.IDENTIFIER();
@@ -27,7 +27,7 @@ public partial class Compiler
 
         if (memberAccess.GetMember(memberName) is not { } member)
         {
-            throw new SyntaxException($"No member '{memberName}' found on type '{result.DataType}'.", context);
+            throw new SyntaxException($"No member '{memberName}' found on type '{result.Datatype}'.", context);
         }
 
         return member;

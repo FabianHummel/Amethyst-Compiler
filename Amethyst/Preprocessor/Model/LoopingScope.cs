@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Amethyst.Model;
 
 public class LoopingScope : IDisposable
@@ -23,6 +25,8 @@ public class LoopingScope : IDisposable
         }
     }
 
+    [SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
+    [SuppressMessage("Performance", "CA1822:Mark members as static")]
     public void Break()
     {
         throw new BreakException();

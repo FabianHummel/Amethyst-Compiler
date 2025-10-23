@@ -24,7 +24,7 @@ public interface IPreprocessorValue<T> : IPreprocessorValue
 
 public interface IPreprocessorValue
 {
-    ParserRuleContext Context { get; init; }
+    ParserRuleContext Context { get; }
     
     [UsedImplicitly]
     object? AbstractValue { get; }

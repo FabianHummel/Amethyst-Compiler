@@ -7,24 +7,23 @@ public partial class Compiler
 {
     public override object? VisitBlock(AmethystParser.BlockContext context)
     {
-        var scope = VisitBlockNamed(context, "_block");
-        AddCode($"function {scope.McFunctionPath}");
+        var mcFunctionPath = VisitBlockNamed(context, "_block");
+        this.AddCode($"function {mcFunctionPath}");
         return null;
     }
     
-    private Scope VisitBlockNamed(AmethystParser.BlockContext context, string name)
-    {
-        return EvaluateScoped(name, _ =>
-        {
-            VisitBlockInline(context);
-        });
-    }
-    
-    private void VisitBlockInline(AmethystParser.BlockContext context)
+    public void VisitBlockInline(AmethystParser.BlockContext context)
     {
         foreach (var preprocessorStatementContext in context.preprocessorStatement())
         {
             Visit(preprocessorStatementContext);
         }
+    }
+
+    internal string VisitBlockNamed(AmethystParser.BlockContext context, string name, bool preserveName = false)
+    {
+        using var scope = this.EvaluateScoped(name, preserveName);
+        VisitBlockInline(context);
+        return Scope.McFunctionPath;
     }
 }

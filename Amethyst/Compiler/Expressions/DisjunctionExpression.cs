@@ -1,4 +1,5 @@
 using Amethyst.Language;
+using Amethyst.Model;
 using static Amethyst.Utility.ParserUtility;
 
 namespace Amethyst;
@@ -22,8 +23,10 @@ public partial class Compiler
         var previousSP = StackPointer;
         
         // We create a scope to be able to early return from the function.
-        var scope = EvaluateScoped("_or", cancel =>
+        string mcFunctionPath;
+        using (this.EvaluateScoped("_or"))
         {
+            mcFunctionPath = Scope.McFunctionPath;
             foreach (var expressionContext in expressionContexts)
             {
                 var expression = VisitExpression(expressionContext);
@@ -35,33 +38,32 @@ public partial class Compiler
 
                 if (booleanResult is ConstantBoolean { Value: true })
                 {
-                    cancel();
+                    Scope.Cancel();
                     isAlwaysTrue = true;
-                    return;
                 }
                 
                 if (booleanResult is IRuntimeValue runtimeValue)
                 {
                     // Early return if the current expression is true (we don't need to check the rest).
-                    AddCode($"execute unless score {runtimeValue.Location} amethyst matches 0 run return 1");
+                    this.AddCode($"execute unless score {runtimeValue.Location} matches 0 run return 1");
                 }
             }
             
-            AddCode("return fail");
-        });
+            this.AddCode("return fail");
+        }
         
         // Reset the stack pointer to the one before evaluating the current expression, as we don't need the allocated variables anymore.
         StackPointer = previousSP;
 
-        var location = ++StackPointer;
+        var location = Location.Scoreboard(++StackPointer);
 
         if (isAlwaysTrue)
         {
-            AddCode($"scoreboard players set {location} amethyst 1");
+            this.AddCode($"scoreboard players set {location} 1");
         }
         else
         {
-            AddCode($"execute store success score {location} amethyst run function {scope.McFunctionPath}");
+            this.AddCode($"execute store success score {location} run function {mcFunctionPath}");
         }
 
         return new RuntimeBoolean

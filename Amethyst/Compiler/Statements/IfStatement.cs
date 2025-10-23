@@ -1,4 +1,5 @@
 using Amethyst.Language;
+using Amethyst.Model;
 
 namespace Amethyst;
 
@@ -21,8 +22,8 @@ public partial class Compiler
         
         if (result is RuntimeBoolean booleanResult)
         {
-            var scope = VisitBlockNamed(blockContexts[0], "_func");
-            AddCode($"execute if score {booleanResult.Location} amethyst matches 1 run function {scope.McFunctionPath}");
+            var mcFunctionPath = VisitBlockNamed(blockContexts[0], "_func");
+            this.AddCode($"execute if score {booleanResult.Location} matches 1 run function {mcFunctionPath}");
             return null;
         }
         
