@@ -38,6 +38,21 @@ public class Processor
         RecompileProject();
     }
     
+    public static void CreateFunctionFile(string filePath)
+    {
+        var dirPath = Path.GetDirectoryName(filePath)!;
+        Directory.CreateDirectory(dirPath);
+        
+        using var writer = File.CreateText(filePath);
+        var assembly = Assembly.GetExecutingAssembly();
+        using var stream = assembly.GetManifestResourceStream("Amethyst.Resources.template.mcfunction")!;
+        using var reader = new StreamReader(stream);
+        var template = reader.ReadToEnd();
+        template = template.Replace(Substitutions["amethyst_version"], SubstitutionValues["amethyst_version"].ToString());
+        template = template.Replace(Substitutions["date"], SubstitutionValues["date"].ToString());
+        writer.Write(template);
+    }
+    
     private void RecompileProject()
     {
         try

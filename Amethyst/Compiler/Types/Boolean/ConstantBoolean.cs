@@ -11,7 +11,7 @@ public class ConstantBoolean : AbstractBoolean, IConstantValue<bool>, IScoreboar
     
     public int AsInteger => AsBoolean ? 1 : 0;
     
-    protected override AbstractDecimal AsDecimal => new ConstantDecimal
+    protected override ConstantDecimal AsDecimal => new()
     {
         Compiler = Compiler,
         Context = Context,

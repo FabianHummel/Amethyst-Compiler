@@ -15,9 +15,9 @@ function test_{{numeric_type.name}}_{{arithmetic_operator.name}}(
 
 {% for arithmetic_operator in arithmetic_operators %}
 [test]
-function test_integer_decimal2_{{arithmetic_operator}}(
-    x: int,
-    y: dec(2))
+function test_decimal2_integer_{{arithmetic_operator}}(
+    x: dec(2),
+    y: int)
 {
     var result = x {{arithmetic_operator.operator}} y;
     complete();
@@ -37,9 +37,9 @@ function test_boolean_integer_{{arithmetic_operator}}(
 
 {% for arithmetic_operator in arithmetic_operators %}
     [test]
-    function test_decimal1_decimal3_{{arithmetic_operator}}(
-    x: dec(1),
-    y: dec(3))
+    function test_decimal3_decimal1_{{arithmetic_operator}}(
+    x: dec(3),
+    y: dec(1))
 {
     var result = x {{arithmetic_operator.operator}} y;
     complete();

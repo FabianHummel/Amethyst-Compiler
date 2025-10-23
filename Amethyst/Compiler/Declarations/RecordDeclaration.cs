@@ -28,22 +28,20 @@ public partial class Compiler
         
         var attributes = VisitAttributeList(context.attributeList());
 
-        Scope.Symbols.Add(recordName, new Record
+        var record = new Record
         {
             Name = name,
             Datatype = type,
             InitialValue = result,
-            Attributes = attributes
-        });
+            Attributes = attributes,
+            McFunctionPath = Scope.McFunctionPath
+        };
+        
+        Scope.Symbols.Add(recordName, record);
 
         if (type.DataLocation == DataLocation.Scoreboard)
         {
-            this.AddInitCode($"scoreboard objectives add {name} dummy");
-
-            if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
-            {
-                this.AddInitCode($$"""scoreboard objectives modify {{name}} displayname ["",{"text":"Record ","bold":true},{"text":"{{name}}","color":"dark_purple"},{"text":" @ "},{"text":"{{Scope.McFunctionPath}}/","color":"gray"},{"text":"{{recordName}}","color":"light_purple"}]""");
-            }
+            Namespace.RecordDeclarations.Add(recordName, record);
         }
 
         if (result.Location.DataLocation == DataLocation.Scoreboard)
@@ -52,7 +50,7 @@ public partial class Compiler
         }
         else
         {
-            this.AddCode($"data modify storage amethyst:record_initializers {name} set from storage amethyst:stack {result.Location}");
+            this.AddCode($"data modify storage amethyst:record_initializers {name} set from storage {result.Location}");
         }
 
         return null;

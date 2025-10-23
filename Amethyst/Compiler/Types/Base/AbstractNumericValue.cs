@@ -45,7 +45,7 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
             var runtimeDecimalLhs = (RuntimeDecimal)decimalLhs.EnsureRuntimeValue();
             var runtimeDecimalRhs = (RuntimeDecimal)decimalRhs.EnsureRuntimeValue();
             var resultScaling = ApplyDecimalScaling(ref runtimeDecimalLhs, ref runtimeDecimalRhs, op);
-            var decimalResult = (RuntimeDecimal)PerformCalculation(runtimeDecimalLhs, runtimeDecimalRhs, op);
+            var decimalResult = PerformCalculation(runtimeDecimalLhs, runtimeDecimalRhs, op).AsDecimal;
             decimalResult.DecimalPlaces = resultScaling;
             return decimalResult;
         }
@@ -220,14 +220,16 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
                 {
                     lhs = (RuntimeDecimal)lhs.EnsureBackedUp();
                     lhs.DecimalPlaces = highestDecimalPlaces;
-                    this.AddCode($"scoreboard players operation {lhs.Location} *= .{scale} amethyst_const");
+                    this.AddCode($"scoreboard players operation {lhs.Location} *= #{scale} amethyst_const");
+                    Compiler.Namespace.ScoreboardConstants.Add(scale);
                 }
         
                 if (weightedDecimalPlaces > 0)
                 {
                     rhs = (RuntimeDecimal)rhs.EnsureBackedUp();
                     lhs.DecimalPlaces = highestDecimalPlaces;
-                    this.AddCode($"scoreboard players operation {rhs.Location} *= .{scale} amethyst_const");
+                    this.AddCode($"scoreboard players operation {rhs.Location} *= #{scale} amethyst_const");
+                    Compiler.Namespace.ScoreboardConstants.Add(scale);
                 }
 
                 return highestDecimalPlaces;
@@ -240,6 +242,11 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
             
             case ArithmeticOperator.DIVIDE:
             {
+                if (rhs.DecimalPlaces > lhs.DecimalPlaces)
+                {
+                    throw new SemanticException($"Right side of division can't have higher precision than left side, because the result would always be zero. ({rhs.DecimalPlaces} > {lhs.DecimalPlaces})", Context);
+                }
+                
                 return lhs.DecimalPlaces - rhs.DecimalPlaces;
             }
         }
@@ -251,11 +258,17 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
     /// Performs arithmetic on two runtime values.
     /// This expects both values to be already safe for any calculations.
     /// </summary>
-    private AbstractNumericValue PerformCalculation(IRuntimeValue lhs, IRuntimeValue rhs, ArithmeticOperator op)
+    private RuntimeInteger PerformCalculation(IRuntimeValue lhs, IRuntimeValue rhs, ArithmeticOperator op)
     {
         var runtimeLhsBackup = lhs.EnsureBackedUp();
         this.AddCode($"scoreboard players operation {runtimeLhsBackup.Location} {op.GetMcfOperatorSymbol()}= {rhs.Location}");
-        return (AbstractNumericValue)runtimeLhsBackup;
+        return new RuntimeInteger
+        {
+            Compiler = Compiler,
+            Context = Context,
+            Location = runtimeLhsBackup.Location,
+            IsTemporary = true
+        };
     }
     
     /// <summary>

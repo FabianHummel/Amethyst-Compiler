@@ -34,7 +34,8 @@ public static class Constants
     public const string ResourceRootDir = "assets";
     public const string InternalNamespaceName = "amethyst";
     public const string DatapackFunctionsDirectory = "function";
-    
+    public const string InitFunctionName = "_init";
+
     public static readonly string AmethystVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!.ToString();
 
     public static readonly IReadOnlyDictionary<string, string> Substitutions = new Dictionary<string, string>

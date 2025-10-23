@@ -8,21 +8,14 @@ public partial class RuntimeBoolean : AbstractBoolean, IRuntimeValue
     
     public bool IsTemporary { get; init; }
 
-    protected override AbstractDecimal AsDecimal
+    protected override RuntimeDecimal AsDecimal => new()
     {
-        get
-        {
-            var value = EnsureBackedUp();
-            return new RuntimeDecimal
-            {
-                Compiler = Compiler,
-                Context = Context,
-                DecimalPlaces = 0,
-                IsTemporary = true,
-                Location = value.Location
-            };
-        }
-    }
+        Compiler = Compiler,
+        Context = Context,
+        DecimalPlaces = 0,
+        IsTemporary = IsTemporary,
+        Location = Location
+    };
 
     public AbstractBoolean MakeBoolean()
     {

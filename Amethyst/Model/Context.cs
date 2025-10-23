@@ -24,4 +24,8 @@ public class Context
         SourcePath = copy.SourcePath;
         Configuration = copy.Configuration;
     }
+
+    public IEnumerable<string> Namespaces => SourceFiles.Values
+        .GroupBy(sf => sf.Namespace)
+        .Select(g => g.Key);
 }

@@ -1,7 +1,6 @@
-FROM `amethyst:test` complete;
-
 [initializing]
 function main() {
-    debug [1,2,3];
-    complete();
+    var x = 1.12;
+    var y = 2.345;
+    debug x + y;
 }

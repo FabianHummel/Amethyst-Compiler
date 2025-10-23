@@ -8,7 +8,7 @@ public partial class RuntimeInteger : AbstractInteger, IRuntimeValue
     
     public bool IsTemporary { get; init; }
 
-    protected override AbstractDecimal AsDecimal => new RuntimeDecimal
+    protected override RuntimeDecimal AsDecimal => new()
     {
         Compiler = Compiler,
         Context = Context,

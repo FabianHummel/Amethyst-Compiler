@@ -12,7 +12,7 @@ public class ConstantInteger : AbstractInteger, IConstantValue<int>, IScoreboard
     
     public int ScoreboardValue => Value;
     
-    protected override AbstractDecimal AsDecimal => new ConstantDecimal
+    protected override ConstantDecimal AsDecimal => new()
     {
         Compiler = Compiler,
         Context = Context,

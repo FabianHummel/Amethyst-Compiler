@@ -65,12 +65,14 @@ public class McfTestContext
     private async Task<int> GetScoreboardValue(Location location)
     {
         var command = $"scoreboard players get {location}";
-        TestContext.WriteLine($"<- {command}");
+        TestContext.WriteLine($"/{command}");
         var result = await rcon.ExecuteCommandAsync(command);
         if (result == null)
         {
             throw new UnitTestException($"'{command}' failed to execute.");
         }
+        
+        TestContext.WriteLine($"-> {result}");
         
         var successfulResult = OutParser.TryParse(result, 
             "{_1} has {value} [{_2}]", // TODO: Add versioning for different output formats
@@ -99,7 +101,7 @@ public class McfTestContext
     private async Task<string> GetStorageValue(Location location)
     {
         var command = $"data get storage {location}";
-        TestContext.WriteLine($"<- {command}");
+        TestContext.WriteLine($"/{command}");
         var result = await rcon.ExecuteCommandAsync(command);
         if (result == null)
         {

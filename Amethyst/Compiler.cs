@@ -5,13 +5,15 @@ namespace Amethyst;
 
 public partial class Compiler : AmethystParserBaseVisitor<object?>
 {
-    internal Context Context { get; }
-    internal int TotalRecordCount { get; set; }
-    internal int StackPointer { get; set; }
+    public Context Context { get; }
+    public SourceFile SourceFile { get; internal set; } = null!;
+    public Scope Scope { get; internal set; } = null!;
+    public Namespace Namespace { get; internal set; } = null!;
+    public int TotalRecordCount { get; internal set; }
+    public int StackPointer { get; internal set; }
     
-    internal SourceFile SourceFile { get; set; } = null!;
-    internal Scope Scope { get; set; } = null!;
-    
+    private Dictionary<string, Namespace> _namespaces { get; } = new();
+
     public Compiler(Context context)
     {
         Context = context;
@@ -23,12 +25,18 @@ public partial class Compiler : AmethystParserBaseVisitor<object?>
         {
             CompileSourceFile(sourceFile);
         }
+
+        foreach (var ns in _namespaces.Values)
+        {
+            ns.Dispose();
+        }
     }
     
     private void CompileSourceFile(SourceFile sourceFile)
     {
         SourceFile = sourceFile;
         Scope = sourceFile.Scope!;
+        Namespace = GetOrCreateNamespace(sourceFile.Namespace);
         
         foreach (var entryPoint in sourceFile.EntryPointFunctions.Values)
         {
@@ -41,8 +49,19 @@ public partial class Compiler : AmethystParserBaseVisitor<object?>
             {
                 continue;
             }
-                    
+            
             VisitDeclaration(symbol);
         }
+    }
+
+    private Namespace GetOrCreateNamespace(string nsName)
+    {
+        if (!_namespaces.TryGetValue(nsName, out var ns))
+        {
+            ns = new Namespace(nsName, Context);
+            _namespaces[nsName] = ns;
+        }
+
+        return ns;
     }
 }

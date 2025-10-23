@@ -17,7 +17,6 @@ public class Scope : IDisposable
     private bool _isCancelled;
     
     private readonly TextWriter _writer = new StringWriter();
-    private readonly TextWriter _initWriter = new StringWriter();
 
     public Scope(Context context, SourceFile sourceFile)
         : this("", context, sourceFile)
@@ -55,11 +54,6 @@ public class Scope : IDisposable
         _writer.WriteLine(code);
     }
     
-    public void AddInitCode(string code)
-    {
-        _initWriter.WriteLine(code);
-    }
-    
     public void Cancel()
     {
         _isCancelled = true;
@@ -89,11 +83,9 @@ public class Scope : IDisposable
         
         if (!File.Exists(FilePath))
         {
-            CreateFunctionFile();
+            Processor.CreateFunctionFile(FilePath);
         }
-        
         File.AppendAllText(FilePath, _writer.ToString());
-        
         _writer.Dispose();
         
         GC.SuppressFinalize(this);
@@ -102,21 +94,6 @@ public class Scope : IDisposable
     public override string ToString()
     {
         return $"{McFunctionPath} ({FilePath})";
-    }
-
-    private void CreateFunctionFile()
-    {
-        var dirPath = Path.GetDirectoryName(FilePath)!;
-        Directory.CreateDirectory(dirPath);
-        
-        using var writer = File.CreateText(FilePath);
-        var assembly = Assembly.GetExecutingAssembly();
-        using var stream = assembly.GetManifestResourceStream("Amethyst.Resources.template.mcfunction")!;
-        using var reader = new StreamReader(stream);
-        var template = reader.ReadToEnd();
-        template = template.Replace(Substitutions["amethyst_version"], SubstitutionValues["amethyst_version"].ToString());
-        template = template.Replace(Substitutions["date"], SubstitutionValues["date"].ToString());
-        writer.Write(template);
     }
 
     public static Scope Reparent(Scope parent, string name, bool preserveName = false)
@@ -165,11 +142,6 @@ public static partial class CompilerExtensions
     public static void AddCode(this Compiler compiler, string code)
     {
         compiler.Scope.AddCode(code);
-    }
-    
-    public static void AddInitCode(this Compiler compiler, string code)
-    {
-        compiler.Scope.AddInitCode(code);
     }
 
     internal static Scope.GlobalBackup EvaluateScoped(this Compiler compiler, string name, bool preserveName = false)

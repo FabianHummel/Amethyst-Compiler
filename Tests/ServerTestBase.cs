@@ -16,6 +16,8 @@ public abstract class ServerTestBase
     {
         var currentTest = TestExecutionContext.CurrentContext.CurrentTest;
 
+        Console.SetOut(TestExecutionContext.CurrentContext.OutWriter);
+
         var linkAttribute = currentTest.Method!
             .GetCustomAttributes<LinkAttribute>(inherit: false)
             .First();
@@ -112,7 +114,7 @@ public abstract class ServerTestBase
             command = $"data modify storage amethyst {target.Location} set value {mcfValue}";
         }
 
-        TestContext.WriteLine($"-> {command}");
+        TestContext.WriteLine($"/{command}");
         await TestMain.Rcon.ExecuteCommandAsync(command);
     }
 }

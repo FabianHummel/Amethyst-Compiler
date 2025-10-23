@@ -1,6 +1,5 @@
 {
   "values": [
-    "amethyst:libraries/gu/zzz/load",
-    "amethyst:_init"{{loading_functions}}
+    "amethyst:libraries/gu/zzz/load"{{loading_functions}}
   ]
 }

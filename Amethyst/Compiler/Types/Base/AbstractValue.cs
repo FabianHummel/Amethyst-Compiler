@@ -74,9 +74,4 @@ public static class AbstractValueExtensions
     {
         abstractValue.Compiler.AddCode(code);
     }
-    
-    public static void AddInitCode(this AbstractValue abstractValue, string code)
-    {
-        abstractValue.Compiler.AddInitCode(code);
-    }
 }
