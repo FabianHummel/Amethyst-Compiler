@@ -1,1 +1,0 @@
-$data modify storage amethyst:internal data.stringify.out set value '$(out)$(_str)'

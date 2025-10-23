@@ -1,1 +1,0 @@
-execute if data storage amethyst:internal data.type.in{} run return run data modify storage amethyst:internal data.type.out set value "object"
