@@ -2,20 +2,6 @@ using Amethyst.Utility;
 
 namespace Amethyst.Model;
 
-public enum BasicPreprocessorType
-{
-    [Description("INT")]
-    Int,
-    [Description("DEC")]
-    Dec,
-    [Description("STRING")]
-    String,
-    [Description("BOOL")]
-    Bool,
-    [Description("RESOURCE")]
-    Resource
-}
-
 public class PreprocessorDatatype
 {
     public required BasicPreprocessorType BasicType { get; init; }

@@ -2,6 +2,7 @@ using System.Globalization;
 
 namespace Amethyst;
 
+/// <summary>Collection of constants that are used throughout the compiler.</summary>
 public static class Constants
 {
     public const string ConfigFile = "amethyst.toml";
@@ -38,6 +39,8 @@ public static class Constants
 
     public static readonly string AmethystVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!.ToString();
 
+    /// <summary>Collection of mustache bindings that are used to substitute specific parts in template
+    /// files.</summary>
     public static readonly IReadOnlyDictionary<string, string> Substitutions = new Dictionary<string, string>
     {
         { "pack_id", "{{pack_id}}" },
@@ -48,7 +51,8 @@ public static class Constants
         { "date", "{{date}}" },
         { "amethyst_version", "{{amethyst_version}}" }
     };
-    
+
+    /// <summary>Predefined values that are used to substitute values of <see cref="Substitutions" />.</summary>
     public static readonly IReadOnlyDictionary<string, object> SubstitutionValues = new Dictionary<string, object>
     {
         { "date", DateTime.Now.ToString("yyyy-MM-dd", NumberFormatInfo.InvariantInfo) },
