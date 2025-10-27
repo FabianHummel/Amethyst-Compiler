@@ -296,11 +296,6 @@ booleanLiteral
  : TRUE | FALSE
  ;
 
-rangeExpression
- : expression DOTDOT expression?
- | expression? DOTDOT expression
- ;
-
 selectorCreation
  : selectorType (LBRACKET ( selectorElement COMMA? )* RBRACKET)?
  ;
@@ -323,6 +318,11 @@ selectorKvp
  : IDENTIFIER EQUALS expression                # expressionSelector
  | IDENTIFIER EQUALS rangeExpression           # rangeSelector
  | IDENTIFIER EQUALS recordSelectorCreation    # recordSelector
+ ;
+ 
+rangeExpression
+ : expression DOTDOT expression?
+ | expression? DOTDOT expression
  ;
 
 recordSelectorCreation

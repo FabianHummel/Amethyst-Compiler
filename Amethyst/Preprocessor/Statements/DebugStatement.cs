@@ -4,7 +4,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    /// <summary>Prints a value to the console during preprocessing. <br /><inheritdoc /></summary>
+    /// <summary><p>Prints a value to the console during preprocessing.</p><p><inheritdoc /></p></summary>
     /// <seealso cref="VisitDebugStatement" />
     public override object? VisitPreprocessorDebugStatement(AmethystParser.PreprocessorDebugStatementContext context)
     {

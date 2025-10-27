@@ -4,8 +4,10 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    /// <summary>Imports symbols from another resource. Symbols are automatically exported when declared at
-    /// the top-level scope.<br /><inheritdoc /></summary>
+    /// <summary>
+    ///     <p>Imports symbols from another resource. Symbols are automatically exported when declared at
+    ///     the top-level scope.</p>
+    ///     <p><inheritdoc /></p></summary>
     /// <example><c>FROM `my_namespace:path/to/resource` IMPORT symbol1, symbol2, symbol3</c></example>
     /// <exception cref="SemanticException">The specified resource does not export one or more of the
     /// requested symbols.</exception>

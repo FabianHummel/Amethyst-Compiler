@@ -2,11 +2,6 @@ using Amethyst.Language;
 
 namespace Amethyst;
 
-public interface IIndexable
-{
-    AbstractValue GetIndex(AbstractValue index);
-}
-
 public partial class Compiler
 {
     public override AbstractValue VisitIndexExpression(AmethystParser.IndexExpressionContext context)

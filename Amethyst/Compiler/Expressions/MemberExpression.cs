@@ -2,14 +2,6 @@ using Amethyst.Language;
 
 namespace Amethyst;
 
-/// <summary>
-/// Provides access to members of a type.
-/// </summary>
-public interface IMemberAccess
-{
-    AbstractValue? GetMember(string memberName);
-}
-
 public partial class Compiler
 {
     public override AbstractValue VisitMemberExpression(AmethystParser.MemberExpressionContext context)

@@ -6,7 +6,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    /// <summary>Assigns a value to a preprocessor variable. <br /><inheritdoc /></summary>
+    /// <summary><p>Assigns a value to a preprocessor variable.</p><p><inheritdoc /></p></summary>
     /// <exception cref="SyntaxException">Thrown when an invalid operator is used.</exception>
     /// <seealso cref="VisitAssignmentStatement" />
     public override object? VisitPreprocessorAssignmentStatement(AmethystParser.PreprocessorAssignmentStatementContext context)

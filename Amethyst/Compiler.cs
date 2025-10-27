@@ -26,10 +26,6 @@ public partial class Compiler : AmethystParserBaseVisitor<object?>
     /// <see cref="CompileSourceFile" />.</summary>
     public Namespace Namespace { get; internal set; } = null!;
 
-    /// <summary>The total amount of registered records of the project. This number is increased every time
-    /// a new record is registered at <see cref="VisitRecordDeclaration" />.</summary>
-    public int TotalRecordCount { get; internal set; }
-
     /// <summary>The current stack pointer during compilation. This is basically an incrementing location
     /// where new variabled will be allocated at.</summary>
     public int StackPointer { get; internal set; }

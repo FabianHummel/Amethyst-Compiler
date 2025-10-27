@@ -1,47 +1,13 @@
 using Amethyst.Language;
+using Amethyst.Model;
 
 namespace Amethyst;
 
 public partial class Compiler
 {
-    public class RangeExpressionResult
+    public RangeExpression VisitRangeExpression(AmethystParser.RangeExpressionContext context, bool allowDecimals)
     {
-        private readonly AmethystParser.RangeExpressionContext _context;
-        private readonly bool _allowDecimals;
-
-        public RangeExpressionResult(AmethystParser.RangeExpressionContext context, bool allowDecimals)
-        {
-            _context = context;
-            _allowDecimals = allowDecimals;
-        }
-
-        public AbstractValue? Start { get; set; }
-        public AbstractValue? Stop { get; set; }
-        
-        public bool ContainsRuntimeValues => Start is IRuntimeValue || Stop is IRuntimeValue;
-
-        public override string ToString()
-        {
-            if (Start is null && Stop is null)
-            {
-                throw new SyntaxException("Invalid range expression. At least one of the range bounds must be specified.", _context);
-            }
-            
-            if (!_allowDecimals && (Start is ConstantDecimal or RuntimeDecimal || Stop is ConstantDecimal or RuntimeDecimal))
-            {
-                throw new SyntaxException("Unexpected decimal value.", _context);
-            }
-            
-            var start = Start?.ToTargetSelectorString();
-            var stop = Stop?.ToTargetSelectorString();
-
-            return $"{start}..{stop}";
-        }
-    }
-    
-    public RangeExpressionResult VisitRangeExpression(AmethystParser.RangeExpressionContext context, bool allowDecimals)
-    {
-        var result = new RangeExpressionResult(context, allowDecimals);
+        var result = new RangeExpression();
 
         if (context.GetChild(0) is AmethystParser.ExpressionContext startExpressionContext)
         {
@@ -51,6 +17,16 @@ public partial class Compiler
         if (context.GetChild(context.ChildCount - 1) is AmethystParser.ExpressionContext stopExpressionContext)
         {
             result.Stop = VisitExpression(stopExpressionContext);
+        }
+        
+        if (result.Start is null && result.Stop is null)
+        {
+            throw new SyntaxException("Invalid range expression. At least one of the range bounds must be specified.", context);
+        }
+            
+        if (!allowDecimals && (result.Start is ConstantDecimal or RuntimeDecimal || result.Stop is ConstantDecimal or RuntimeDecimal))
+        {
+            throw new SyntaxException("Unexpected decimal value.", context);
         }
 
         return result;

@@ -6,12 +6,14 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    /// <summary>The textual representation of types is converted to its enum equivalent by comparing the
-    /// enum's description attribute. Additionally, a modifier is also parsed that indicates whether the
-    /// type should be interpreted as an array or object of the original type. Decimals are handled
-    /// specially by also parsing the number of decimal places if explicitly defined, otherwise, the
-    /// <see cref="DecimalDatatype.DEFAULT_DECIMAL_PLACES">default number of decimal places</see> is used
-    /// instead. <br /><inheritdoc /></summary>
+    /// <summary>
+    ///     <p>The textual representation of types is converted to its enum equivalent by comparing the
+    ///     enum's description attribute. Additionally, a modifier is also parsed that indicates whether
+    ///     the type should be interpreted as an array or object of the original type. Decimals are handled
+    ///     specially by also parsing the number of decimal places if explicitly defined, otherwise, the
+    ///     <see cref="DecimalDatatype.DEFAULT_DECIMAL_PLACES">default number of decimal places</see> is
+    ///     used instead.</p>
+    ///     <p><inheritdoc /></p></summary>
     /// <example><c>int</c> -> <see cref="BasicType.Int" /> without any modifier<br /> <c>bool[]</c> ->
     /// <see cref="BasicType.Bool" /> with an <see cref="Modifier.Array" /> modifier<br /><c>dec(3){}</c>
     /// -> <see cref="BasicType.Dec" /> with 3 decimal places and an <see cref="Modifier.Object" />
