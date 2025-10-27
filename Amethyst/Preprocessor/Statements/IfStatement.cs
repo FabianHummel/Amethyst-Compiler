@@ -4,6 +4,8 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <summary>Processes an if-else statement during preprocessing. <br /><inheritdoc /></summary>
+    /// <seealso cref="VisitIfStatement" />
     public override object? VisitPreprocessorIfStatement(AmethystParser.PreprocessorIfStatementContext context)
     {
         var blockContexts = context.block();

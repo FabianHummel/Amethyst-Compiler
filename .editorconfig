@@ -1,1 +1,8 @@
-[resharper_]csharp_anonymous_method_declaration_braces = next_line
+[*.cs]
+resharper_csharp_anonymous_method_declaration_braces = next_line
+xmldoc_max_line_length = 100
+xmldoc_wrap_text = true
+xmldoc_wrap_lines = true
+xmldoc_indent_size = 2
+xmldoc_indent_style = space
+xmldoc_indent_text = zero_indent

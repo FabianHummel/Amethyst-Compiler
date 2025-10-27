@@ -4,6 +4,9 @@ using JetBrains.Annotations;
 
 namespace Amethyst;
 
+/// <summary>A preprocessor value of a specific type. Implemented by all specific preprocessor value
+/// types.</summary>
+/// <typeparam name="T">The type of the preprocessor value.</typeparam>
 [ForwardDefaultInterfaceMethods]
 public interface IPreprocessorValue<T> : IPreprocessorValue
 {
@@ -22,6 +25,8 @@ public interface IPreprocessorValue<T> : IPreprocessorValue
     public new sealed object? AbstractValue => Value;
 }
 
+/// <summary>The non-generic base interface for all preprocessor values. Only implemented by
+/// <see cref="AbstractPreprocessorValue" /> to improve the development experience.</summary>
 public interface IPreprocessorValue
 {
     ParserRuleContext Context { get; }

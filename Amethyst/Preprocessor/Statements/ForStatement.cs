@@ -5,6 +5,9 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <summary>Loops over a block of code while a specific condition is true during preprocessing. <br />
+    /// <inheritdoc /></summary>
+    /// <seealso cref="VisitForStatement" />
     public override object? VisitPreprocessorForStatement(AmethystParser.PreprocessorForStatementContext context)
     {
         if (context.preprocessorForStatementInitializer() is { } forStatementInitializerContext)

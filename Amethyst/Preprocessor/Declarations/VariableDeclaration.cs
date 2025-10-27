@@ -5,6 +5,11 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <summary>Creates a preprocessor variable declaration in the <see cref="Scope">current scope</see>.
+    /// <br /><inheritdoc /></summary>
+    /// <exception cref="SemanticException">The symbol has already been declared in this or an enclosing
+    /// scope.</exception>
+    /// <exception cref="SyntaxException">The type of the variable is invalid or cannot be inferred.</exception>
     public override object? VisitPreprocessorVariableDeclaration(AmethystParser.PreprocessorVariableDeclarationContext context)
     {
         var variableName = context.IDENTIFIER().GetText();

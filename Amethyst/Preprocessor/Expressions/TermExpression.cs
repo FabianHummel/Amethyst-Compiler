@@ -6,6 +6,10 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <summary>Calculates two preprocessor expressions using addition or subtraction operator.<br />
+    /// <inheritdoc /></summary>
+    /// <exception cref="SyntaxException">Thrown when an invalid comparison operator is encountered.</exception>
+    /// <seealso cref="VisitTermExpression" />
     public override object VisitPreprocessorTermExpression(AmethystParser.PreprocessorTermExpressionContext context)
     {
         var expressionContexts = context.preprocessorExpression();

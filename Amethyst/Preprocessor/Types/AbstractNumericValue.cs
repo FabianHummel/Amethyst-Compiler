@@ -5,6 +5,14 @@ namespace Amethyst;
 
 public abstract partial class AbstractNumericPreprocessorValue : AbstractPreprocessorValue
 {
+    /// <summary>Calculates the result of two numeric values using the specified arithmetic operator.</summary>
+    /// <param name="lhs">A numeric preprocessor value on the left side of the operation.</param>
+    /// <param name="rhs">A numeric preprocessor value on the right side of the operation.</param>
+    /// <param name="op">The arithmetic operator to use for the calculation.</param>
+    /// <returns>The resulting numeric preprocessor value after applying the operation.</returns>
+    /// <exception cref="SyntaxException">Thrown when an invalid operator is provided.</exception>
+    /// <seealso
+    ///     cref="Calculate(Amethyst.AbstractNumericPreprocessorValue,Amethyst.AbstractNumericPreprocessorValue,Amethyst.Model.ComparisonOperator)" />
     private AbstractNumericPreprocessorValue Calculate(AbstractNumericPreprocessorValue lhs, AbstractNumericPreprocessorValue rhs, ArithmeticOperator op)
     {
         if (TryConvertToDecimals(lhs, rhs, out var decimalLhs, out var decimalRhs))
@@ -44,7 +52,15 @@ public abstract partial class AbstractNumericPreprocessorValue : AbstractPreproc
             Value = integerValue
         };
     }
-    
+
+    /// <summary>Calculates the result of two numeric values using the specified comparison operator.</summary>
+    /// <param name="lhs">A numeric preprocessor value on the left side of the comparison.</param>
+    /// <param name="rhs">A numeric preprocessor value on the right side of the comparison.</param>
+    /// <param name="op">The comparison operator to use for the calculation.</param>
+    /// <returns>The resulting boolean preprocessor value after applying the comparison.</returns>
+    /// <exception cref="SyntaxException">Thrown when an invalid operator is provided.</exception>
+    /// <seealso
+    ///     cref="Calculate(Amethyst.AbstractNumericPreprocessorValue,Amethyst.AbstractNumericPreprocessorValue,Amethyst.Model.ArithmeticOperator)" />
     private PreprocessorBoolean Calculate(AbstractNumericPreprocessorValue lhs, AbstractNumericPreprocessorValue rhs, ComparisonOperator op)
     {
         bool result;
@@ -78,10 +94,15 @@ public abstract partial class AbstractNumericPreprocessorValue : AbstractPreproc
             Value = result
         };
     }
-    
-    /// <summary>
-    /// Tries to convert both numeric values to decimals if at least one of them is a decimal.
-    /// </summary>
+
+    /// <summary>Tries to convert both numeric values to decimals if at least one of them is a decimal.</summary>
+    /// <param name="anvLhs">The left-hand side numeric preprocessor value.</param>
+    /// <param name="anvRhs">The right-hand side numeric preprocessor value.</param>
+    /// <param name="lhs">The converted left-hand side decimal value, or null if conversion is not
+    /// possible.</param>
+    /// <param name="rhs">The converted right-hand side decimal value, or null if conversion is not
+    /// possible.</param>
+    /// <returns>>True if conversion to decimals was successful; otherwise, false.</returns>
     private static bool TryConvertToDecimals(AbstractNumericPreprocessorValue anvLhs, AbstractNumericPreprocessorValue anvRhs, [NotNullWhen(true)] out double? lhs, [NotNullWhen(true)] out double? rhs)
     {
         if (anvLhs is not PreprocessorDecimal && anvRhs is not PreprocessorDecimal)

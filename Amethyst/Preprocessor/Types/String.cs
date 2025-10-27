@@ -2,6 +2,7 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
+/// <summary>Represents a string value in the preprocessor.</summary>
 public partial class PreprocessorString : AbstractPreprocessorValue, IPreprocessorValue<string>
 {
     public required string Value { get; set; }

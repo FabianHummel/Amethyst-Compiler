@@ -5,6 +5,9 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <summary>Yields a value from the enclosing yielding scope.<br /><inheritdoc /></summary>
+    /// <exception cref="SyntaxException">Thrown if there is no enclosing yielding scope.</exception>
+    /// <seealso cref="Model.YieldingScope" />
     public override object? VisitPreprocessorYieldStatement(AmethystParser.PreprocessorYieldStatementContext context)
     {
         if (YieldingScope is not { } scope)
@@ -12,13 +15,7 @@ public partial class Compiler
             throw new SyntaxException("Can only yield within enclosing context.", context);
         }
 
-        ParserRuleContext? rule = null;
-        
-        rule ??= context.selectorElement();
-        rule ??= context.recordSelectorElement();
-        rule ??= context.arrayElement();
-        rule ??= context.objectElement();
-        
+        var rule = context.GetRuleContext<ParserRuleContext>(0);
         scope.Yield(rule);
         
         return null;

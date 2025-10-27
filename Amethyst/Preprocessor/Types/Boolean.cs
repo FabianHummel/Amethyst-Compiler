@@ -2,6 +2,7 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
+/// <summary>A preprocessor value representing a boolean.</summary>
 public partial class PreprocessorBoolean : AbstractNumericPreprocessorValue, IPreprocessorValue<bool>
 {
     public required bool Value { get; set; }
