@@ -1,5 +1,6 @@
 namespace Amethyst.Model;
 
+/// <summary>Represents arithmetic operators used in expressions.</summary>
 public enum ArithmeticOperator
 {
     [McfOperator("+")]

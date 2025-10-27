@@ -40,7 +40,8 @@ public abstract partial class AbstractRuntimeArray : AbstractArray, IRuntimeValu
         };
     }
 
-    // TODO: Maybe directly return a RuntimeUnknown with a modified path location pointing to the element at the index?
+    // TODO: Maybe directly return a RawLocation with a modified path location pointing to the element at the index?
+    //  like from "storage amethyst 0" to "storage amethyst 0[<index>]" and then to "storage amethyst 0[<index>].<path>".
     public AbstractValue GetIndex(AbstractValue index)
     {
         var location = NextFreeLocation(DataLocation.Storage);

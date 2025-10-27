@@ -1,5 +1,6 @@
 namespace Amethyst.Model;
 
+/// <summary>Represents comparison operators used in expressions.</summary>
 public enum ComparisonOperator
 {
     [McfOperator("<")]

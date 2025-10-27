@@ -27,8 +27,7 @@ public class Processor
     public Context Context { get; }
 
     /// <summary>Creates a new processor that reads the configuration and recompiles the project.</summary>
-    /// <param name="rootDir">The directory where to look for the project's configuration and source
-    /// directory</param>
+    /// <param name="rootDir">The path where to look for the project's configuration and source directory.</param>
     /// <param name="compilerFlags">Compiler flags that are parsed from the command line arguments</param>
     /// <param name="rethrowErrors">Sets <see cref="_rethrowErrors" /></param>
     public Processor(string rootDir, CompilerFlags compilerFlags, bool rethrowErrors = false)

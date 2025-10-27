@@ -3,6 +3,10 @@ using Tomlet.Attributes;
 
 namespace Amethyst.Model;
 
+/// <summary>The project's configuration that is parsed from the <c>amethyst.toml</c> file in the root
+/// directory of the project. It includes data such as the project's ID, the path to Minecraft's root
+/// directory and datapack / resourcepack configurations.</summary>
+/// <seealso cref="Processor.ParseConfiguration" />
 public class Configuration
 {
     [TomlProperty("id")]
