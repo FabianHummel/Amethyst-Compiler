@@ -2,6 +2,7 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
+/// <summary>A preprocessor value representing an integer.</summary>
 public partial class PreprocessorInteger : AbstractNumericPreprocessorValue, IPreprocessorValue<int>
 {
     public required int Value { get; set; }

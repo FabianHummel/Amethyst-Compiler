@@ -2,20 +2,9 @@ using Amethyst.Utility;
 
 namespace Amethyst.Model;
 
-public enum BasicPreprocessorType
-{
-    [Description("INT")]
-    Int,
-    [Description("DEC")]
-    Dec,
-    [Description("STRING")]
-    String,
-    [Description("BOOL")]
-    Bool,
-    [Description("RESOURCE")]
-    Resource
-}
-
+/// <summary>A representation of a datatype in the preprocessor. Currently only contains a basic type,
+/// but will include more complex types in the future, like already implemented in the main compiler
+/// with <see cref="Modifier" />. Includes functionality to compare different datatypes for equality.</summary>
 public class PreprocessorDatatype
 {
     public required BasicPreprocessorType BasicType { get; init; }

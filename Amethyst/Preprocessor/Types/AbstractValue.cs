@@ -3,6 +3,8 @@ using Antlr4.Runtime;
 
 namespace Amethyst;
 
+/// <summary>The base class for all preprocessor values. Contains a datatype and holds a reference to
+/// the <see cref="Compiler" /> and a <see cref="ParserRuleContext" /> where the value was created.</summary>
 public abstract partial class AbstractPreprocessorValue : IPreprocessorValue
 {
     public abstract PreprocessorDatatype Datatype { get; }

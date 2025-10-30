@@ -2,6 +2,7 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
+/// <summary>A preprocessor value representing a decimal number.</summary>
 public partial class PreprocessorDecimal : AbstractNumericPreprocessorValue, IPreprocessorValue<double>
 {
     public required double Value { get; set; }

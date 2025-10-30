@@ -2,6 +2,8 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
+/// <summary>Represents an amethyst resource path.</summary>
+/// <example><c>`minecraft:path/to/resource`</c><br /> <c>`my_namespace:path/to/function`</c></example>
 public partial class PreprocessorResource : AbstractPreprocessorValue, IPreprocessorValue<string>
 {
     public required string Value { get; set; }
