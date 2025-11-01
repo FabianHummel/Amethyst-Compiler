@@ -6,7 +6,7 @@ public class LiteralSelector : BasicSelector
 {
     public string[] Values { get; }
     
-    public LiteralSelector(string[] values) : base(allowMultipleEqualityChecks: true, BasicType.String)
+    public LiteralSelector(string[] values) : base(allowMultipleEqualityChecks: false, BasicType.String)
     {
         Values = values;
     }

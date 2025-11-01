@@ -21,9 +21,7 @@ public class BasicSelector : AbstractQuerySelector<AbstractValue>
         {
             throw new SyntaxException($"Expected value of type '{BasicType.GetDescription()}' for '{queryKey}' target selector query, but got '{value.Datatype}'.", value.Context);
         }
-
-        var result = value.ToTargetSelectorString();
         
-        return new SelectorQueryResult(queryKey, $"{queryKey}={result}", value is IRuntimeValue);
+        return new SelectorQueryResult(queryKey, value.ToTargetSelectorString(), value is IRuntimeValue);
     }
 }

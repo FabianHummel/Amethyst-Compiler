@@ -14,10 +14,10 @@ public partial class Compiler
         var sp = StackPointer;
 
         var selectorElementContexts = context.selectorElement();
-        var queryList = new Dictionary<string, string>(); 
-        ProcessSelectorElements(selectorElementContexts, ref queryList, out var containsRuntimeValues, out var limitExpression);
+        var queryDict = new Dictionary<string, string>(); 
+        ProcessSelectorElements(selectorElementContexts, ref queryDict, out var containsRuntimeValues, out var limitExpression);
         
-        var selectorString = $"{entityTargetResult.Target.GetMcfOperatorSymbol()}{QueryListToString(queryList)}";
+        var selectorString = $"{entityTargetResult.Target.GetMcfOperatorSymbol()}{ProcessQueryDict(queryDict)}";
 
         StackPointer = sp;
 
@@ -40,7 +40,7 @@ public partial class Compiler
 
     }
     
-    private void ProcessSelectorElements(IEnumerable<AmethystParser.SelectorElementContext> selectorElementContexts, ref Dictionary<string, string> queryList, out bool containsRuntimeValues, out AbstractValue? limitExpression)
+    private void ProcessSelectorElements(IEnumerable<AmethystParser.SelectorElementContext> selectorElementContexts, ref Dictionary<string, string> queryDict, out bool containsRuntimeValues, out AbstractValue? limitExpression)
     {
         containsRuntimeValues = false;
         limitExpression = null;
@@ -50,20 +50,20 @@ public partial class Compiler
             if (selectorElementContext.preprocessorYieldingStatement() is { } preprocessorYieldingStatementContext)
             {
                 var result = VisitPreprocessorYieldingStatement<AmethystParser.SelectorElementContext>(preprocessorYieldingStatementContext);
-                ProcessSelectorElements(result, ref queryList, out containsRuntimeValues, out limitExpression);
+                ProcessSelectorElements(result, ref queryDict, out containsRuntimeValues, out limitExpression);
             }
             else if (selectorElementContext.selectorQuery() is { } selectorQueryContext)
             {
                 var queryResult = VisitSelectorQuery(selectorQueryContext);
 
-                if (queryList.ContainsKey(queryResult.QueryKey))
+                if (queryDict.ContainsKey(queryResult.QueryKey))
                 {
                     throw new SyntaxException($"Duplicate selector '{queryResult.QueryKey}'.", selectorQueryContext);
                 }
                 
                 containsRuntimeValues |= queryResult.ContainsRuntimeValues;
                 limitExpression ??= queryResult.LimitExpression;
-                queryList.Add(queryResult.QueryKey, queryResult.QueryString);
+                queryDict.Add(queryResult.QueryKey, queryResult.QueryValue);
             }
         }
     }
@@ -109,8 +109,8 @@ public partial class Compiler
             IsTemporary = true
         };
     }
-    // TODO: Rewrite to support multiple same query keys with different values
-    private static string? QueryListToString(IReadOnlyDictionary<string, string> queryList)
+    
+    private static string? ProcessQueryDict(IReadOnlyDictionary<string, string> queryList)
     {
         if (queryList.Count == 0)
         {

@@ -6,7 +6,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override SelectorQueryResult VisitExpressionSelector(AmethystParser.ExpressionSelectorContext context)
+    public override SelectorQueryResultBase VisitExpressionSelector(AmethystParser.ExpressionSelectorContext context)
     {
         var queryKey = context.IDENTIFIER().GetText();
 
@@ -19,7 +19,7 @@ public partial class Compiler
 
         if (!Constants.TargetSelectorQueryKeys.TryGetValue(queryKey, out var selector))
         {
-            return new SelectorQueryResult(queryKey, $"{queryKey}={result.ToTargetSelectorString()}", result is IRuntimeValue);
+            return new SelectorQueryResult(queryKey, result.ToTargetSelectorString(), result is IRuntimeValue);
         }
 
         if (selector is not AbstractQuerySelector<AbstractValue> abstractValueQuerySelector)

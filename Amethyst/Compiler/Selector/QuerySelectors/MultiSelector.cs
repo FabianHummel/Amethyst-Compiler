@@ -11,7 +11,7 @@ public class MultiSelector : AbstractQuerySelector<AbstractValue>
         OriginalQueryKey = originalQueryKey;
     }
     
-    public override SelectorQueryResult Parse(string queryKey, AbstractValue value)
+    public override SelectorQueryResultBase Parse(string queryKey, AbstractValue value)
     {
         if (!Constants.TargetSelectorQueryKeys.TryGetValue(OriginalQueryKey, out var selector) || selector is not BasicSelector basicSelector)
         {
@@ -22,48 +22,32 @@ public class MultiSelector : AbstractQuerySelector<AbstractValue>
         {
             throw new SyntaxException($"Expected '{basicSelector.BasicType}' array for '{queryKey}' target selector query, but got '{value.Datatype}'.", value.Context);
         }
-
-        var queryString = ParseInternal(arrayValue, out var containsRuntimeValues);
-
-        return new SelectorQueryResult("tag", queryString, containsRuntimeValues);
-    }
-
-    private string ParseInternal(AbstractArray array, out bool containsRuntimeValues)
-    {
-        containsRuntimeValues = false;
-
-        if (!Constants.TargetSelectorQueryKeys.TryGetValue(OriginalQueryKey, out var selector) || selector is not BasicSelector basicSelector)
-        {
-            throw new InvalidOperationException($"Could not find matching basic query selector for '{OriginalQueryKey}' query key.");
-        }
         
-        if (array is ConstantStaticArray arrayConstant)
+        
+        if (arrayValue is ConstantStaticArray arrayConstant)
         {
-            if (arrayConstant.Value.Any(constantValue => constantValue is ConstantSubstitute))
-            {
-                containsRuntimeValues = true;
-            }
-            
-            return string.Join(",", arrayConstant.Value.Select(constantValue =>
+            var values = arrayConstant.Value.SelectMany(constantValue =>
             {
                 var queryResult = basicSelector.Parse(OriginalQueryKey, (AbstractValue)constantValue);
-                return queryResult.QueryString;
-            }));
+                return queryResult.Values;
+            });
+            
+            var containsRuntimeValues = arrayConstant.Value.Any(constantValue => constantValue is ConstantSubstitute);
+            
+            return new SelectorQueryResult(OriginalQueryKey, values.ToArray(), containsRuntimeValues);
         }
 
-        if (array is RuntimeStaticArray and IRuntimeValue arrayResult)
+        if (arrayValue is RuntimeStaticArray and IRuntimeValue arrayResult)
         {
-            containsRuntimeValues = true;
-            
             var location = arrayResult.NextFreeLocation(DataLocation.Storage);
             
-            array.AddCode($"data modify storage amethyst:internal data.prefix.prefix set value \"{OriginalQueryKey}=\"");
-            array.AddCode($"data modify storage amethyst:internal data.prefix.in set from storage {arrayResult.Location}");
-            array.AddCode("function amethyst:api/data/prefix");
+            arrayValue.AddCode($"data modify storage amethyst:internal data.prefix.prefix set value \"{OriginalQueryKey}=\"");
+            arrayValue.AddCode($"data modify storage amethyst:internal data.prefix.in set from storage {arrayResult.Location}");
+            arrayValue.AddCode("function amethyst:api/data/prefix");
             
-            return $"$({location.Name})";
+            return new SelectorQueryResultBase(OriginalQueryKey, $"$({location.Name})", containsRuntimeValues: true);
         }
 
-        throw new InvalidOperationException($"Unexpected query selector type '{array}' in {nameof(MultiSelector)}.");
+        throw new InvalidOperationException($"Unexpected query selector type '{arrayValue}' in {nameof(MultiSelector)}.");
     }
 }
