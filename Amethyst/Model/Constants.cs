@@ -1,8 +1,8 @@
 using System.Globalization;
 
-namespace Amethyst;
+namespace Amethyst.Model;
 
-public static class Constants
+public static partial class Constants
 {
     public const string ConfigFile = "amethyst.toml";
     public const string SourceFile = "*.amy";

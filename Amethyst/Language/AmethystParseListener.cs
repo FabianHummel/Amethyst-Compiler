@@ -1,4 +1,5 @@
 using Amethyst.Language;
+using Amethyst.Model;
 
 namespace Amethyst;
 
@@ -26,7 +27,7 @@ public class AmethystParseListener : AmethystParserBaseListener
         }
     }
 
-    public override void ExitPreprocessorFromDeclaration(AmethystParser.PreprocessorFromDeclarationContext context)
+    public override void ExitPreprocessorFromImportDeclaration(AmethystParser.PreprocessorFromImportDeclarationContext context)
     {
         if (context.RESOURCE_LITERAL() is not { } resourceLiteral)
         {

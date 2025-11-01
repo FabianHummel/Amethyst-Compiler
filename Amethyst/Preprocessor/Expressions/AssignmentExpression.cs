@@ -6,11 +6,11 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override object? VisitPreprocessorAssignment(AmethystParser.PreprocessorAssignmentContext context)
+    public override object? VisitPreprocessorAssignmentExpression(AmethystParser.PreprocessorAssignmentExpressionContext context)
     {
         var expressionContexts = context.preprocessorExpression();
         var lhs = VisitPreprocessorExpression(expressionContexts[0]);
-        var rhs = VisitPreprocessorExpression(expressionContexts[0]);
+        var rhs = VisitPreprocessorExpression(expressionContexts[1]);
         
         var operatorToken = context.GetChild(1).GetText();
         var op = Enum.GetValues<AssignmentOperator>()

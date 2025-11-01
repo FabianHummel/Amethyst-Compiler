@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using Amethyst.Language;
 using Amethyst.Utility;
-using static Amethyst.Constants;
+using static Amethyst.Model.Constants;
 
 namespace Amethyst.Model;
 

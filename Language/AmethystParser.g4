@@ -14,7 +14,9 @@ preprocessor
  ;
 
 preprocessorFromDeclaration
- : PREPROCESSOR_FROM RESOURCE_LITERAL IDENTIFIER (COMMA IDENTIFIER)* SEMICOLON // replace RESOURCE_LITERAL with resourceLiteral in the future
+ // replace RESOURCE_LITERAL with resourceLiteral in the future
+ : PREPROCESSOR_FROM RESOURCE_LITERAL PREPROCESSOR_IMPORT IDENTIFIER (COMMA IDENTIFIER)* SEMICOLON  #preprocessorFromImportDeclaration
+ | PREPROCESSOR_FROM RESOURCE_LITERAL PREPROCESSOR_AS IDENTIFIER SEMICOLON                          #preprocessorFromAsDeclaration
  ;
 
 preprocessorStatement
@@ -30,15 +32,15 @@ preprocessorYieldingStatement
  | preprocessorBreakStatement
  | preprocessorYieldStatement
  | preprocessorDebugStatement
- | preprocessorExpressionStatement
+ | preprocessorAssignmentStatement
  ;
 
 preprocessorDeclaration
- : preprocessorVariableDeclaration
+ : preprocessorVariableDeclaration SEMICOLON
  ;
 
 preprocessorVariableDeclaration
- : PREPROCESSOR_VAR IDENTIFIER (COLON preprocessorType)? (EQUALS preprocessorExpression) SEMICOLON
+ : PREPROCESSOR_VAR IDENTIFIER (COLON preprocessorType)? (EQUALS preprocessorExpression)
  ;
 
 preprocessorType
@@ -54,12 +56,12 @@ preprocessorIfStatement
  ;
 
 preprocessorForStatement
- : PREPROCESSOR_FOR LPAREN preprocessorForStatementInitializer? SEMICOLON preprocessorExpression? SEMICOLON preprocessorExpressionStatement? RPAREN block
+ : PREPROCESSOR_FOR LPAREN preprocessorForStatementInitializer? SEMICOLON preprocessorExpression? SEMICOLON preprocessorAssignment? RPAREN block
  ;
 
 preprocessorForStatementInitializer
  : preprocessorVariableDeclaration
- | preprocessorExpressionStatement
+ | preprocessorAssignment
  ;
 
 preprocessorReturnStatement
@@ -78,21 +80,20 @@ preprocessorDebugStatement
  : PREPROCESSOR_DEBUG preprocessorExpression SEMICOLON
  ;
 
-preprocessorExpressionStatement
+preprocessorAssignmentStatement
  : preprocessorAssignment SEMICOLON
- | preprocessorExpression SEMICOLON
  ;
 
 preprocessorAssignment
- : preprocessorExpression (EQUALS | PLUSEQ | MINUSEQ | MULTEQ | DIVEQ | MODEQ) preprocessorExpression
+ : preprocessorExpression (EQUALS | PLUSEQ | MINUSEQ | MULTEQ | DIVEQ | MODEQ) preprocessorExpression   # preprocessorAssignmentExpression
+ | PLUSPLUS preprocessorExpression                                                                      # preprocessorPreIncrementExpression
+ | MINUSMINUS preprocessorExpression                                                                    # preprocessorPreDecrementExpression
+ | preprocessorExpression PLUSPLUS                                                                      # preprocessorPostIncrementExpression
+ | preprocessorExpression MINUSMINUS                                                                    # preprocessorPostDecrementExpression
  ;
 
 preprocessorExpression
- : PLUSPLUS preprocessorExpression                                                      # preprocessorPreIncrementExpression
- | MINUSMINUS preprocessorExpression                                                    # preprocessorPreDecrementExpression
- | preprocessorExpression PLUSPLUS                                                      # preprocessorPostIncrementExpression
- | preprocessorExpression MINUSMINUS                                                    # preprocessorPostDecrementExpression
- | preprocessorExpression (MULTIPLY | DIVIDE | MODULO) preprocessorExpression           # preprocessorFactorExpression
+ : preprocessorExpression (MULTIPLY | DIVIDE | MODULO) preprocessorExpression           # preprocessorFactorExpression
  | preprocessorExpression (PLUS | MINUS) preprocessorExpression                         # preprocessorTermExpression
  | preprocessorExpression (LESS | GREATER | LESSEQ | GREATEREQ) preprocessorExpression  # preprocessorComparisonExpression
  | preprocessorExpression (EQEQ | NOTEQ) preprocessorExpression                         # preprocessorEqualityExpression
@@ -141,8 +142,8 @@ preprocessorLiteral
 
 declaration
  : functionDeclaration
- | variableDeclaration
- | recordDeclaration
+ | variableDeclaration SEMICOLON
+ | recordDeclaration SEMICOLON
  ;
 
 functionDeclaration
@@ -150,11 +151,11 @@ functionDeclaration
  ;
 
 variableDeclaration
- : attributeList VAR IDENTIFIER (COLON type)? (EQUALS expression) SEMICOLON
+ : attributeList VAR IDENTIFIER (COLON type)? (EQUALS expression)
  ;
 
 recordDeclaration
- : attributeList RECORD IDENTIFIER (COLON type)? (EQUALS expression) SEMICOLON
+ : attributeList RECORD IDENTIFIER (COLON type)? (EQUALS expression)
  ;
 
 type
@@ -194,17 +195,17 @@ statement
  | breakStatement
  | continueStatement
  | block
- | expressionStatement
+ | assignmentStatement
  | commandStatement
  ;
 
 forStatement
- : FOR LPAREN forStatementInitializer? SEMICOLON expression? SEMICOLON expressionStatement? RPAREN block
+ : FOR LPAREN forStatementInitializer? SEMICOLON expression? SEMICOLON assignment? RPAREN block
  ;
 
 forStatementInitializer
  : variableDeclaration
- | expressionStatement
+ | assignment
  ;
 
 whileStatement
@@ -239,9 +240,8 @@ continueStatement
  : CONTINUE SEMICOLON
  ;
 
-expressionStatement
+assignmentStatement
  : assignment SEMICOLON
- | expression SEMICOLON
  ;
 
 commandStatement
@@ -249,15 +249,15 @@ commandStatement
   ;
 
 assignment
- : expression (EQUALS | PLUSEQ | MINUSEQ | MULTEQ | DIVEQ | MODEQ) expression
+ : expression (EQUALS | PLUSEQ | MINUSEQ | MULTEQ | DIVEQ | MODEQ) expression   # assignmentExpression
+ | PLUSPLUS expression                                                          # preIncrementExpression
+ | MINUSMINUS expression                                                        # preDecrementExpression
+ | expression PLUSPLUS                                                          # postIncrementExpression
+ | expression MINUSMINUS                                                        # postDecrementExpression
  ;
 
 expression
  : IDENTIFIER LPAREN argumentList? RPAREN                       # callExpression
- | PLUSPLUS expression                                          # preIncrementExpression
- | MINUSMINUS expression                                        # preDecrementExpression
- | expression PLUSPLUS                                          # postIncrementExpression
- | expression MINUSMINUS                                        # postDecrementExpression
  | expression DOT IDENTIFIER                                    # memberExpression
  | expression LBRACKET expression RBRACKET                      # indexExpression
  | expression (MULTIPLY | DIVIDE | MODULO) expression           # factorExpression
@@ -302,10 +302,10 @@ rangeExpression
  ;
 
 selectorCreation
- : selectorType (LBRACKET ( selectorElement COMMA? )* RBRACKET)?
+ : entitySelectorType (LBRACKET ( selectorElement COMMA? )* RBRACKET)?
  ;
 
-selectorType
+entitySelectorType
  : SELECTOR_SELF
  | SELECTOR_RANDOM_PLAYER
  | SELECTOR_ALL_PLAYERS
@@ -316,10 +316,10 @@ selectorType
 
 selectorElement
  : preprocessorYieldingStatement
- | selectorKvp
+ | selectorQuery
  ;
 
-selectorKvp
+selectorQuery
  : IDENTIFIER EQUALS expression                # expressionSelector
  | IDENTIFIER EQUALS rangeExpression           # rangeSelector
  | IDENTIFIER EQUALS recordSelectorCreation    # recordSelector

@@ -1,6 +1,6 @@
 using Amethyst.Model;
 using Antlr4.Runtime;
-using static Amethyst.Constants;
+using static Amethyst.Model.Constants;
 
 namespace Amethyst;
 
