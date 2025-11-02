@@ -30,6 +30,6 @@ public static partial class Constants
         { "gamemodes", new MultiSelector("gamemode") },
         { "advancements", new AdvancementsSelector() },
         { "limit", new LimitSelector() },
-        { "sort", new LiteralSelector(["nearest", "furthest", "random", "arbitrary"]) }
+        { "sort", new SortSelector(["nearest", "furthest", "random", "arbitrary"]) }
     };
 }

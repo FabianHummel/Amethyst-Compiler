@@ -1,6 +1,4 @@
 [initializing]
 function main() {
-    var nice = "nice";
-    var arr = [nice, "cool", "damn"];
-    debug @e[tags=arr];
+    debug @e;
 }

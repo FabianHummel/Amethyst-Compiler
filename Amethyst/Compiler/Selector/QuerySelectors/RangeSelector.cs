@@ -19,7 +19,7 @@ public class RangeSelector : AbstractQuerySelector<Compiler.RangeExpressionResul
         _numericSelector = new NumericSelector(allowDecimals, minValue, maxValue);
     }
     
-    public override SelectorQueryResult Parse(string queryKey, Compiler.RangeExpressionResult value)
+    public override SelectorQueryResult Parse(string queryKey, bool isNegated, Compiler.RangeExpressionResult value)
     {
         if (MinValue.HasValue && value.Start == null && value.OverwrittenStartValue == null)
         {
@@ -40,7 +40,8 @@ public class RangeSelector : AbstractQuerySelector<Compiler.RangeExpressionResul
         {
             _numericSelector.CheckValue(stop, queryKey);
         }
-        
-        return new SelectorQueryResult(queryKey, $"{queryKey}={value.ToTargetSelectorString()}", value.ContainsRuntimeValues);
+
+        var queryValue = new SelectorQueryValue(value.ToTargetSelectorString(), isNegated, value.Context, value.ContainsRuntimeValues);
+        return new SelectorQueryResult(queryKey, queryValue);
     }
 }

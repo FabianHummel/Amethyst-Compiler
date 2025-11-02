@@ -5,11 +5,11 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public SelectorQueryResultBase VisitSelectorQuery(AmethystParser.SelectorQueryContext context)
+    public SelectorQueryResult VisitSelectorQuery(AmethystParser.SelectorQueryContext context)
     {
-        if (Visit(context) is not SelectorQueryResultBase result)
+        if (Visit(context) is not SelectorQueryResult result)
         {
-            throw new InvalidOperationException($"Selector query did not return a {nameof(SelectorQueryResultBase)}.");
+            throw new InvalidOperationException($"Selector query did not return a {nameof(SelectorQueryResult)}.");
         }
         
         return result;

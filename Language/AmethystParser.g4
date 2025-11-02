@@ -320,7 +320,7 @@ selectorElement
  ;
 
 selectorQuery
- : IDENTIFIER EQUALS expression                # expressionSelector
+ : IDENTIFIER EQUALS NOT? expression           # expressionSelector
  | IDENTIFIER EQUALS rangeExpression           # rangeSelector
  | IDENTIFIER EQUALS recordSelectorCreation    # recordSelector
  ;

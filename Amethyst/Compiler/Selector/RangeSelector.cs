@@ -6,7 +6,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override SelectorQueryResultBase VisitRangeSelector(AmethystParser.RangeSelectorContext context)
+    public override SelectorQueryResult VisitRangeSelector(AmethystParser.RangeSelectorContext context)
     {
         var queryKey = context.IDENTIFIER().GetText();
 
@@ -31,7 +31,8 @@ public partial class Compiler
 
         if (!isQueryKeyKnown)
         {
-            return new SelectorQueryResult(queryKey, result.ToTargetSelectorString(), result.ContainsRuntimeValues);
+            var value = new SelectorQueryValue(result.ToTargetSelectorString(), isNegated: false, context: result.Context, isRuntimeValue: result.ContainsRuntimeValues);
+            return new SelectorQueryResult(queryKey, value);
         }
         
         if (selector is not AbstractQuerySelector<RangeExpressionResult> rangeExpressionQuerySelector)
@@ -39,6 +40,6 @@ public partial class Compiler
             throw new InvalidOperationException($"Expected range expression selector for '{queryKey}' target selector.");
         }
         
-        return rangeExpressionQuerySelector.Parse(queryKey, result);
+        return rangeExpressionQuerySelector.Parse(queryKey, isNegated: false, result);
     }
 }

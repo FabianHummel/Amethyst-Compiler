@@ -15,13 +15,30 @@ public class BasicSelector : AbstractQuerySelector<AbstractValue>
         BasicType = basicType;
     }
     
-    public override SelectorQueryResult Parse(string queryKey, AbstractValue value)
+    public override SelectorQueryResult Parse(string queryKey, bool isNegated, AbstractValue value)
     {
         if (value.Datatype.Modifier != null || value.Datatype.BasicType != BasicType)
         {
             throw new SyntaxException($"Expected value of type '{BasicType.GetDescription()}' for '{queryKey}' target selector query, but got '{value.Datatype}'.", value.Context);
         }
+
+        var queryValue = new SelectorQueryValue(value.ToTargetSelectorString(), isNegated, value.Context, value is IRuntimeValue);
+        return new SelectorQueryResult(queryKey, queryValue);
+    }
+
+    public override SelectorQueryResult Transform(string queryKey, SelectorQueryValue[] selectorQueryValues)
+    {
+        if (!AllowMultipleEqualityChecks && selectorQueryValues.Count(v => !v.IsNegated) > 1)
+        {
+            var excessQueryValue = selectorQueryValues[1];
+            throw new SyntaxException($"Cannot compare multiple values for equality in '{queryKey}' target selector query", excessQueryValue.Context);
+        }
         
-        return new SelectorQueryResult(queryKey, value.ToTargetSelectorString(), value is IRuntimeValue);
+        if (selectorQueryValues.Any(v => !v.IsNegated) && selectorQueryValues.FirstOrDefault(v => v.IsNegated) is { } negatedValue)
+        {
+            throw new SyntaxException("Cannot compare query value for inequality, if already comparing for equality.", negatedValue.Context);
+        }
+        
+        return base.Transform(queryKey, selectorQueryValues);
     }
 }

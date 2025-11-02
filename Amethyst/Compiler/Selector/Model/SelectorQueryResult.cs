@@ -1,18 +1,26 @@
 namespace Amethyst.Model;
 
-public class SelectorQueryResult : SelectorQueryResultBase
+public class SelectorQueryResult
 {
-    public string[] Values { get; }
+    public string QueryKey { get; }
+    public SelectorQueryValue[] QueryValues { get; }
+    public bool ContainsRuntimeValues { get; }
+    public AbstractValue? LimitExpression { get; set; }
 
-    public SelectorQueryResult(string queryKey, string value, bool containsRuntimeValues, AbstractValue? limitExpression = null)
-        : base(queryKey, $"{queryKey}={value}", containsRuntimeValues, limitExpression)
+    public SelectorQueryResult(string queryKey, SelectorQueryValue queryValue)
+        : this(queryKey, [queryValue])
     {
-        Values = [value];
     }
     
-    public SelectorQueryResult(string queryKey, string[] values, bool containsRuntimeValues, AbstractValue? limitExpression = null)
-        : base(queryKey, string.Join(',', values.Select(v => $"{queryKey}={v}")), containsRuntimeValues, limitExpression)
+    public SelectorQueryResult(string queryKey, IEnumerable<SelectorQueryValue> queryValues)
     {
-        Values = values;
+        QueryKey = queryKey;
+        QueryValues = queryValues.ToArray();
+        ContainsRuntimeValues = queryValues.Any(val => val.IsRuntimeValue);
+    }
+
+    public string ToTargetSelectorString()
+    {
+        return string.Join(",", QueryValues.Select(val => val.ToTargetSelectorString(QueryKey)));
     }
 }

@@ -4,8 +4,8 @@ namespace Amethyst;
 
 public class AdvancementsSelector : AbstractQuerySelector<AbstractValue>
 {
-    public override SelectorQueryResult Parse(string queryKey, AbstractValue value)
+    public override SelectorQueryResult Parse(string queryKey, bool isNegated, AbstractValue value)
     {
-        return null;
+        throw new NotImplementedException();
     }
 }

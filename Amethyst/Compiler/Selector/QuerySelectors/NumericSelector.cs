@@ -15,13 +15,12 @@ public class NumericSelector : AbstractQuerySelector<AbstractValue>
         MaxValue = maxValue;
     }
     
-    public override SelectorQueryResult Parse(string queryKey, AbstractValue value)
+    public override SelectorQueryResult Parse(string queryKey, bool isNegated, AbstractValue value)
     {
         CheckValue(value, queryKey);
 
-        var result = value.ToTargetSelectorString();
-
-        return new SelectorQueryResult(queryKey, $"{queryKey}={result}", value is IRuntimeValue);
+        var queryValue = new SelectorQueryValue(value.ToTargetSelectorString(), isNegated, value.Context, value is IRuntimeValue);
+        return new SelectorQueryResult(queryKey, queryValue);
     }
     
     public void CheckValue(AbstractValue value, string queryKey)

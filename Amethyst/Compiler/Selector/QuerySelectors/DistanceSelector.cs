@@ -8,13 +8,13 @@ public class DistanceSelector : RangeSelector
     {
     }
 
-    public override SelectorQueryResult Parse(string queryKey, Compiler.RangeExpressionResult value)
+    public override SelectorQueryResult Parse(string queryKey, bool isNegated, Compiler.RangeExpressionResult value)
     {
         if (value.Start == null)
         {
             value.OverwrittenStartValue = "0";
         }
         
-        return base.Parse(queryKey, value);
+        return base.Parse(queryKey, isNegated, value);
     }
 }

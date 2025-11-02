@@ -11,7 +11,7 @@ public class MultiSelector : AbstractQuerySelector<AbstractValue>
         OriginalQueryKey = originalQueryKey;
     }
     
-    public override SelectorQueryResultBase Parse(string queryKey, AbstractValue value)
+    public override SelectorQueryResult Parse(string queryKey, bool isNegated, AbstractValue value)
     {
         if (!Constants.TargetSelectorQueryKeys.TryGetValue(OriginalQueryKey, out var selector) || selector is not BasicSelector basicSelector)
         {
@@ -23,31 +23,29 @@ public class MultiSelector : AbstractQuerySelector<AbstractValue>
             throw new SyntaxException($"Expected '{basicSelector.BasicType}' array for '{queryKey}' target selector query, but got '{value.Datatype}'.", value.Context);
         }
         
-        
         if (arrayValue is ConstantStaticArray arrayConstant)
         {
-            var values = arrayConstant.Value.SelectMany(constantValue =>
+            return new SelectorQueryResult(OriginalQueryKey, arrayConstant.Value.Select(constantValue =>
             {
-                var queryResult = basicSelector.Parse(OriginalQueryKey, (AbstractValue)constantValue);
-                return queryResult.Values;
-            });
-            
-            var containsRuntimeValues = arrayConstant.Value.Any(constantValue => constantValue is ConstantSubstitute);
-            
-            return new SelectorQueryResult(OriginalQueryKey, values.ToArray(), containsRuntimeValues);
+                var selectorQueryValue = basicSelector.Parse(OriginalQueryKey, isNegated, (AbstractValue)constantValue).QueryValues.First();
+                selectorQueryValue.IsRuntimeValue = constantValue is ConstantSubstitute;
+                return selectorQueryValue;
+            }));
         }
 
         if (arrayValue is RuntimeStaticArray and IRuntimeValue arrayResult)
         {
             var location = arrayResult.NextFreeLocation(DataLocation.Storage);
-            
-            arrayValue.AddCode($"data modify storage amethyst:internal data.prefix.prefix set value \"{OriginalQueryKey}=\"");
+
+            var negation = isNegated ? "!" : "";
+            arrayValue.AddCode($"data modify storage amethyst:internal data.prefix.prefix set value \"{OriginalQueryKey}={negation}\"");
             arrayValue.AddCode($"data modify storage amethyst:internal data.prefix.in set from storage {arrayResult.Location}");
             arrayValue.AddCode("function amethyst:api/data/prefix");
-            
-            return new SelectorQueryResultBase(OriginalQueryKey, $"$({location.Name})", containsRuntimeValues: true);
-        }
 
+            var queryValue = new SelectorQueryValue($"$({location.Name})", isNegated, value.Context, isRuntimeValue: true, alreadyContainsQueryKey: true);
+            return new SelectorQueryResult(OriginalQueryKey, queryValue);
+        }
+        
         throw new InvalidOperationException($"Unexpected query selector type '{arrayValue}' in {nameof(MultiSelector)}.");
     }
 }

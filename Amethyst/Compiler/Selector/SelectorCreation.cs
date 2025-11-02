@@ -14,10 +14,22 @@ public partial class Compiler
         var sp = StackPointer;
 
         var selectorElementContexts = context.selectorElement();
-        var queryDict = new Dictionary<string, string>(); 
+        var queryDict = new Dictionary<string, List<SelectorQueryValue>>(); 
         ProcessSelectorElements(selectorElementContexts, ref queryDict, out var containsRuntimeValues, out var limitExpression);
+
+        var finalQueryDict = new Dictionary<string, SelectorQueryResult>();
+        foreach (var (queryKey, queryValues) in queryDict)
+        {
+            if (!Constants.TargetSelectorQueryKeys.TryGetValue(queryKey, out var selector))
+            {
+                ConsoleUtility.PrintWarning($"Unknown target selector query key '{queryKey}'. Parsing result as-is.");
+                continue;
+            }
+            
+            finalQueryDict[queryKey] = selector.Transform(queryKey, queryValues.ToArray());
+        }
         
-        var selectorString = $"{entityTargetResult.Target.GetMcfOperatorSymbol()}{ProcessQueryDict(queryDict)}";
+        var selectorString = $"{entityTargetResult.Target.GetMcfOperatorSymbol()}{ProcessQueryDict(finalQueryDict)}";
 
         StackPointer = sp;
 
@@ -40,7 +52,7 @@ public partial class Compiler
 
     }
     
-    private void ProcessSelectorElements(IEnumerable<AmethystParser.SelectorElementContext> selectorElementContexts, ref Dictionary<string, string> queryDict, out bool containsRuntimeValues, out AbstractValue? limitExpression)
+    private void ProcessSelectorElements(IEnumerable<AmethystParser.SelectorElementContext> selectorElementContexts, ref Dictionary<string, List<SelectorQueryValue>> queryDict, out bool containsRuntimeValues, out AbstractValue? limitExpression)
     {
         containsRuntimeValues = false;
         limitExpression = null;
@@ -55,15 +67,18 @@ public partial class Compiler
             else if (selectorElementContext.selectorQuery() is { } selectorQueryContext)
             {
                 var queryResult = VisitSelectorQuery(selectorQueryContext);
-
-                if (queryDict.ContainsKey(queryResult.QueryKey))
-                {
-                    throw new SyntaxException($"Duplicate selector '{queryResult.QueryKey}'.", selectorQueryContext);
-                }
                 
                 containsRuntimeValues |= queryResult.ContainsRuntimeValues;
                 limitExpression ??= queryResult.LimitExpression;
-                queryDict.Add(queryResult.QueryKey, queryResult.QueryValue);
+
+                if (!queryDict.TryGetValue(queryResult.QueryKey, out var selectorQueryResult))
+                {
+                    queryDict.Add(queryResult.QueryKey, new List<SelectorQueryValue>(queryResult.QueryValues));
+                }
+                else
+                {
+                    selectorQueryResult.AddRange(queryResult.QueryValues);
+                }
             }
         }
     }
@@ -110,7 +125,7 @@ public partial class Compiler
         };
     }
     
-    private static string? ProcessQueryDict(IReadOnlyDictionary<string, string> queryList)
+    private static string? ProcessQueryDict(Dictionary<string, SelectorQueryResult> queryList)
     {
         if (queryList.Count == 0)
         {
@@ -130,9 +145,9 @@ public partial class Compiler
         
         foreach (var queryKey in optimalQueryOrder.Concat(queryList.Keys.Except(optimalQueryOrder)))
         {
-            if (queryList.TryGetValue(queryKey, out var queryValue))
+            if (queryList.TryGetValue(queryKey, out var queryResult))
             {
-                queryString.Add(queryValue);
+                queryString.Add(queryResult.ToTargetSelectorString());
             }
         }
 

@@ -4,14 +4,22 @@ namespace Amethyst;
 
 public class LimitSelector : NumericSelector
 {
+    private AbstractValue _limitExpression = null!;
+    
     public LimitSelector() : base(allowDecimals: false, minValue: 1)
     {
     }
 
-    public override SelectorQueryResult Parse(string queryKey, AbstractValue value)
+    public override SelectorQueryResult Parse(string queryKey, bool isNegated, AbstractValue value)
     {
-        var result = base.Parse(queryKey, value);
-        result.LimitExpression = value;
-        return result;
+        _limitExpression = value;
+        return base.Parse(queryKey, isNegated, value);
+    }
+
+    public override SelectorQueryResult Transform(string queryKey, SelectorQueryValue[] selectorQueryValues)
+    {
+        var selectorQueryResult = base.Transform(queryKey, selectorQueryValues);
+        selectorQueryResult.LimitExpression = _limitExpression;
+        return selectorQueryResult;
     }
 }
