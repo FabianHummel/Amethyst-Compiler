@@ -10,6 +10,8 @@ public class ConstantDecimal : AbstractDecimal, IConstantValue<double>, IScorebo
     
     public bool AsBoolean => Value != 0;
     
+    public double AsDouble => Value;
+    
     protected override AbstractDecimal AsDecimal => this;
     
     public int ScoreboardValue => (int)Math.Round(Value * ScoreboardDatatype.Scale);

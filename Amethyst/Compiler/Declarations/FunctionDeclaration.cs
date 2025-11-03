@@ -1,6 +1,6 @@
 using Amethyst.Language;
 using Amethyst.Model;
-using static Amethyst.Constants;
+using static Amethyst.Model.Constants;
 
 namespace Amethyst;
 

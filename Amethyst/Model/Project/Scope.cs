@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using static Amethyst.Constants;
+using static Amethyst.Model.Constants;
 
 namespace Amethyst.Model;
 

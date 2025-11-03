@@ -1,4 +1,5 @@
 using Amethyst.Language;
+using Antlr4.Runtime;
 
 namespace Amethyst;
 
@@ -18,11 +19,15 @@ public partial class Compiler
         public AbstractValue? Start { get; set; }
         public AbstractValue? Stop { get; set; }
         
+        public object? OverwrittenStartValue { get; set; }
+        
+        public ParserRuleContext Context => _context;
+        
         public bool ContainsRuntimeValues => Start is IRuntimeValue || Stop is IRuntimeValue;
 
-        public override string ToString()
+        public string ToTargetSelectorString()
         {
-            if (Start is null && Stop is null)
+            if (Start is null && Stop is null && OverwrittenStartValue is null)
             {
                 throw new SyntaxException("Invalid range expression. At least one of the range bounds must be specified.", _context);
             }
@@ -31,11 +36,16 @@ public partial class Compiler
             {
                 throw new SyntaxException("Unexpected decimal value.", _context);
             }
-            
-            var start = Start?.ToTargetSelectorString();
-            var stop = Stop?.ToTargetSelectorString();
+
+            var start = Start?.ToTargetSelectorString() ?? OverwrittenStartValue?.ToString() ?? "";
+            var stop = Stop?.ToTargetSelectorString() ?? "";
 
             return $"{start}..{stop}";
+        }
+        
+        public override string ToString()
+        {
+            return ToTargetSelectorString();
         }
     }
     

@@ -8,10 +8,8 @@ public abstract partial class AbstractValue
     public required Compiler Compiler { get; init; }
     
     public required ParserRuleContext Context { get; init; }
-    
-    /// <summary>
-    /// The type of the underlying data.
-    /// </summary>
+
+    /// <summary>The type of the underlying data.</summary>
     public abstract AbstractDatatype Datatype { get; }
     
     public AbstractBoolean ToBoolean()
@@ -31,7 +29,7 @@ public abstract partial class AbstractValue
             return runtimeValue.MakeBoolean();
         }
         
-        throw new InvalidOperationException($"Invalid value type '{GetType()}' to convert to a boolean.");
+        throw new InvalidOperationException($"Invalid value '{this}' to convert to a boolean.");
     }
     
     public static (IRuntimeValue, IConstantValue) EnsureConstantValueIsLast(AbstractValue lhs, AbstractValue rhs)
@@ -64,7 +62,12 @@ public abstract partial class AbstractValue
             return constantValue.ToRuntimeValue();
         }
         
-        throw new InvalidOperationException($"Invalid value type '{GetType()}' to convert to a runtime value.");
+        throw new InvalidOperationException($"Invalid value '{this}' to convert to a runtime value.");
+    }
+
+    public override string ToString()
+    {
+        return $"{Datatype} ({Context.GetText()})";
     }
 }
 

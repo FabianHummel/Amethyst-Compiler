@@ -7,15 +7,15 @@ namespace Amethyst;
 public abstract class AbstractConstantObject : AbstractObject, IConstantValue<Dictionary<string, IConstantValue>>, ISubstitutable, IIndexable, IMemberAccess
 {
     public required Dictionary<string, IConstantValue> Value { get; init; }
-    
-    /// <summary>
-    /// List of substitutions that need to be made in order to fully create the object.
-    /// </summary>
+
+    /// <summary>List of substitutions that need to be made in order to fully create the object.</summary>
     public List<KeyValuePair<object, IRuntimeValue>>? Substitutions { get; init; }
     
     public int AsInteger => Value.Count;
     
     public bool AsBoolean => AsInteger > 0;
+    
+    public double AsDouble => AsInteger;
     
     public abstract IRuntimeValue ToRuntimeValue();
 

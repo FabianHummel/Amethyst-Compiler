@@ -1,4 +1,4 @@
-using static Amethyst.Constants;
+using static Amethyst.Model.Constants;
 
 namespace Amethyst.Model;
 

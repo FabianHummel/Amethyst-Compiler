@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
 using Tomlet.Attributes;
-using static Amethyst.Constants;
+using static Amethyst.Model.Constants;
 
 namespace Amethyst.Model;
 

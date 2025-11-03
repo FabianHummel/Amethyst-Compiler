@@ -22,6 +22,7 @@ public class Parser
         var tokenStream = new CommonTokenStream(lexer);
         var parser = new AmethystParser(tokenStream);
         parser.AddErrorListener(new AmethystErrorListener(this));
+        parser.RemoveErrorListener(ConsoleErrorListener<IToken>.Instance);
         parser.AddParseListener(new AmethystParseListener(this));
         parser.file();
     }
