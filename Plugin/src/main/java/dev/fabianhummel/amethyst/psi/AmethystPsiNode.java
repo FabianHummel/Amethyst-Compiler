@@ -1,12 +1,11 @@
 package dev.fabianhummel.amethyst.psi;
 
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.util.IncorrectOperationException;
 import dev.fabianhummel.amethyst.language.AmethystLanguage;
-import dev.fabianhummel.amethyst.language.AmethystParserDefinition;
+import dev.fabianhummel.amethyst.language.parser.AmethystParserDefinition;
 import org.antlr.intellij.adaptor.psi.ANTLRPsiNode;
 import org.antlr.intellij.adaptor.psi.Trees;
 import org.jetbrains.annotations.NonNls;

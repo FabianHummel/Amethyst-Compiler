@@ -1,4 +1,4 @@
-package dev.fabianhummel.amethyst.language;
+package dev.fabianhummel.amethyst.language.highlight;
 
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
@@ -7,6 +7,8 @@ import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.tree.IElementType;
 import dev.fabianhummel.amethyst.AmethystLexer;
 import dev.fabianhummel.amethyst.AmethystParser;
+import dev.fabianhummel.amethyst.language.AmethystLanguage;
+import dev.fabianhummel.amethyst.language.parser.AmethystLexerAdapter;
 import org.antlr.intellij.adaptor.lexer.PSIElementTypeFactory;
 import org.antlr.intellij.adaptor.lexer.TokenIElementType;
 import org.jetbrains.annotations.NotNull;

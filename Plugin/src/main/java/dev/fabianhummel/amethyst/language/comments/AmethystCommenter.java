@@ -1,4 +1,4 @@
-package dev.fabianhummel.amethyst.language;
+package dev.fabianhummel.amethyst.language.comments;
 
 import com.intellij.lang.Commenter;
 import org.jetbrains.annotations.Nullable;

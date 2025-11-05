@@ -1,4 +1,4 @@
-package dev.fabianhummel.amethyst.language;
+package dev.fabianhummel.amethyst.language.highlight;
 
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighter;

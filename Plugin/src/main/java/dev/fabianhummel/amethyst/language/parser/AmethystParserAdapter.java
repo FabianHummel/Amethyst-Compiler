@@ -1,7 +1,8 @@
-package dev.fabianhummel.amethyst.language;
+package dev.fabianhummel.amethyst.language.parser;
 
 import com.intellij.psi.tree.IElementType;
 import dev.fabianhummel.amethyst.AmethystParser;
+import dev.fabianhummel.amethyst.language.AmethystLanguage;
 import org.antlr.intellij.adaptor.parser.ANTLRParserAdaptor;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.tree.ParseTree;

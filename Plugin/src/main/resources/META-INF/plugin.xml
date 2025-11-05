@@ -33,23 +33,29 @@
             language="Amethyst"
             extensions="amy"/>
 
+        <iconProvider
+            implementation="dev.fabianhummel.amethyst.icons.AmethystIconProvider"/>
+
+        <fileIconProvider
+            implementation="dev.fabianhummel.amethyst.icons.AmethystFileIconProvider"/>
+
         <lang.parserDefinition
             language="Amethyst"
-            implementationClass="dev.fabianhummel.amethyst.language.AmethystParserDefinition"/>
+            implementationClass="dev.fabianhummel.amethyst.language.parser.AmethystParserDefinition"/>
 
         <lang.syntaxHighlighterFactory
             language="Amethyst"
-            implementationClass="dev.fabianhummel.amethyst.language.AmethystSyntaxHighlighterFactory"/>
+            implementationClass="dev.fabianhummel.amethyst.language.highlight.AmethystSyntaxHighlighterFactory"/>
 
         <lang.commenter
             language="Amethyst"
-            implementationClass="dev.fabianhummel.amethyst.language.AmethystCommenter"/>
+            implementationClass="dev.fabianhummel.amethyst.language.comments.AmethystCommenter"/>
 
         <colorSettingsPage
-            implementation="dev.fabianhummel.amethyst.language.AmethystColorSettingsPage"/>
+            implementation="dev.fabianhummel.amethyst.language.highlight.AmethystColorSettingsPage"/>
 
         <completion.contributor
             language="Amethyst"
-            implementationClass="dev.fabianhummel.amethyst.language.AmethystCompletionContributor"/>
+            implementationClass="dev.fabianhummel.amethyst.language.completion.AmethystCompletionContributor"/>
     </extensions>
 </idea-plugin>

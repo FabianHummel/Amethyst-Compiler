@@ -1,4 +1,4 @@
-package dev.fabianhummel.amethyst.language;
+package dev.fabianhummel.amethyst.language.parser;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.ParserDefinition;
@@ -12,7 +12,8 @@ import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import dev.fabianhummel.amethyst.AmethystLexer;
 import dev.fabianhummel.amethyst.AmethystParser;
-import dev.fabianhummel.amethyst.psi.AmethystPsiNode;
+import dev.fabianhummel.amethyst.language.AmethystLanguage;
+import dev.fabianhummel.amethyst.psi.AmethystPsiNodeFactory;
 import dev.fabianhummel.amethyst.psi.AmethystTokenSets;
 import dev.fabianhummel.amethyst.psi.AmethystFile;
 import org.antlr.intellij.adaptor.lexer.PSIElementTypeFactory;
@@ -74,6 +75,6 @@ public class AmethystParserDefinition implements ParserDefinition {
 
     @Override
     public @NotNull PsiElement createElement(ASTNode node) {
-        return new AmethystPsiNode(node);
+        return AmethystPsiNodeFactory.create(node);
     }
 }
