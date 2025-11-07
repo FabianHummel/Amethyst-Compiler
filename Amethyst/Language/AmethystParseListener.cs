@@ -85,24 +85,4 @@ public class AmethystParseListener : AmethystParserBaseListener
             throw new SymbolAlreadyDeclaredException(symbolName, context);
         }
     }
-
-    public override void ExitFunctionDeclaration(AmethystParser.FunctionDeclarationContext context)
-    {
-        var fnName = context.IDENTIFIER().GetText();
-
-        var attributesListContext = context.attributeList();
-        var attributes = attributesListContext.attribute()
-            .Select(attributeContext => attributeContext.IDENTIFIER().GetText())
-            .ToHashSet();
-        
-        var entryPointAttributes = new HashSet<string>
-        {
-            Constants.AttributeLoadFunction,
-            Constants.AttributeTickFunction
-        };
-        if (attributes.Overlaps(entryPointAttributes))
-        {
-            Parser.SourceFile.EntryPointFunctions.Add(fnName, context);
-        }
-    }
 }

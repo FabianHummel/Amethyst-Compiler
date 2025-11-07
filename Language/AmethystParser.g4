@@ -5,12 +5,7 @@ parser grammar AmethystParser;
 options { tokenVocab=AmethystLexer; }
 
 file
- : preprocessor* EOF
- ;
-
-preprocessor
- : preprocessorFromDeclaration
- | preprocessorStatement
+ : preprocessorFromDeclaration* preprocessorStatement* EOF
  ;
 
 preprocessorFromDeclaration
@@ -36,11 +31,11 @@ preprocessorYieldingStatement
  ;
 
 preprocessorDeclaration
- : preprocessorVariableDeclaration SEMICOLON
+ : preprocessorVariableDeclaration
  ;
 
 preprocessorVariableDeclaration
- : PREPROCESSOR_VAR IDENTIFIER (COLON preprocessorType)? (EQUALS preprocessorExpression)
+ : PREPROCESSOR_VAR IDENTIFIER (COLON preprocessorType)? (EQUALS preprocessorExpression) SEMICOLON
  ;
 
 preprocessorType
@@ -56,12 +51,13 @@ preprocessorIfStatement
  ;
 
 preprocessorForStatement
- : PREPROCESSOR_FOR LPAREN preprocessorForStatementInitializer? SEMICOLON preprocessorExpression? SEMICOLON preprocessorAssignment? RPAREN block
+ : PREPROCESSOR_FOR LPAREN preprocessorForStatementInitializer preprocessorExpression? SEMICOLON preprocessorAssignment? RPAREN block
  ;
 
 preprocessorForStatementInitializer
  : preprocessorVariableDeclaration
- | preprocessorAssignment
+ | preprocessorAssignmentStatement
+ | SEMICOLON
  ;
 
 preprocessorReturnStatement
@@ -142,8 +138,8 @@ preprocessorLiteral
 
 declaration
  : functionDeclaration
- | variableDeclaration SEMICOLON
- | recordDeclaration SEMICOLON
+ | variableDeclaration
+ | recordDeclaration
  ;
 
 functionDeclaration
@@ -151,11 +147,11 @@ functionDeclaration
  ;
 
 variableDeclaration
- : attributeList VAR IDENTIFIER (COLON type)? (EQUALS expression)
+ : attributeList VAR IDENTIFIER (COLON type)? (EQUALS expression) SEMICOLON
  ;
 
 recordDeclaration
- : attributeList RECORD IDENTIFIER (COLON type)? (EQUALS expression)
+ : attributeList RECORD IDENTIFIER (COLON type)? (EQUALS expression) SEMICOLON
  ;
 
 type
@@ -200,12 +196,13 @@ statement
  ;
 
 forStatement
- : FOR LPAREN forStatementInitializer? SEMICOLON expression? SEMICOLON assignment? RPAREN block
+ : FOR LPAREN forStatementInitializer expression? SEMICOLON assignment? RPAREN block
  ;
 
 forStatementInitializer
  : variableDeclaration
- | assignment
+ | assignmentStatement
+ | SEMICOLON
  ;
 
 whileStatement

@@ -6,7 +6,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override object? VisitFunctionDeclaration(AmethystParser.FunctionDeclarationContext context)
+    public override Symbol VisitFunctionDeclaration(AmethystParser.FunctionDeclarationContext context)
     {
         if (Context.Configuration.Datapack is null)
         {
@@ -14,11 +14,11 @@ public partial class Compiler
         }
         
         var functionName = context.IDENTIFIER().GetText();
-        if (TryGetSymbol(functionName, out _, context, checkExportedSymbols: false))
+        if (EnsureSymbolIsNewOrGetRootSymbol(functionName, context, out var symbol))
         {
-            throw new SymbolAlreadyDeclaredException(functionName, context);
+            return symbol;
         }
-        
+
         var attributes = VisitAttributeList(context.attributeList());
 
         var isNoMangle = attributes.Contains(AttributeUnitTestFunction) || attributes.Contains(AttributeNoMangle);
@@ -65,9 +65,9 @@ public partial class Compiler
            throw new SymbolAlreadyDeclaredException(functionName, context); 
         }
         
-        return null;
+        return function;
     }
-    
+
     public override Variable[] VisitParameterList(AmethystParser.ParameterListContext context)
     {
         var parameters = new List<Variable>();

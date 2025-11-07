@@ -15,8 +15,8 @@ public class Scope : IDisposable
     private readonly Context _context;
     private readonly SourceFile _sourceFile;
     private bool _isCancelled;
-    
-    private readonly TextWriter _writer = new StringWriter();
+
+    private TextWriter? _writer;
 
     public Scope(Context context, SourceFile sourceFile)
         : this("", context, sourceFile)
@@ -33,24 +33,27 @@ public class Scope : IDisposable
     public string FilePath => Path.Combine(
         _context.Configuration.Datapack!.OutputDir, 
         _sourceFile.GetFullPath(),
-        GetPath() + McfunctionFileExtension);
-    
-    public string GetPath()
-    {
-        return Path.Combine(Parent?.GetPath() ?? "", Name);
-    }
+        GetPath(callerIsRoot: IsRoot) + McfunctionFileExtension);
     
     public string McFunctionPath
     {
         get
         {
-            var mcFunctionPath = GetPath().Replace(Path.DirectorySeparatorChar, '/');
+            var path = GetPath(callerIsRoot: IsRoot);
+            var mcFunctionPath = path.Replace(Path.DirectorySeparatorChar, '/');
             return $"{_sourceFile.McFunctionPath}/{mcFunctionPath}";
         }
     }
 
+    public bool IsRoot => Parent == null;
+
     public void AddCode(string code)
     {
+        if (_writer == null)
+        {
+            _writer = new StringWriter();
+        }
+        
         _writer.WriteLine(code);
     }
     
@@ -76,9 +79,15 @@ public class Scope : IDisposable
 
     public void Dispose()
     {
-        if (_isCancelled)
+        if (_isCancelled || _writer == null)
         {
+            GC.SuppressFinalize(this);
             return;
+        }
+
+        if (IsRoot)
+        {
+            _context.Configuration.Datapack!.LoadFunctions.Add(McFunctionPath);
         }
         
         if (!File.Exists(FilePath))
@@ -117,6 +126,12 @@ public class Scope : IDisposable
         };
     }
     
+    private string GetPath(bool callerIsRoot)
+    {
+        var path = callerIsRoot && IsRoot ? InitFunctionName : Parent?.GetPath(callerIsRoot);
+        return Path.Combine(path ?? "", Name);
+    }
+    
     internal sealed class GlobalBackup : IDisposable
     {
         private readonly Compiler _owner;
@@ -131,7 +146,15 @@ public class Scope : IDisposable
     
         public void Dispose()
         {
-            _owner.Scope.Dispose();
+            Dispose(disposeScope: true);
+        }
+
+        public void Dispose(bool disposeScope)
+        {
+            if (disposeScope)
+            {
+                _owner.Scope.Dispose();
+            }
             _owner.Scope = _previous;
         }
     }

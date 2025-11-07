@@ -395,7 +395,8 @@ public class Processor
                 Parent = null
             };
             
-            _parser.Parse(sourceFile, filePath);
+            var fileContext = _parser.Parse(sourceFile, filePath);
+            sourceFile.Ast = fileContext;
         }
     }
     
@@ -427,7 +428,8 @@ public class Processor
             };
             
             var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(absoluteResourcePath)!;
-            _parser.Parse(sourceFile, stream);
+            var fileContext = _parser.Parse(sourceFile, stream);
+            sourceFile.Ast = fileContext;
         }
     }
     

@@ -8,13 +8,13 @@ public class Parser
 {
     public SourceFile SourceFile { get; set; } = null!;
     
-    public void Parse(SourceFile sourceFile, string path)
+    public AmethystParser.FileContext Parse(SourceFile sourceFile, string path)
     {
         var stream = File.OpenRead(path);
-        Parse(sourceFile, stream);
+        return Parse(sourceFile, stream);
     }
 
-    public void Parse(SourceFile sourceFile, Stream fileStream)
+    public AmethystParser.FileContext Parse(SourceFile sourceFile, Stream fileStream)
     {
         SourceFile = sourceFile;
         var inputStream = new AmethystInputStream(fileStream, sourceFile);
@@ -24,6 +24,6 @@ public class Parser
         parser.AddErrorListener(new AmethystErrorListener(this));
         parser.RemoveErrorListener(ConsoleErrorListener<IToken>.Instance);
         parser.AddParseListener(new AmethystParseListener(this));
-        parser.file();
+        return parser.file();
     }
 }

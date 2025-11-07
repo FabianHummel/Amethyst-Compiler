@@ -1,4 +1,8 @@
+FROM `variables` IMPORT x;
+
 [initializing]
 function main() {
-    debug @e;
+    debug x;
 }
+
+debug x;

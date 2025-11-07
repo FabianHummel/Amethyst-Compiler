@@ -13,12 +13,13 @@ public sealed class SourceFile
     public string Registry { get; }
     
     public Scope? Scope { get; set; }
+    public AmethystParser.FileContext? Ast { get; set; }
     
     public Dictionary<string, AmethystParser.DeclarationContext> ExportedSymbols { get; } = new();
+    public Dictionary<AmethystParser.DeclarationContext, Symbol> DeclarationCache { get; } = new();
     public Dictionary<string, string> ImportedSymbols { get; } = new();
-    public Dictionary<string, AmethystParser.FunctionDeclarationContext> EntryPointFunctions { get; } = new();
 
-    public readonly Node<string, SourceFile> _tree;
+    private readonly Node<string, SourceFile> _tree;
 
     public SourceFile(string[] pathSegments, bool isInternal = false)
     {

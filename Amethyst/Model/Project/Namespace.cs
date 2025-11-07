@@ -15,7 +15,7 @@ public class Namespace : IDisposable
     public Dictionary<string, Record> RecordDeclarations { get; } = new();
 
     private readonly Context _context;
-    private readonly TextWriter _writer = new StringWriter();
+    private TextWriter? _writer;
     
     public string FilePath => Path.Combine(
         _context.Configuration.Datapack!.OutputDir,
@@ -42,6 +42,12 @@ public class Namespace : IDisposable
                 AddInitCode($$"""scoreboard objectives modify {{recordDeclaration.Key}} displayname ["",{"text":"Record ","bold":true},{"text":"{{recordDeclaration.Key}}","color":"dark_purple"},{"text":" @ "},{"text":"{{recordDeclaration.Value.McFunctionPath}}/","color":"gray"},{"text":"{{recordDeclaration.Value.Name}}","color":"light_purple"}]""");
             }
         }
+
+        if (_writer == null)
+        {
+            GC.SuppressFinalize(this);
+            return;
+        }
         
         _context.Configuration.Datapack!.LoadFunctions.Add(McFunctionPath);
 
@@ -58,6 +64,11 @@ public class Namespace : IDisposable
 
     private void AddInitCode(string code)
     {
+        if (_writer == null)
+        {
+            _writer = new StringWriter();
+        }
+        
         _writer.WriteLine(code);
     }
 }

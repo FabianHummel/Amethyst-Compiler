@@ -35,22 +35,10 @@ public partial class Compiler : AmethystParserBaseVisitor<object?>
     private void CompileSourceFile(SourceFile sourceFile)
     {
         SourceFile = sourceFile;
-        Scope = sourceFile.Scope!;
         Namespace = GetOrCreateNamespace(sourceFile.Namespace);
-        
-        foreach (var entryPoint in sourceFile.EntryPointFunctions.Values)
+        using (Scope = sourceFile.Scope!)
         {
-            VisitFunctionDeclaration(entryPoint);
-        }
-            
-        foreach (var (symbolName, symbol) in sourceFile.ExportedSymbols)
-        {
-            if (Scope.Symbols.ContainsKey(symbolName))
-            {
-                continue;
-            }
-            
-            VisitDeclaration(symbol);
+            VisitFile(sourceFile.Ast);
         }
     }
 
