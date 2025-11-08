@@ -103,7 +103,7 @@ public partial class Compiler
 
         if (symbol is Function function)
         {
-            // HINT: Traditionally, functions are values just like any other value, but not in amethyst. I'm not dealing with that shit
+            // HINT: Traditionally, functions are values just like any other value, but not in Amethyst. I'm not dealing with that shit
             throw new SyntaxException("Functions cannot be used as values.", context);
         }
 

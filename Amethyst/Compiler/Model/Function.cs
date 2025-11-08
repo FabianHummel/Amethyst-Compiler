@@ -1,6 +1,6 @@
 namespace Amethyst.Model;
 
-/// <summary>Represents a function definition within the amethyst source code.</summary>
+/// <summary>Represents a function definition within the Amethyst source code.</summary>
 public class Function : Symbol
 {
     /// <summary>A set of attributes linked to the function. For example, functions with an

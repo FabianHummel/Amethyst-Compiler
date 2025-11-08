@@ -52,11 +52,11 @@ public static class Program
     /// <summary>Sets up file watchers to run actions when specific files change:
     /// <list type="number">
     ///     <item>When files in the source folder change, <see cref="OnChangedSource" /> is run.</item>
-    ///     <item>When the amethyst configuration file changes, <see cref="OnChangedConfig" /> is run
+    ///     <item>When the Amethyst configuration file changes, <see cref="OnChangedConfig" /> is run
     ///     instead.</item>
     /// </list>
     /// </summary>
-    /// <param name="rootDir">The directory where to look for the amethyst configuration and source folder</param>
+    /// <param name="rootDir">The directory where to look for the Amethyst configuration and source folder</param>
     private static void SetupFileWatchers(string rootDir)
     {
         var thread = new Thread(() =>
@@ -119,7 +119,7 @@ public static class Program
         }, TaskScheduler.Default);
     }
 
-    /// <summary>Run when the amethyst configuration is changed. Reloads the entire config and recompile
+    /// <summary>Run when the Amethyst configuration is changed. Reloads the entire config and recompile
     /// the project.</summary>
     private static void OnChangedConfig(object sender, FileSystemEventArgs e)
     {

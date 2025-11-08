@@ -20,7 +20,7 @@ public class Processor
     /// runner to stop execution when the project fails to compile.</summary>
     private readonly bool _rethrowErrors;
 
-    /// <summary>A reference to the <see cref="Parser" /> that is used to parse amethyst source files.</summary>
+    /// <summary>A reference to the <see cref="Parser" /> that is used to parse Amethyst source files.</summary>
     private readonly Parser _parser = new();
 
     /// <summary>A reference to the context that holds relevant information during compilation.</summary>
@@ -52,7 +52,7 @@ public class Processor
     }
 
     /// <summary>Creates an empty function file at the specified <paramref name="filePath" />. The template
-    /// function is substituted with properties like the amethyst version and the current date.</summary>
+    /// function is substituted with properties like the Amethyst version and the current date.</summary>
     /// <param name="filePath">The path where to create the function file.</param>
     public static void CreateFunctionFile(string filePath)
     {
@@ -69,7 +69,7 @@ public class Processor
         writer.Write(template);
     }
 
-    /// <summary>Prints the amethyst logo, version and extra information about the compilation process.</summary>
+    /// <summary>Prints the Amethyst logo, version and extra information about the compilation process.</summary>
     /// <param name="reduceColors">If true, falls back to print plain text. This is due to issues with some
     /// terminal emulators and console outputs.</param>
     /// <param name="compilerFlags">The parsed compiler flags from the command line</param>
@@ -393,7 +393,7 @@ public class Processor
     }
 
     /// <summary>Copies the datapack or resourcepack template to the specified
-    /// <paramref name="outputDir" />. This includes amethyst's internal functions and APIs that the
+    /// <paramref name="outputDir" />. This includes Amethyst's internal functions and APIs that the
     /// resulting code may use.</summary>
     /// <param name="outputDir">The path where to copy the template to</param>
     /// <param name="datapackOrResourcepack">Whether to copy the datapack or resourcepack template.</param>
@@ -492,7 +492,7 @@ public class Processor
     /// <summary>The first step of compilation is to process the datapack or resourcepack with the given
     /// <paramref name="outputDir" />. All files that are not related to direct compilation such as
     /// configuration files or Minecraft functions are immediately copied to the output directory. Then,
-    /// all namespaces including amethyst's internal namespace are processed.</summary>
+    /// all namespaces including Amethyst's internal namespace are processed.</summary>
     /// <param name="isDatapack">Whether a datapack or resourcepack is being processed.</param>
     /// <param name="outputDir">The path where to copy files to.</param>
     private void ProcessDatapackOrResourcepack(bool isDatapack, string outputDir)
@@ -501,7 +501,7 @@ public class Processor
         var sourceDir = Path.Combine(Context.SourcePath, packDirName);
         var dataOrAssetsDir = Path.Combine(outputDir, packDirName);
         
-        // Copy everything except amethyst source code to output folder
+        // Copy everything except Amethyst source code to output folder
         FilesystemUtility.CopyDirectory(sourceDir, dataOrAssetsDir, filePath =>
         {
             return Path.GetExtension(filePath) != SourceFileExtension;
@@ -520,7 +520,7 @@ public class Processor
     /// <param name="sourceDir">The path to the source directory of the project.</param>
     private void ParseUserNamespaces(string packDirName, string sourceDir)
     {
-        // Scan amethyst source code files in each registry
+        // Scan Amethyst source code files in each registry
         foreach (var filePath in Directory.GetFiles(sourceDir, SourceFile, SearchOption.AllDirectories))
         {
             var fileName = Path.GetFileNameWithoutExtension(filePath);
@@ -538,7 +538,7 @@ public class Processor
         }
     }
 
-    /// <summary>Processes amethyst's internal namespace. In fact, only the API is parsed, as all other
+    /// <summary>Processes Amethyst's internal namespace. In fact, only the API is parsed, as all other
     /// components are already written in MCFunction directly for improved performance and flexibility.</summary>
     /// <param name="packDirName">The pack directory name, which can be either <c>data</c> for a datapack
     /// or <c>assets</c> for a resourcepack.</param>

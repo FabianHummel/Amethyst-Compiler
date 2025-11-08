@@ -2,12 +2,23 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
+/// <inheritdoc />
+/// <summary><p>Parses a numeric value.</p> <p><inheritdoc /></p></summary>
 public class NumericSelector : AbstractQuerySelector<AbstractValue>
 {
+    /// <summary>Whether to allow decimals to be used as a query value.</summary>
     public bool AllowDecimals { get; }
-    public double? MinValue { get; }
-    public double? MaxValue { get; }
     
+    /// <summary>The lowest allowed value.</summary>
+    public double? MinValue { get; }
+    
+    /// <summary>The highest allowed value.</summary>
+    public double? MaxValue { get; }
+
+    /// <summary>Creates a new instance of a <see cref="NumericSelector" />.</summary>
+    /// <param name="allowDecimals">Whether to allow decimals.</param>
+    /// <param name="minValue">The minimum allowed value.</param>
+    /// <param name="maxValue">The maximum allowed value.</param>
     public NumericSelector(bool allowDecimals, double? minValue = null, double? maxValue = null)
     {
         AllowDecimals = allowDecimals;

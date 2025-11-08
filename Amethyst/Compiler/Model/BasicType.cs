@@ -1,6 +1,6 @@
 namespace Amethyst.Model;
 
-/// <summary>Collection of primitive amethyst data types. Combined with a <see cref="Modifier" /> they
+/// <summary>Collection of primitive Amethyst data types. Combined with a <see cref="Modifier" /> they
 /// result in a fully qualified <see cref="AbstractDatatype" /> (with some exceptions like
 /// <see cref="DecimalDatatype" />).</summary>
 /// <seealso cref="Modifier" />

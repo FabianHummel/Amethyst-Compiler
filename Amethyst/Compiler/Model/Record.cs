@@ -1,7 +1,7 @@
 
 namespace Amethyst.Model;
 
-/// <summary>Represents a record definition within the amethyst source code. Contextually very similar
+/// <summary>Represents a record definition within the Amethyst source code. Contextually very similar
 /// to a <see cref="Variable" />.</summary>
 public class Record : Symbol
 {

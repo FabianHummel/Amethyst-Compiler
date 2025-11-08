@@ -2,7 +2,7 @@ using static Amethyst.Model.Constants;
 
 namespace Amethyst.Model;
 
-/// <summary>The runtime location of an amethyst variable. It contains the enclosing namespace, the
+/// <summary>The runtime location of an Amethyst variable. It contains the enclosing namespace, the
 /// location's name and the data location where to look for the value. In Minecraft, a value can either
 /// be stored in a scoreboard for simple, numeric types or in storage for complex types such as arrays
 /// or objects.</summary>

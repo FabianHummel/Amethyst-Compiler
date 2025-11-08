@@ -1,6 +1,6 @@
 namespace Amethyst.Model;
 
-/// <summary>Maps an arithmetic operator to the actual amethyst operator token.</summary>
+/// <summary>Maps an arithmetic operator to the actual Amethyst operator token.</summary>
 /// <seealso cref="McfTokenAttribute" />
 [AttributeUsage(AttributeTargets.Field)]
 public class AmethystOperatorAttribute : Attribute
