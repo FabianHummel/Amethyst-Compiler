@@ -1,10 +1,10 @@
 using Amethyst.Language;
-using Amethyst.Model;
 
 namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
     /// <summary>
     ///     <p>An object creation expression. A static object has a fixed datatype, while a dynamic object
     ///     can have elements of different datatypes. This is important when e.g. iterating over an object

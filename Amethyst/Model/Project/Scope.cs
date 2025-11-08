@@ -71,18 +71,8 @@ public class Scope : IDisposable
         _sourceFile.GetFullPath(),
         GetPath(callerIsRoot: IsRoot) + McfunctionFileExtension);
 
-
-    /// <summary>Gets the relative path of this scope by combining the names of its parent scopes. Used to
-    /// assemble the absolute file path in <see cref="FilePath" />.</summary>
-    /// <returns></returns>
-    public string GetPath()
-    {
-        return Path.Combine(Parent?.GetPath() ?? "", Name);
-    }
-
     /// <summary>The Minecraft function path for this scope, formatted with forward slashes and prefixed by
     /// the source file's function path, resulting in a complete function path usable within Minecraft.</summary>
-    
     public string McFunctionPath
     {
         get
@@ -192,13 +182,19 @@ public class Scope : IDisposable
             Parent = parent
         };
     }
-    
+
+    /// <summary>Gets the relative path of this scope by combining the names of its parent scopes. Used to
+    /// assemble the absolute file path in <see cref="FilePath" />.</summary>
+    /// <param name="callerIsRoot">Whether the caller of this function is a root scope. This is important
+    /// to know in order to replace the name of the root path with
+    /// <see cref="Constants.InitFunctionName" />.</param>
+    /// <returns>The combined path of this and all ancestor scopes.</returns>
     private string GetPath(bool callerIsRoot)
     {
         var path = callerIsRoot && IsRoot ? InitFunctionName : Parent?.GetPath(callerIsRoot);
         return Path.Combine(path ?? "", Name);
     }
-    
+
 
     /// <summary>A helper class that temporarily sets the global scope of a compiler to a new scope and
     /// restores the previous scope upon disposal.</summary>

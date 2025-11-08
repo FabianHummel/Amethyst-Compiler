@@ -24,17 +24,20 @@ public sealed class SourceFile
     public Scope? Scope { get; set; }
 
     public AmethystParser.FileContext? Ast { get; set; }
-    
+
     /// <summary>A dictionary of symbols exported by this source file. These can be imported by other
     /// source files using import statements.</summary>
-    /// <seealso cref="Compiler.VisitPreprocessorFromDeclaration" />
+    /// <seealso cref="Compiler.VisitPreprocessorFromImportDeclaration" />
     public Dictionary<string, AmethystParser.DeclarationContext> ExportedSymbols { get; } = new();
 
+    /// <summary>A dictionary of already visited declarations so the same declaration isn't processed
+    /// twice.</summary>
     public Dictionary<AmethystParser.DeclarationContext, Symbol> DeclarationCache { get; } = new();
-    
+
     /// <summary>A dictionary of symbols imported by this source file from other source files using import
     /// statements.</summary>
-    /// <seealso cref="Compiler.VisitPreprocessorFromDeclaration" />
+    /// <seealso cref="Compiler.VisitPreprocessorFromImportDeclaration" />
+    /// <seealso cref="Compiler.VisitPreprocessorImportAsDeclaration" />
     public Dictionary<string, string> ImportedSymbols { get; } = new();
 
     /// <summary>A dictionary of entry point functions defined in this source file. When the project is

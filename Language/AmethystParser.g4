@@ -5,13 +5,13 @@ parser grammar AmethystParser;
 options { tokenVocab=AmethystLexer; }
 
 file
- : preprocessorFromDeclaration* preprocessorStatement* EOF
+ : preprocessorImportDeclaration* preprocessorStatement* EOF
  ;
 
-preprocessorFromDeclaration
+preprocessorImportDeclaration
  // replace RESOURCE_LITERAL with resourceLiteral in the future
  : PREPROCESSOR_FROM RESOURCE_LITERAL PREPROCESSOR_IMPORT IDENTIFIER (COMMA IDENTIFIER)* SEMICOLON  #preprocessorFromImportDeclaration
- | PREPROCESSOR_FROM RESOURCE_LITERAL PREPROCESSOR_AS IDENTIFIER SEMICOLON                          #preprocessorFromAsDeclaration
+ | PREPROCESSOR_IMPORT RESOURCE_LITERAL PREPROCESSOR_AS IDENTIFIER SEMICOLON                        #preprocessorImportAsDeclaration
  ;
 
 preprocessorStatement

@@ -6,6 +6,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
     /// <summary><p>Calculates two preprocessor expressions using addition or subtraction operator.</p>
     ///     <p><inheritdoc /></p></summary>
     /// <exception cref="SyntaxException">Thrown when an invalid comparison operator is encountered.</exception>

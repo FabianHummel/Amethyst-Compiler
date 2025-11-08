@@ -4,6 +4,13 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Accesses a member of any value that supports accessing its members. (implementing
+    ///     <see cref="IMemberAccess" />).</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <exception cref="SyntaxException">The target does not support accessing its members.</exception>
+    /// <exception cref="SyntaxException">The requested member was not found on the target.</exception>
     public override AbstractValue VisitMemberExpression(AmethystParser.MemberExpressionContext context)
     {
         var expressionContext = context.expression();

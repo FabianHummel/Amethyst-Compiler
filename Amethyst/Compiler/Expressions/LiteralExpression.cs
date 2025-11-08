@@ -5,6 +5,13 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Creates new constant values by a literal value, e.g. values directly embedded into the
+    ///     source code.</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <exception cref="SyntaxException">The literal is unknown or not in the correct format.</exception>
+    /// <exception cref="InvalidOperationException">The literal is not yet supported by the compiler.</exception>
     public override AbstractValue VisitLiteralExpression(AmethystParser.LiteralExpressionContext context)
     {
         var literalContext = context.literal();

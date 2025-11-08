@@ -5,6 +5,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
     /// <summary><p>Yields a value from the enclosing yielding scope.</p><p><inheritdoc /></p></summary>
     /// <exception cref="SyntaxException">Thrown if there is no enclosing yielding scope.</exception>
     /// <seealso cref="Model.YieldingScope" />

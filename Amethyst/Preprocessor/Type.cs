@@ -6,6 +6,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
     /// <summary>
     ///     <p>The textual representation of preprocessor types is converted to its enum equivalent by
     ///     comparing the enum's description attribute.</p>

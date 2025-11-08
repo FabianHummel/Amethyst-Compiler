@@ -6,6 +6,12 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Evaluates a factor of two values. This can be a multiplication, division or modulo
+    ///     operation.</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <exception cref="SyntaxException">The operator is invalid.</exception>
     public override AbstractValue VisitFactorExpression(AmethystParser.FactorExpressionContext context)
     {
         var expressionContexts = context.expression();

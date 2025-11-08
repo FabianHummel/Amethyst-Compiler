@@ -13,6 +13,7 @@ public partial class Compiler
         return (RawDatatype)Visit(rawLocationContext)!;
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///     <p>A raw scoreboard location in the format <c>&lt;location&gt; &lt;namespace&gt;</c> or in
     ///     Minecraft literals <c>&lt;player&gt; &lt;objective&gt;</c>.</p>
@@ -26,6 +27,7 @@ public partial class Compiler
         };
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///     <p>A raw storage location in the format <c>&lt;namespace&gt; &lt;path.to.member&gt;</c>.</p>
     ///     <p><inheritdoc /></p></summary>

@@ -6,6 +6,10 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
+    /// <summary><p>Compares two values whether they are greater or less than another.</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <exception cref="SyntaxException">The operator for this comparison is invalid.</exception>
     public override AbstractValue VisitComparisonExpression(AmethystParser.ComparisonExpressionContext context)
     {
         var expressionContexts = context.expression();

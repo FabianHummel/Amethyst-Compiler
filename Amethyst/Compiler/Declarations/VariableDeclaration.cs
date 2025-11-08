@@ -5,6 +5,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
     /// <summary>
     ///     <p>A variable declaration. A variable holds a single value and can be stored in either a
     ///     scoreboard or storage, depending on the datatype.</p>

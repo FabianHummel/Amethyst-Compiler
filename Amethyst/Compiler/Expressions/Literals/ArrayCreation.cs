@@ -1,10 +1,10 @@
 using Amethyst.Language;
-using Amethyst.Model;
 
 namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
     /// <summary>
     ///     <p>An array creation expression. A static array has a fixed datatype, while a dynamic array can
     ///     have elements of different datatypes. This is important when e.g. iterating over an array to

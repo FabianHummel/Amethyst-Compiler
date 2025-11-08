@@ -6,7 +6,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    /// <summary>
+    /// <inheritdoc /><summary>
     ///     <p>The textual representation of types is converted to its enum equivalent by comparing the
     ///     enum's description attribute. Additionally, a modifier is also parsed that indicates whether
     ///     the type should be interpreted as an array or object of the original type. Decimals are handled

@@ -5,6 +5,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
     /// <summary><p>Loops over a block of code while a specific condition is true during preprocessing.</p>
     ///     <p><inheritdoc /></p></summary>
     /// <seealso cref="VisitForStatement" />

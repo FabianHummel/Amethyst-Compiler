@@ -6,6 +6,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc cref="AmethystParserBaseVisitor{Result}.VisitPreprocessorYieldingStatement" />
     /// <summary>
     ///     <p>Enters a new yielding scope for the given context and visits it, returning all yielded
     ///     results of type T.</p>

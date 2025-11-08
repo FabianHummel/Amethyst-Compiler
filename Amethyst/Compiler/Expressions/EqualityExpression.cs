@@ -6,6 +6,15 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Checks if two values are equal. This is done by first comparing their datatype, then their
+    ///     actual value if both are an <see cref="IConstantValue" />. Only then, the runtime check is done
+    ///     using <c>/execute if|unless</c>.</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <exception cref="SemanticException">The datatype of the two values don't match and cannot be used
+    /// for comparison.</exception>
+    /// <exception cref="SyntaxException">The comparison operator is invalid.</exception>
     public override AbstractValue VisitEqualityExpression(AmethystParser.EqualityExpressionContext context)
     {
         var expressionContexts = context.expression();
@@ -18,7 +27,7 @@ public partial class Compiler
 
         if (left.Datatype != right.Datatype)
         {
-            throw new SyntaxException($"Cannot compare values of type '{left.Datatype}' and '{right.Datatype}'.", context);
+            throw new SemanticException($"Cannot compare values of type '{left.Datatype}' and '{right.Datatype}'.", context);
         }
 
         if (left is IConstantValue lhsConstant && right is IConstantValue rhsConstant)

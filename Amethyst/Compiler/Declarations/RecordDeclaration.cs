@@ -5,6 +5,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
     /// <summary>
     ///     <p>A record declaration. A record is a set of values tied to individual entities in the game.
     ///     This rather unconventional data structure allows for per-entity data and bridges the gap

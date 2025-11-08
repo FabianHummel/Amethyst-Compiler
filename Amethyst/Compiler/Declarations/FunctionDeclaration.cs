@@ -6,6 +6,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
     /// <summary>
     ///     <p>A function declaration. It can only appear at the top level of a file within the function
     ///     registry.</p>
@@ -77,6 +78,7 @@ public partial class Compiler
         return function;
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///     <p>Visits a parameter list and returns an array of Variables representing the parameters.</p>
     ///     <p><inheritdoc /></p></summary>
@@ -101,6 +103,7 @@ public partial class Compiler
         return parameters.ToArray();
     }
 
+    /// <inheritdoc />
     /// <summary><p>Visits a parameter and returns a Variable representing the parameter.</p>
     ///     <p><inheritdoc /></p></summary>
     /// <seealso cref="VisitParameterList" />

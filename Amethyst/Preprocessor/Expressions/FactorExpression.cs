@@ -6,6 +6,7 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
     /// <summary>
     ///     <p>Calculates two preprocessor expressions using a multiplication, division, or modulo
     ///     operator.</p>
