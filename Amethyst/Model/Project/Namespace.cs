@@ -1,4 +1,4 @@
-using static Amethyst.Constants;
+using static Amethyst.Model.Constants;
 
 namespace Amethyst.Model;
 
@@ -32,7 +32,7 @@ public class Namespace : IDisposable
 
     /// <summary>A <see cref="TextWriter" /> used to accumulate the initialization code for the namespace's
     /// init function.</summary>
-    private readonly TextWriter _writer = new StringWriter();
+    private TextWriter? _writer;
 
     /// <summary>The absolute file path for the namespace's init function.</summary>
     public string FilePath => Path.Combine(
@@ -62,6 +62,12 @@ public class Namespace : IDisposable
                 AddInitCode($$"""scoreboard objectives modify {{recordDeclaration.Key}} displayname ["",{"text":"Record ","bold":true},{"text":"{{recordDeclaration.Key}}","color":"dark_purple"},{"text":" @ "},{"text":"{{recordDeclaration.Value.McFunctionPath}}/","color":"gray"},{"text":"{{recordDeclaration.Value.Name}}","color":"light_purple"}]""");
             }
         }
+
+        if (_writer == null)
+        {
+            GC.SuppressFinalize(this);
+            return;
+        }
         
         _context.Configuration.Datapack!.LoadFunctions.Add(McFunctionPath);
 
@@ -80,6 +86,11 @@ public class Namespace : IDisposable
     /// <param name="code">The initialization code to add.</param>
     private void AddInitCode(string code)
     {
+        if (_writer == null)
+        {
+            _writer = new StringWriter();
+        }
+        
         _writer.WriteLine(code);
     }
 }

@@ -97,7 +97,7 @@ public static class ConsoleUtility
         LongTaskCts?.Cancel();
         ClearCurrentConsoleLine();
         if (IsReducedColors) Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine(UseColorOption(
+        Console.Error.WriteLine(UseColorOption(
             $"\r {Red().Dim("\u279c")} {Red().Bold(s)}",
             $"\r \u279c {s}")
             .PadRight(Console.WindowWidth));

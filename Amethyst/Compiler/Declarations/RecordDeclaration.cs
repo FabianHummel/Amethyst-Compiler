@@ -17,12 +17,12 @@ public partial class Compiler
     ///     <p><inheritdoc /></p></summary>
     /// <exception cref="SymbolAlreadyDeclaredException">A symbol with the same name already exists in the
     /// current scope.</exception>
-    public override object? VisitRecordDeclaration(AmethystParser.RecordDeclarationContext context)
+    public override Symbol VisitRecordDeclaration(AmethystParser.RecordDeclarationContext context)
     {
         var recordName = context.IDENTIFIER().GetText();
-        if (TryGetSymbol(recordName, out _, context))
+        if (EnsureSymbolIsNewOrGetRootSymbol(recordName, context, out var symbol))
         {
-            throw new SymbolAlreadyDeclaredException(recordName, context);
+            return symbol;
         }
         
         var result = VisitExpression(context.expression()).EnsureRuntimeValue();
@@ -55,6 +55,6 @@ public partial class Compiler
             this.AddCode($"data modify storage amethyst:record_initializers {name} set from storage {result.Location}");
         }
 
-        return null;
+        return record;
     }
 }

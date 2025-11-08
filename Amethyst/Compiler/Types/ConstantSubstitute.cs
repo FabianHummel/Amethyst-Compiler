@@ -9,6 +9,8 @@ public class ConstantSubstitute : AbstractValue, IConstantValue<IRuntimeValue>
     public int AsInteger => throw new InvalidOperationException("Constant substitutes cannot be converted to an integer value.");
     
     public bool AsBoolean => throw new InvalidOperationException("Constant substitutes cannot be converted to a boolean value.");
+    
+    public double AsDouble => throw new InvalidOperationException("Constant substitutes cannot be converted to a double value.");
 
     public IRuntimeValue ToRuntimeValue()
     {

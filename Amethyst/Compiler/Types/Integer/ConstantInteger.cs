@@ -10,6 +10,8 @@ public class ConstantInteger : AbstractInteger, IConstantValue<int>, IScoreboard
     
     public bool AsBoolean => AsInteger != 0;
     
+    public double AsDouble => Value;
+    
     public int ScoreboardValue => Value;
     
     protected override ConstantDecimal AsDecimal => new()

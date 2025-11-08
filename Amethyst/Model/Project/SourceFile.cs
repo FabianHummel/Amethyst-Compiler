@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using Amethyst.Language;
 using Amethyst.Utility;
-using static Amethyst.Constants;
+using static Amethyst.Model.Constants;
 
 namespace Amethyst.Model;
 
@@ -23,11 +23,15 @@ public sealed class SourceFile
     /// <summary>The root scope associated with this source file.</summary>
     public Scope? Scope { get; set; }
 
+    public AmethystParser.FileContext? Ast { get; set; }
+    
     /// <summary>A dictionary of symbols exported by this source file. These can be imported by other
     /// source files using import statements.</summary>
     /// <seealso cref="Compiler.VisitPreprocessorFromDeclaration" />
     public Dictionary<string, AmethystParser.DeclarationContext> ExportedSymbols { get; } = new();
 
+    public Dictionary<AmethystParser.DeclarationContext, Symbol> DeclarationCache { get; } = new();
+    
     /// <summary>A dictionary of symbols imported by this source file from other source files using import
     /// statements.</summary>
     /// <seealso cref="Compiler.VisitPreprocessorFromDeclaration" />
@@ -38,7 +42,7 @@ public sealed class SourceFile
     public Dictionary<string, AmethystParser.FunctionDeclarationContext> EntryPointFunctions { get; } = new();
 
     /// <summary>The hierarchical tree structure representing the path segments of the source file.</summary>
-    public readonly Node<string, SourceFile> _tree;
+    private readonly Node<string, SourceFile> _tree;
 
     /// <summary>Initializes a new instance of the <see cref="SourceFile" /> class using the provided path
     /// segments.</summary>

@@ -1,4 +1,5 @@
 using Amethyst.Language;
+using Amethyst.Model;
 
 namespace Amethyst;
 
@@ -28,7 +29,7 @@ public class AmethystParseListener : AmethystParserBaseListener
         }
     }
 
-    public override void ExitPreprocessorFromDeclaration(AmethystParser.PreprocessorFromDeclarationContext context)
+    public override void ExitPreprocessorFromImportDeclaration(AmethystParser.PreprocessorFromImportDeclarationContext context)
     {
         if (context.RESOURCE_LITERAL() is not { } resourceLiteral)
         {
@@ -84,26 +85,6 @@ public class AmethystParseListener : AmethystParserBaseListener
             !Parser.SourceFile.ImportedSymbols.ContainsKey(symbolName))
         {
             throw new SymbolAlreadyDeclaredException(symbolName, context);
-        }
-    }
-
-    public override void ExitFunctionDeclaration(AmethystParser.FunctionDeclarationContext context)
-    {
-        var fnName = context.IDENTIFIER().GetText();
-
-        var attributesListContext = context.attributeList();
-        var attributes = attributesListContext.attribute()
-            .Select(attributeContext => attributeContext.IDENTIFIER().GetText())
-            .ToHashSet();
-        
-        var entryPointAttributes = new HashSet<string>
-        {
-            Constants.AttributeLoadFunction,
-            Constants.AttributeTickFunction
-        };
-        if (attributes.Overlaps(entryPointAttributes))
-        {
-            Parser.SourceFile.EntryPointFunctions.Add(fnName, context);
         }
     }
 }

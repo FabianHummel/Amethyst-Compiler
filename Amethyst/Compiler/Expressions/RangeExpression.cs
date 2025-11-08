@@ -1,13 +1,46 @@
 using Amethyst.Language;
 using Amethyst.Model;
+using Antlr4.Runtime;
 
 namespace Amethyst;
 
 public partial class Compiler
 {
-    public RangeExpression VisitRangeExpression(AmethystParser.RangeExpressionContext context, bool allowDecimals)
+    public class RangeExpressionResult
     {
-        var result = new RangeExpression();
+        private readonly AmethystParser.RangeExpressionContext _context;
+
+        public RangeExpressionResult(AmethystParser.RangeExpressionContext context)
+        {
+            _context = context;
+        }
+
+        public AbstractValue? Start { get; set; }
+        public AbstractValue? Stop { get; set; }
+        
+        public object? OverwrittenStartValue { get; set; }
+        
+        public ParserRuleContext Context => _context;
+        
+        public bool ContainsRuntimeValues => Start is IRuntimeValue || Stop is IRuntimeValue;
+
+        public string ToTargetSelectorString()
+        {
+            var start = Start?.ToTargetSelectorString() ?? OverwrittenStartValue?.ToString() ?? "";
+            var stop = Stop?.ToTargetSelectorString() ?? "";
+
+            return $"{start}..{stop}";
+        }
+        
+        public override string ToString()
+        {
+            return ToTargetSelectorString();
+        }
+    }
+    
+    public RangeExpressionResult VisitRangeExpression(AmethystParser.RangeExpressionContext context, bool allowDecimals)
+    {
+        var result = new RangeExpressionResult(context);
 
         if (context.GetChild(0) is AmethystParser.ExpressionContext startExpressionContext)
         {

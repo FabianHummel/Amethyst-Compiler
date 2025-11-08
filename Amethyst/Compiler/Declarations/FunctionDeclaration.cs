@@ -1,6 +1,6 @@
 using Amethyst.Language;
 using Amethyst.Model;
-using static Amethyst.Constants;
+using static Amethyst.Model.Constants;
 
 namespace Amethyst;
 
@@ -20,14 +20,14 @@ public partial class Compiler
     /// <exception cref="SymbolAlreadyDeclaredException">A symbol with the same name is already declared in
     /// the current scope.</exception>
     /// <seealso cref="VisitCallExpression" />
-    public override object? VisitFunctionDeclaration(AmethystParser.FunctionDeclarationContext context)
+    public override Symbol VisitFunctionDeclaration(AmethystParser.FunctionDeclarationContext context)
     {
         var functionName = context.IDENTIFIER().GetText();
-        if (TryGetSymbol(functionName, out _, context, checkExportedSymbols: false))
+        if (EnsureSymbolIsNewOrGetRootSymbol(functionName, context, out var symbol))
         {
-            throw new SymbolAlreadyDeclaredException(functionName, context);
+            return symbol;
         }
-        
+
         var attributes = VisitAttributeList(context.attributeList());
 
         var isNoMangle = attributes.Contains(AttributeUnitTestFunction) || attributes.Contains(AttributeNoMangle);
@@ -74,7 +74,7 @@ public partial class Compiler
            throw new SymbolAlreadyDeclaredException(functionName, context); 
         }
         
-        return null;
+        return function;
     }
 
     /// <summary>

@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
 using Tomlet.Attributes;
-using static Amethyst.Constants;
+using static Amethyst.Model.Constants;
 
 namespace Amethyst.Model;
 
@@ -58,19 +58,21 @@ public class Datapack
             var yParts = y.Split(':');
             var xNs = xParts[0];
             var yNs = yParts[0];
-            var xFn = xParts.Length > 1 ? xParts[1] : "";
-            var yFn = yParts.Length > 1 ? yParts[1] : "";
+            var xFn = xParts.Length > 1 ? xParts[1].Split('/').LastOrDefault() : "";
+            var yFn = yParts.Length > 1 ? yParts[1].Split('/').LastOrDefault() : "";
 
             int nsCompare =
                 xNs == InternalNamespaceName && yNs != InternalNamespaceName ? -1 :
                 yNs == InternalNamespaceName && xNs != InternalNamespaceName ? 1 :
                 string.Compare(xNs, yNs, StringComparison.Ordinal);
-
             if (nsCompare != 0) return nsCompare;
 
-            if (xFn == InitFunctionName && yFn != InitFunctionName) return -1;
-            if (yFn == InitFunctionName && xFn != InitFunctionName) return 1;
-            return string.Compare(xFn, yFn, StringComparison.Ordinal);
+            int fnCompare =
+                xFn == InitFunctionName && yFn != InitFunctionName ? -1 :
+                yFn == InitFunctionName && xFn != InitFunctionName ? 1 :
+                string.Compare(xFn, yFn, StringComparison.Ordinal);
+            if (fnCompare == 0) return 1;
+            return fnCompare;
         }
     }
 }

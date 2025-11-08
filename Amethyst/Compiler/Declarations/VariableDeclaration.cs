@@ -11,26 +11,28 @@ public partial class Compiler
     ///     <p><inheritdoc /></p></summary>
     /// <exception cref="SymbolAlreadyDeclaredException">A symbol with the same name already exists in the
     /// current scope.</exception>
-    public override object? VisitVariableDeclaration(AmethystParser.VariableDeclarationContext context)
+    public override Symbol VisitVariableDeclaration(AmethystParser.VariableDeclarationContext context)
     {
         var variableName = context.IDENTIFIER().GetText();
-        if (TryGetSymbol(variableName, out _, context))
+        if (EnsureSymbolIsNewOrGetRootSymbol(variableName, context, out var symbol))
         {
-            throw new SymbolAlreadyDeclaredException(variableName, context);
+            return symbol;
         }
         
         var result = VisitExpression(context.expression()).EnsureRuntimeValue();
         var type = GetOrInferTypeResult(result, context.type(), context);
         var attributes = VisitAttributeList(context.attributeList());
 
-        Scope.Symbols.Add(variableName, new Variable
+        var variable = new Variable
         {
             Name = variableName,
             Location = result.Location,
             Datatype = type,
             Attributes = attributes
-        });
+        };
         
-        return null;
+        Scope.Symbols.Add(variableName, variable);
+        
+        return variable;
     }
 }

@@ -1,7 +1,7 @@
 using Amethyst.Language;
 using Amethyst.Model;
 using Antlr4.Runtime;
-using static Amethyst.Constants;
+using static Amethyst.Model.Constants;
 
 namespace Amethyst;
 
@@ -67,24 +67,10 @@ public partial class Compiler : AmethystParserBaseVisitor<object?>
     private void CompileSourceFile(SourceFile sourceFile)
     {
         SourceFile = sourceFile;
-        Scope = sourceFile.Scope!;
         Namespace = GetOrCreateNamespace(sourceFile.Namespace);
-        
-        foreach (var entryPoint in sourceFile.EntryPointFunctions.Values)
+        using (Scope = sourceFile.Scope!)
         {
-            VisitFunctionDeclaration(entryPoint);
-        }
-        
-        // TODO: change this code, because the exported symbols don't automatically belong to the dependency graph.
-        //  If a symbol should be compiled nevertheless, the user must add a [not_unused] or similar attribute. 
-        foreach (var (symbolName, symbol) in sourceFile.ExportedSymbols)
-        {
-            if (Scope.Symbols.ContainsKey(symbolName))
-            {
-                continue;
-            }
-            
-            VisitDeclaration(symbol);
+            VisitFile(sourceFile.Ast);
         }
     }
 

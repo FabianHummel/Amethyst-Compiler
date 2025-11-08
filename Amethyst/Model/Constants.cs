@@ -1,9 +1,9 @@
 using System.Globalization;
 
-namespace Amethyst;
+namespace Amethyst.Model;
 
 /// <summary>Collection of constants that are used throughout the compiler.</summary>
-public static class Constants
+public static partial class Constants
 {
     public const string ConfigFile = "amethyst.toml";
     public const string SourceFile = "*.amy";

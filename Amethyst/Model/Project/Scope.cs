@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using static Amethyst.Constants;
+using static Amethyst.Model.Constants;
 
 namespace Amethyst.Model;
 
@@ -43,7 +42,7 @@ public class Scope : IDisposable
 
     /// <summary>A writer that accumulates the code generated within this scope. This code will be written
     /// to the appropriate <c>.mcfunction</c> file upon disposal of the scope.</summary>
-    private readonly TextWriter _writer = new StringWriter();
+    private TextWriter? _writer;
 
     /// <summary>Initializes a new instance of the <see cref="Scope" /> class with an empty name.</summary>
     /// <param name="context">The compilation context.</param>
@@ -70,7 +69,8 @@ public class Scope : IDisposable
     public string FilePath => Path.Combine(
         _context.Configuration.Datapack!.OutputDir, 
         _sourceFile.GetFullPath(),
-        GetPath() + McfunctionFileExtension);
+        GetPath(callerIsRoot: IsRoot) + McfunctionFileExtension);
+
 
     /// <summary>Gets the relative path of this scope by combining the names of its parent scopes. Used to
     /// assemble the absolute file path in <see cref="FilePath" />.</summary>
@@ -82,20 +82,29 @@ public class Scope : IDisposable
 
     /// <summary>The Minecraft function path for this scope, formatted with forward slashes and prefixed by
     /// the source file's function path, resulting in a complete function path usable within Minecraft.</summary>
+    
     public string McFunctionPath
     {
         get
         {
-            var mcFunctionPath = GetPath().Replace(Path.DirectorySeparatorChar, '/');
+            var path = GetPath(callerIsRoot: IsRoot);
+            var mcFunctionPath = path.Replace(Path.DirectorySeparatorChar, '/');
             return $"{_sourceFile.McFunctionPath}/{mcFunctionPath}";
         }
     }
+    
+    public bool IsRoot => Parent == null;
 
     /// <summary>Adds a line of code to the scope's internal writer, which will be written to the
     /// associated <c>.mcfunction</c> file upon disposal.</summary>
     /// <param name="code">The MCFunction code to add.</param>
     public void AddCode(string code)
     {
+        if (_writer == null)
+        {
+            _writer = new StringWriter();
+        }
+        
         _writer.WriteLine(code);
     }
 
@@ -131,9 +140,15 @@ public class Scope : IDisposable
     /// file unless the scope has been cancelled.</summary>
     public void Dispose()
     {
-        if (_isCancelled)
+        if (_isCancelled || _writer == null)
         {
+            GC.SuppressFinalize(this);
             return;
+        }
+
+        if (IsRoot)
+        {
+            _context.Configuration.Datapack!.LoadFunctions.Add(McFunctionPath);
         }
         
         if (!File.Exists(FilePath))
@@ -177,6 +192,13 @@ public class Scope : IDisposable
             Parent = parent
         };
     }
+    
+    private string GetPath(bool callerIsRoot)
+    {
+        var path = callerIsRoot && IsRoot ? InitFunctionName : Parent?.GetPath(callerIsRoot);
+        return Path.Combine(path ?? "", Name);
+    }
+    
 
     /// <summary>A helper class that temporarily sets the global scope of a compiler to a new scope and
     /// restores the previous scope upon disposal.</summary>
@@ -202,7 +224,15 @@ public class Scope : IDisposable
         /// <summary>Restores the compiler's previous scope when this object is disposed.</summary>
         public void Dispose()
         {
-            _owner.Scope.Dispose();
+            Dispose(disposeScope: true);
+        }
+
+        public void Dispose(bool disposeScope)
+        {
+            if (disposeScope)
+            {
+                _owner.Scope.Dispose();
+            }
             _owner.Scope = _previous;
         }
     }

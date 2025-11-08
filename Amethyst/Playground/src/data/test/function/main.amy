@@ -1,6 +1,8 @@
+FROM `variables` IMPORT x;
+
 [initializing]
 function main() {
-    var x = 1.12;
-    var y = 2.345;
-    debug x + y;
+    debug x;
 }
+
+debug x;

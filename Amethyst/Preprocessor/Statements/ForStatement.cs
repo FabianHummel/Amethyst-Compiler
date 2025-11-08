@@ -37,9 +37,9 @@ public partial class Compiler
             while(value.AsBoolean && maxIterations-- > 0)
             {
                 VisitBlock(context.block());
-                if (context.preprocessorExpressionStatement() is { } preprocessorExpressionStatementContext)
+                if (context.preprocessorAssignment() is { } preprocessorAssignmentContext)
                 {
-                    VisitPreprocessorExpressionStatement(preprocessorExpressionStatementContext);
+                    Visit(preprocessorAssignmentContext);
                 }
                 value = VisitPreprocessorExpression(context.preprocessorExpression());
             }

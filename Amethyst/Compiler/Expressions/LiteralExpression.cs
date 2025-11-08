@@ -93,6 +93,11 @@ public partial class Compiler
                 Location = rawLocation
             };
         }
+
+        if (literalContext.selectorCreation() is { } selectorCreationContext)
+        {
+            return VisitSelectorCreation(selectorCreationContext);
+        }
         
         throw new InvalidOperationException($"Invalid literal '{literalContext.GetText()}'.");
     }

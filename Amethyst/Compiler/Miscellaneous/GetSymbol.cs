@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Amethyst.Model;
 using Antlr4.Runtime;
+using static Amethyst.Model.Constants;
 
 namespace Amethyst;
 
@@ -30,13 +31,21 @@ public partial class Compiler
 
         if (checkExportedSymbols && SourceFile.ExportedSymbols.TryGetValue(name, out var declarationContext))
         {
-            VisitDeclaration(declarationContext);
-            return TryGetSymbolRecursive(name, out symbol, context, checkExportedSymbols);
+            if (SourceFile.DeclarationCache.TryGetValue(declarationContext, out symbol))
+            {
+                return true;
+            }
+
+            var scopeBackup = new Scope.GlobalBackup(this, SourceFile.Scope!);
+            symbol = VisitDeclaration(declarationContext);
+            SourceFile.DeclarationCache.Add(declarationContext, symbol);
+            scopeBackup.Dispose(disposeScope: false);
+            return true;
         }
 
         if (SourceFile.ImportedSymbols.TryGetValue(name, out var resourcePath))
         {
-            var sourceFile = GetSourceFile(resourcePath, Constants.DatapackFunctionsDirectory, context);
+            var sourceFile = GetSourceFile(resourcePath, DatapackFunctionsDirectory, context);
             using var scope = new SourceFile.GlobalBackup(this, sourceFile);
             var foundSymbol = TryGetSymbolRecursive(name, out symbol, context, checkExportedSymbols);
             return foundSymbol;
@@ -44,5 +53,20 @@ public partial class Compiler
         
         symbol = null;
         return false;
+    }
+    
+    private bool EnsureSymbolIsNewOrGetRootSymbol(string functionName, ParserRuleContext context, [NotNullWhen(true)] out Symbol? symbol)
+    {
+        if (!TryGetSymbol(functionName, out symbol, context, checkExportedSymbols: false))
+        {
+            return false;
+        }
+
+        if (Scope.IsRoot)
+        {
+            return true;
+        }
+            
+        throw new SymbolAlreadyDeclaredException(functionName, context);
     }
 }

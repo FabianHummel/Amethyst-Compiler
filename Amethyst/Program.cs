@@ -1,6 +1,6 @@
 ﻿using Amethyst.Model;
 using CommandLine;
-using static Amethyst.Constants;
+using static Amethyst.Model.Constants;
 using static Amethyst.Utility.ConsoleUtility;
 
 namespace Amethyst;

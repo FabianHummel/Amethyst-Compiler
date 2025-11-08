@@ -11,15 +11,15 @@ public class Parser
 {
     /// <summary>The current source file that is being parsed.</summary>
     public SourceFile SourceFile { get; set; } = null!;
-
+    
     /// <summary>Parses a source file. Reads the contents of the file located at the specified
     /// <paramref name="path" />.</summary>
     /// <param name="sourceFile">The source file to parse</param>
     /// <param name="path">The actual file path where the source file is located</param>
-    public void Parse(SourceFile sourceFile, string path)
+    public AmethystParser.FileContext Parse(SourceFile sourceFile, string path)
     {
         var stream = File.OpenRead(path);
-        Parse(sourceFile, stream);
+        return Parse(sourceFile, stream);
     }
 
     /// <summary>Parses a source file. Uses the specified <paramref name="fileStream" /> to read the
@@ -27,7 +27,7 @@ public class Parser
     /// into the assembly.</summary>
     /// <param name="sourceFile">The source file to parse</param>
     /// <param name="fileStream">The file stream of source file</param>
-    public void Parse(SourceFile sourceFile, Stream fileStream)
+    public AmethystParser.FileContext Parse(SourceFile sourceFile, Stream fileStream)
     {
         SourceFile = sourceFile;
         var inputStream = new AmethystInputStream(fileStream, sourceFile);
@@ -35,7 +35,8 @@ public class Parser
         var tokenStream = new CommonTokenStream(lexer);
         var parser = new AmethystParser(tokenStream);
         parser.AddErrorListener(new AmethystErrorListener(this));
+        parser.RemoveErrorListener(ConsoleErrorListener<IToken>.Instance);
         parser.AddParseListener(new AmethystParseListener(this));
-        parser.file();
+        return parser.file();
     }
 }
