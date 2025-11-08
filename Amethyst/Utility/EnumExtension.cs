@@ -45,8 +45,8 @@ public static class EnumExtension
     public static string GetMcfOperatorSymbol(this Enum op)
     {
         var field = op.GetType().GetField(op.ToString());
-        var attribute = (McfOperatorAttribute)Attribute.GetCustomAttribute(field!, typeof(McfOperatorAttribute))!;
-        return attribute.Operator;
+        var attribute = (McfTokenAttribute)Attribute.GetCustomAttribute(field!, typeof(McfTokenAttribute))!;
+        return attribute.Token;
     }
 
     /// <summary>Gets the Amethyst operator symbol associated with the enum value.</summary>
@@ -68,7 +68,7 @@ public static class EnumExtension
     {
         foreach (var field in typeof(T).GetFields())
         {
-            if (Attribute.GetCustomAttribute(field, typeof(McfOperatorAttribute)) is McfOperatorAttribute attribute && attribute.Operator == mcfOperator)
+            if (Attribute.GetCustomAttribute(field, typeof(McfTokenAttribute)) is McfTokenAttribute attribute && attribute.Token == mcfOperator)
             {
                 return (T)field.GetValue(null)!;
             }

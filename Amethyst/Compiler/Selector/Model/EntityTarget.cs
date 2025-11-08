@@ -2,17 +2,17 @@ namespace Amethyst.Model;
 
 public enum EntityTarget
 {
-    [McfOperator("@s")]
+    [McfToken("@s")]
     Self,
-    [McfOperator("@r")]
+    [McfToken("@r")]
     RandomPlayer,
-    [McfOperator("@a")]
+    [McfToken("@a")]
     AllPlayers,
-    [McfOperator("@e")]
+    [McfToken("@e")]
     AllEntities,
-    [McfOperator("@p")]
+    [McfToken("@p")]
     NearestPlayer,
-    [McfOperator("@n")]
+    [McfToken("@n")]
     NearestEntity
 }
 
