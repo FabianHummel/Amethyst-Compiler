@@ -6,6 +6,14 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Parses a full target selector. First, it parses the selector queries and assembles the
+    ///     selector string. Subsequently, the selector is either simply created when possible or invoked
+    ///     with a macro when using runtime variables. Additionally, the query keys are reordered in the
+    ///     most optimal way possible in <see cref="ProcessQueryDict" />.</p>
+    ///     <p><inheritdoc /></p>
+    /// </summary>
     public override AbstractValue VisitSelectorCreation(AmethystParser.SelectorCreationContext context)
     {
         var entitySelectorTypeContext = context.entitySelectorType();
@@ -51,7 +59,14 @@ public partial class Compiler
         return value;
 
     }
-    
+
+    /// <summary>Processes a collection of selector queries and builds the <paramref name="queryDict" />.</summary>
+    /// <param name="selectorElementContexts">The target selector queries.</param>
+    /// <param name="queryDict">The resulting map of query keys and values used in the selector query.</param>
+    /// <param name="containsRuntimeValues">Whether the selector query contains values that are only known
+    /// during runtime. If this is the case, the selector needs to be created using a macro invocation.</param>
+    /// <param name="limitExpression">The value of the limit query if used in the target selector query.
+    /// This is used to determine if the selector only matches a single or multiple entities.</param>
     private void ProcessSelectorElements(IEnumerable<AmethystParser.SelectorElementContext> selectorElementContexts, ref Dictionary<string, List<SelectorQueryValue>> queryDict, out bool containsRuntimeValues, out AbstractValue? limitExpression)
     {
         containsRuntimeValues = false;
@@ -82,7 +97,16 @@ public partial class Compiler
             }
         }
     }
-    
+
+    /// <summary>Creates the query selector and stores the resulting entities in a variable.</summary>
+    /// <param name="selector">The base selector.</param>
+    /// <param name="limitExpression">The value of the limit query if used in the target selector query.
+    /// This is used to determine if the selector only matches a single or multiple entities.</param>
+    /// <param name="selectorString">The final query string that is used with the
+    /// <paramref name="selector" />.</param>
+    /// <param name="context">The parser rule context that is given to the resulting variable.</param>
+    /// <param name="isMacroInvocation">Whether the selector needs to be created using a macro invocation.</param>
+    /// <returns>A value that contains the matches entities of the target selector.</returns>
     private AbstractValue CreateSelector(EntityTargetResult selector, AbstractValue? limitExpression, string? selectorString, AmethystParser.SelectorCreationContext context, bool isMacroInvocation = false)
     {
         var prefix = isMacroInvocation ? "$" : string.Empty;
@@ -124,7 +148,11 @@ public partial class Compiler
             IsTemporary = true
         };
     }
-    
+
+    /// <summary>Processes a list of selector queries and reorders them in the most optimal way. The most
+    /// optimal order is a statistical evaluation of which queries filter out the most entities when used.</summary>
+    /// <param name="queryList">The queries to process.</param>
+    /// <returns>The final query string.</returns>
     private static string? ProcessQueryDict(Dictionary<string, SelectorQueryResult> queryList)
     {
         if (queryList.Count == 0)

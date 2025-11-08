@@ -6,6 +6,9 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
+    /// <summary><p>Parses a selector query that uses a range expression as the value.</p>
+    ///     <p><inheritdoc /></p></summary>
     public override SelectorQueryResult VisitRangeSelector(AmethystParser.RangeSelectorContext context)
     {
         var queryKey = context.IDENTIFIER().GetText();
