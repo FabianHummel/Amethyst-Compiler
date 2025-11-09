@@ -6,7 +6,8 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    /// <inheritdoc /><summary>
+    /// <inheritdoc />
+    /// <summary>
     ///     <p>The textual representation of types is converted to its enum equivalent by comparing the
     ///     enum's description attribute. Additionally, a modifier is also parsed that indicates whether
     ///     the type should be interpreted as an array or object of the original type. Decimals are handled
@@ -88,8 +89,17 @@ public partial class Compiler
         
         return AbstractDatatype.Parse(basicType, modifier);
     }
-    
-    private AbstractDatatype GetOrInferTypeResult(IRuntimeValue result, AmethystParser.TypeContext? typeContext, ParserRuleContext context)
+
+    /// <summary>Evaluates a value's type by either retrieving it directly or inferring it if it's not
+    /// explicitly defined.</summary>
+    /// <param name="value">The value to get the type from.</param>
+    /// <param name="typeContext">Optionally an explicit type declaration. If this is defined, it is used
+    /// as the resulting type.</param>
+    /// <param name="context">The parser rule context used for error handling.</param>
+    /// <returns>The datatype of the specified <paramref name="value" />.</returns>
+    /// <exception cref="SyntaxException">The inferred type of <paramref name="value" /> does not match the
+    /// explicitly declared type of <paramref name="typeContext" />.</exception>
+    private AbstractDatatype GetOrInferTypeResult(IRuntimeValue value, AmethystParser.TypeContext? typeContext, ParserRuleContext context)
     {
         AbstractDatatype? type = null;
         
@@ -98,14 +108,14 @@ public partial class Compiler
             type = VisitType(typeContext);
         }
         // if two types are defined, check if they match
-        if (type != null && type != result.Datatype)
+        if (type != null && type != value.Datatype)
         {
-            throw new SyntaxException($"The type '{type}' does not match the inferred type '{result.Datatype}'.", context);
+            throw new SyntaxException($"The type '{type}' does not match the inferred type '{value.Datatype}'.", context);
         }
         // if no type is defined, we infer it
         if (type == null)
         {
-            type = result.Datatype;
+            type = value.Datatype;
         }
         
         return type;

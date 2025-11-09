@@ -28,6 +28,7 @@ preprocessorYieldingStatement
  | preprocessorYieldStatement
  | preprocessorDebugStatement
  | preprocessorAssignmentStatement
+ | preprocessorCommentStatement
  ;
 
 preprocessorDeclaration
@@ -70,6 +71,10 @@ preprocessorBreakStatement
 
 preprocessorYieldStatement
  : PREPROCESSOR_YIELD (selectorElement | recordSelectorElement | objectElement | arrayElement) SEMICOLON
+ ;
+
+preprocessorCommentStatement
+ : PREPROCESSOR_COMMENT preprocessorExpression SEMICOLON
  ;
 
 preprocessorDebugStatement
@@ -186,7 +191,6 @@ statement
  | foreachStatement
  | ifStatement
  | debugStatement
- | commentStatement
  | returnStatement
  | breakStatement
  | continueStatement
@@ -219,10 +223,6 @@ ifStatement
 
 debugStatement
  : DEBUG expression SEMICOLON
- ;
-
-commentStatement
- : COMMENT STRING_LITERAL SEMICOLON
  ;
 
 returnStatement
