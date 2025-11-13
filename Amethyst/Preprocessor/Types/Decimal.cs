@@ -1,8 +1,10 @@
 using Amethyst.Model;
+using Amethyst.Utility;
 
 namespace Amethyst;
 
 /// <summary>A preprocessor value representing a decimal number.</summary>
+[ForwardDefaultInterfaceMethods(typeof(IPreprocessorValue<double>))]
 public partial class PreprocessorDecimal : AbstractNumericPreprocessorValue, IPreprocessorValue<double>
 {
     public required double Value { get; set; }

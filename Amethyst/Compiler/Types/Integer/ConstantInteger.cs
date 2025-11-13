@@ -1,8 +1,10 @@
 using Amethyst.Model;
+using Amethyst.Utility;
 
 namespace Amethyst;
 
-public class ConstantInteger : AbstractInteger, IConstantValue<int>, IScoreboardValue
+[ForwardDefaultInterfaceMethods(typeof(IConstantValue))]
+public partial class ConstantInteger : AbstractInteger, IConstantValue<int>, IScoreboardValue
 {
     public int Value { get; init; }
     

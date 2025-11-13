@@ -1,4 +1,3 @@
-using Amethyst.Utility;
 using Antlr4.Runtime;
 using JetBrains.Annotations;
 
@@ -7,7 +6,6 @@ namespace Amethyst;
 /// <summary>A preprocessor value of a specific type. Implemented by all specific preprocessor value
 /// types.</summary>
 /// <typeparam name="T">The type of the preprocessor value.</typeparam>
-[ForwardDefaultInterfaceMethods]
 public interface IPreprocessorValue<T> : IPreprocessorValue
 {
     T Value { get; set; }

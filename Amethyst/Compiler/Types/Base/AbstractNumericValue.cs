@@ -4,7 +4,8 @@ using Amethyst.Utility;
 
 namespace Amethyst;
 
-public abstract partial class AbstractNumericValue : AbstractAmethystValue
+[ForwardDefaultInterfaceMethods(typeof(IStringConcatenable))]
+public abstract partial class AbstractNumericValue : AbstractValue, IStringConcatenable
 {
     protected abstract AbstractDecimal AsDecimal { get; }
 
@@ -12,9 +13,7 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
 
     public override AbstractDatatype Datatype => ScoreboardDatatype;
 
-    /// <summary>
-    /// Ensures that this number is stored in storage, likely to be able to use it as macro input.
-    /// </summary>
+    /// <summary>Ensures that this number is stored in storage, likely to be able to use it as macro input.</summary>
     /// <returns>A runtime value pointing to a storage location</returns>
     public IRuntimeValue EnsureInStorage()
     {
@@ -30,9 +29,7 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
         return ((IRuntimeValue)this).WithLocation(location, temporary: true);
     }
 
-    /// <summary>
-    /// Calculates any two numeric values with the given operator.
-    /// </summary>
+    /// <summary>Calculates any two numeric values with the given operator.</summary>
     private AbstractNumericValue Calculate(AbstractNumericValue lhs, AbstractNumericValue rhs, ArithmeticOperator op)
     {
         if (TryCalculateConstants(lhs, rhs, op, out var result))
@@ -54,10 +51,8 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
         var runtimeRhs = rhs.EnsureRuntimeValue();
         return PerformCalculation(runtimeLhs, runtimeRhs, op);
     }
-    
-    /// <summary>
-    /// Tries to calculate the result of two constant numeric values with the given operator.
-    /// </summary>
+
+    /// <summary>Tries to calculate the result of two constant numeric values with the given operator.</summary>
     private bool TryCalculateConstants(AbstractNumericValue anvLhs, AbstractNumericValue anvRhs, ArithmeticOperator op, [NotNullWhen(true)] out AbstractNumericValue? result)
     {
         result = null;
@@ -111,10 +106,8 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
         
         return true;
     }
-    
-    /// <summary>
-    /// Calculates any two numeric values with the given operator.
-    /// </summary>
+
+    /// <summary>Calculates any two numeric values with the given operator.</summary>
     private AbstractNumericValue Calculate(AbstractNumericValue lhs, AbstractNumericValue rhs, ComparisonOperator op)
     {
         if (TryCalculateConstants(lhs, rhs, op, out var result))
@@ -139,10 +132,8 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
         var runtimeRhs = rhs.EnsureRuntimeValue();
         return PerformCalculation(runtimeLhs, runtimeRhs, op);
     }
-    
-    /// <summary>
-    /// Tries to calculate the result of two constant numeric values with the given operator.
-    /// </summary>
+
+    /// <summary>Tries to calculate the result of two constant numeric values with the given operator.</summary>
     private bool TryCalculateConstants(AbstractNumericValue anvLhs, AbstractNumericValue anvRhs, ComparisonOperator op, [NotNullWhen(true)] out bool? result)
     {
         result = null;
@@ -183,10 +174,8 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
         
         return true;
     }
-    
-    /// <summary>
-    /// Tries to convert both numeric values to decimals if at least one of them is a decimal.
-    /// </summary>
+
+    /// <summary>Tries to convert both numeric values to decimals if at least one of them is a decimal.</summary>
     private static bool TryConvertToDecimals(AbstractNumericValue anvLhs, AbstractNumericValue anvRhs, [NotNullWhen(true)] out AbstractDecimal? lhs, [NotNullWhen(true)] out AbstractDecimal? rhs)
     {
         lhs = null;
@@ -201,10 +190,8 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
         return true;
     }
 
-    /// <summary>
-    /// Applies decimal scaling to two runtime decimal values so that they have the same number
-    /// of decimal places in order to perform arithmetic operations on them through scoreboards.
-    /// </summary>
+    /// <summary>Applies decimal scaling to two runtime decimal values so that they have the same number of
+    /// decimal places in order to perform arithmetic operations on them through scoreboards.</summary>
     private int ApplyDecimalScaling(ref RuntimeDecimal lhs, ref RuntimeDecimal rhs, ArithmeticOperator? op = null)
     {
         switch (op)
@@ -254,10 +241,8 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
         throw new InvalidOperationException("Decimal scaling can only be applied for arithmetic operations.");
     }
 
-    /// <summary>
-    /// Performs arithmetic on two runtime values.
-    /// This expects both values to be already safe for any calculations.
-    /// </summary>
+    /// <summary>Performs arithmetic on two runtime values. This expects both values to be already safe for
+    /// any calculations.</summary>
     private RuntimeInteger PerformCalculation(IRuntimeValue lhs, IRuntimeValue rhs, ArithmeticOperator op)
     {
         var runtimeLhsBackup = lhs.EnsureBackedUp();
@@ -270,11 +255,9 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
             IsTemporary = true
         };
     }
-    
-    /// <summary>
-    /// Performs logical comparison on two runtime values. This
-    /// expects both values to be already safe for any comparison.
-    /// </summary>
+
+    /// <summary>Performs logical comparison on two runtime values. This expects both values to be already
+    /// safe for any comparison.</summary>
     private RuntimeBoolean PerformCalculation(IRuntimeValue lhs, IRuntimeValue rhs, ComparisonOperator op)
     {
         var location = lhs.NextFreeLocation(DataLocation.Scoreboard);
@@ -286,5 +269,10 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
             Location = location,
             IsTemporary = true
         };
+    }
+
+    public AbstractString Concatenate(AbstractString rhs)
+    {
+        throw new NotImplementedException("Numeric + String");
     }
 }

@@ -1,7 +1,9 @@
 using Amethyst.Model;
+using Amethyst.Utility;
 
 namespace Amethyst;
 
+[ForwardDefaultInterfaceMethods(typeof(IRuntimeValue))]
 public abstract partial class AbstractRuntimeArray : AbstractArray, IRuntimeValue, IIndexable
 {
     public required Location Location { get; init; }

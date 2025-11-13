@@ -1,8 +1,10 @@
 using Amethyst.Model;
+using Amethyst.Utility;
 
 namespace Amethyst;
 
-public class ConstantDecimal : AbstractDecimal, IConstantValue<double>, IScoreboardValue
+[ForwardDefaultInterfaceMethods(typeof(IConstantValue))]
+public partial class ConstantDecimal : AbstractDecimal, IConstantValue<double>, IScoreboardValue
 {
     public required double Value { get; init; }
 

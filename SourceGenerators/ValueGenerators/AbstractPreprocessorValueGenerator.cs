@@ -2,7 +2,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
-namespace SourceGenerators;
+namespace SourceGenerators.ValueGenerators;
 
 [Generator]
 public class AbstractPreprocessorValueGenerator : ISourceGenerator
@@ -79,7 +79,7 @@ public class AbstractPreprocessorValueGenerator : ISourceGenerator
             }
                 
             writer.WriteLine($$"""
-                                       throw new SyntaxException($"Operation {this.Datatype} {{symbol}} {rhs.Datatype} is not defined.", this.Context);
+                                       throw new InvalidOperationException($"Operation {this.Datatype} {{symbol}} {rhs.Datatype} is not defined.");
                                    }
 
                                """);
