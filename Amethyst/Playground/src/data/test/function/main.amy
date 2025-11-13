@@ -1,8 +1,2 @@
-FROM `variables` IMPORT x;
-
-[initializing]
-function main() {
-    debug x;
-}
-
-debug x;
+var x = 10;
+debug x + 20 - true / 20 + "nice";

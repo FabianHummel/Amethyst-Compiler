@@ -20,9 +20,9 @@ public class ForwardDefaultInterfaceMethodGenerator : IIncrementalGenerator
             $"{SourceGenerationHelper.ForwardDefaultInterfaceMethodsAttribute}.g.cs",
             SourceText.From(SourceGenerationHelper.ForwardDefaultInterfaceMethodsAttributeCode, Encoding.UTF8)));
         
-        context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
-            $"{SourceGenerationHelper.OverrideForBaseType}.g.cs",
-            SourceText.From(SourceGenerationHelper.OverrideForBaseTypeCode, Encoding.UTF8)));
+        // context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
+        //     $"{SourceGenerationHelper.OverrideForBaseType}.g.cs",
+        //     SourceText.From(SourceGenerationHelper.OverrideForBaseTypeCode, Encoding.UTF8)));
         
         var classSymbols = context.SyntaxProvider
             .ForAttributeWithMetadataName(
@@ -159,32 +159,32 @@ public class ForwardDefaultInterfaceMethodGenerator : IIncrementalGenerator
         isOverride = false;
         accessModifier = SyntaxFacts.GetText(Accessibility.Public);
         
-        var overrideForBaseTypeAttribute = compilation.GetTypeByMetadataName(SourceGenerationHelper.OverrideForBaseType);
-        
-        var attributes = symbol.GetAttributes().Where(attributeData => 
-            attributeData.AttributeClass!.Equals(overrideForBaseTypeAttribute, SymbolEqualityComparer.Default))
-            .ToList();
-        
-        var overrideInformations = attributes.
-            Select(attributeData => new
-            {
-                baseType = (INamedTypeSymbol)attributeData.ConstructorArguments[0].Value!,
-                accessibilityModifier = (string)attributeData.ConstructorArguments[1].Value!
-            })
-            .ToArray();
+        // var overrideForBaseTypeAttribute = compilation.GetTypeByMetadataName(SourceGenerationHelper.OverrideForBaseType);
+        //
+        // var attributes = symbol.GetAttributes().Where(attributeData => 
+        //     attributeData.AttributeClass!.Equals(overrideForBaseTypeAttribute, SymbolEqualityComparer.Default))
+        //     .ToList();
+        //
+        // var overrideInformationArray = attributes.
+        //     Select(attributeData => new
+        //     {
+        //         baseType = (INamedTypeSymbol)attributeData.ConstructorArguments[0].Value!,
+        //         accessibilityModifier = (string)attributeData.ConstructorArguments[1].Value
+        //     })
+        //     .ToArray();
         
         var baseType = classSymbol.BaseType;
         while (baseType != null)
         {
-            foreach (var overrideInfo in overrideInformations)
-            {
-                if (baseType.Equals(overrideInfo.baseType, SymbolEqualityComparer.Default))
-                {
-                    isOverride = true;
-                    accessModifier = overrideInfo.accessibilityModifier;
-                    return;
-                }
-            }
+            // foreach (var overrideInfo in overrideInformationArray)
+            // {
+            //     if (baseType.Equals(overrideInfo.baseType, SymbolEqualityComparer.Default))
+            //     {
+            //         isOverride = true;
+            //         accessModifier ??= overrideInfo.accessibilityModifier;
+            //         return;
+            //     }
+            // }
 
             foreach (var baseMethod in baseType.GetMembers(symbol.Name).OfType<T>())
             {

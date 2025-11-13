@@ -18,19 +18,19 @@ public static class SourceGenerationHelper
         }
         """;
     
-    public const string OverrideForBaseType = "Amethyst.Utility.OverrideForBaseTypeAttribute";
-    
-    public const string OverrideForBaseTypeCode =
-        """
-        namespace Amethyst.Utility
-        {
-            [System.AttributeUsage(System.AttributeTargets.Method | System.AttributeTargets.Property)]
-            public sealed class OverrideForBaseTypeAttribute : System.Attribute
-            {
-                public OverrideForBaseTypeAttribute(Type @baseType, string accessibilityModifier)
-                {
-                }
-            }
-        }
-        """;
+    // public const string OverrideForBaseType = "Amethyst.Utility.OverrideForBaseTypeAttribute";
+    //
+    // public const string OverrideForBaseTypeCode =
+    //     """
+    //     namespace Amethyst.Utility
+    //     {
+    //         [System.AttributeUsage(System.AttributeTargets.Method | System.AttributeTargets.Property)]
+    //         public sealed class OverrideForBaseTypeAttribute : System.Attribute
+    //         {
+    //             public OverrideForBaseTypeAttribute(Type @baseType, string accessibilityModifier = null)
+    //             {
+    //             }
+    //         }
+    //     }
+    //     """;
 }

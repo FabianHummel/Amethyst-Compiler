@@ -4,8 +4,7 @@ using Amethyst.Utility;
 
 namespace Amethyst;
 
-[ForwardDefaultInterfaceMethods(typeof(IStringConcatenable))]
-public abstract partial class AbstractNumericValue : AbstractValue, IStringConcatenable
+public abstract partial class AbstractNumericValue : AbstractValue
 {
     protected abstract AbstractDecimal AsDecimal { get; }
 
@@ -26,9 +25,9 @@ public abstract partial class AbstractNumericValue : AbstractValue, IStringConca
         
         this.AddCode($"execute store result storage {location} {ScoreboardDatatype.StorageModifier} run scoreboard players get {runtimeValue.Location}");
 
-        return ((IRuntimeValue)this).WithLocation(location, temporary: true);
+        return runtimeValue.WithLocation(location, temporary: true);
     }
-
+    
     /// <summary>Calculates any two numeric values with the given operator.</summary>
     private AbstractNumericValue Calculate(AbstractNumericValue lhs, AbstractNumericValue rhs, ArithmeticOperator op)
     {
