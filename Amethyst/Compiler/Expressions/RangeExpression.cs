@@ -1,5 +1,4 @@
 using Amethyst.Language;
-using Amethyst.Model;
 using Antlr4.Runtime;
 
 namespace Amethyst;

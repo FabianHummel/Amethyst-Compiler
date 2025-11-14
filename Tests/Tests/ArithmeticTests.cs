@@ -1,7 +1,6 @@
 using Amethyst;
 using NUnit.Framework;
 using Tests.Presets;
-using Tests.Providers;
 
 namespace Tests;
 
