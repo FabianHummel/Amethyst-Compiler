@@ -3,12 +3,22 @@ using Amethyst.Utility;
 
 namespace Amethyst;
 
+/// <inheritdoc />
+/// <summary>
+///     <p>Parses any basic selector value that is representable by a <see cref="AbstractValue" />.</p>
+///     <p><inheritdoc /></p></summary>
 public class BasicSelector : AbstractQuerySelector<AbstractValue>
 {
-    public bool AllowMultipleEqualityChecks { get; } // TODO: Add 'SelectorCreationContext' that contains a list of already used query keys, and use that to determine if multiple equality checks are allowed-
-                                                     //  also add a flag whether a query is inverted with '!' operator (update ANTLR grammar)
+    /// <summary>Whether values with the same query key can be used multiple times for equality checks.</summary>
+    protected bool AllowMultipleEqualityChecks { get; }
+
+    /// <summary>The basic type that is allowed for the <see cref="AbstractValue" />.</summary>
     public BasicType BasicType { get; }
-    
+
+    /// <summary>Creates a new instance of a <see cref="BasicSelector" />.</summary>
+    /// <param name="allowMultipleEqualityChecks">Whether values with the same query key can be used
+    /// multiple times for equality checks.</param>
+    /// <param name="basicType">The basic type that is allowed for the query value.</param>
     public BasicSelector(bool allowMultipleEqualityChecks, BasicType basicType)
     {
         AllowMultipleEqualityChecks = allowMultipleEqualityChecks;

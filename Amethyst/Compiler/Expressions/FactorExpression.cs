@@ -6,13 +6,19 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Evaluates a factor of two values. This can be a multiplication, division or modulo
+    ///     operation.</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <exception cref="SyntaxException">The operator is invalid.</exception>
     public override AbstractValue VisitFactorExpression(AmethystParser.FactorExpressionContext context)
     {
         var expressionContexts = context.expression();
         var left = VisitExpression(expressionContexts[0]);
         var right = VisitExpression(expressionContexts[1]);
-        
-        var operatorToken = context.GetChild(1).GetText();
+
+        var operatorToken = context.op.Text;
         var op = Enum.GetValues<ArithmeticOperator>()
             .First(op => op.GetAmethystOperatorSymbol() == operatorToken);
         

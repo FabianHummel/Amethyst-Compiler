@@ -6,6 +6,10 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <summary>Flattens all conjunction expressions into a single list. This is used to evaluate an
+    /// entire chain of conjunctions in one go and not having to spam single evaluations.</summary>
+    /// <param name="context">The root context where to look for conjunction expressions.</param>
+    /// <returns>A list of all chained conjunction expressions within the context.</returns>
     private static IEnumerable<AmethystParser.ExpressionContext> FlattenConjunctionExpressions(AmethystParser.ExpressionContext context)
     {
         return FlattenParserRules<
@@ -13,7 +17,15 @@ public partial class Compiler
             AmethystParser.ConjunctionExpressionContext>(
             context, target => target.expression());
     }
-    
+
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Evaluates a chain of conjunctions. If any of the elements is known to be false, the chain
+    ///     immediately results a falsy value.</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <example><p><c>abc &amp;&amp; xyz &amp;&amp; true &amp;&amp; false</c>→<c>false</c></p></example>
+    /// <example><p><c>abc &amp;&amp; xyz</c>-→<see cref="RuntimeBoolean" /></p></example>
+    /// <exception cref="SyntaxException">An element of the chain is not interpretable as a boolean value.</exception>
     public override AbstractValue VisitConjunctionExpression(AmethystParser.ConjunctionExpressionContext context)
     {
         var expressionContexts = FlattenConjunctionExpressions(context);

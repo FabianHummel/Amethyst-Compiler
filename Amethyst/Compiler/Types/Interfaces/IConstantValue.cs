@@ -1,10 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
-using Amethyst.Utility;
 using JetBrains.Annotations;
 
 namespace Amethyst;
 
-[ForwardDefaultInterfaceMethods]
 public interface IConstantValue : IEquatable<IConstantValue>
 {
     int AsInteger { get; }
@@ -22,7 +20,7 @@ public interface IConstantValue : IEquatable<IConstantValue>
     string ToTextComponent();
 
     /// <summary>Converts this constant value into a string representation that can be used in target
-    ///     selectors.</summary>
+    /// selectors.</summary>
     /// <returns>The target selector's string value representation.</returns>
     string ToTargetSelectorString();
 
@@ -69,8 +67,8 @@ public interface IConstantValue : IEquatable<IConstantValue>
 public interface IConstantValue<T> : IConstantValue
 {
     /// <summary>The constant value of the result that can be directly incorporated into another result
-    ///     without storing it in a variable. Literals are always stored as constants first and only turn
-    ///     into variables if they are assigned to a variable.</summary>
+    /// without storing it in a variable. Literals are always stored as constants first and only turn into
+    /// variables if they are assigned to a variable.</summary>
     [UsedImplicitly(Reason = "For type safety and clarity.")]
     T Value { get; init; }
 }

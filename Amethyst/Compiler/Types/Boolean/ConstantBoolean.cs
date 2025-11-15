@@ -3,7 +3,8 @@ using Amethyst.Utility;
 
 namespace Amethyst;
 
-public class ConstantBoolean : AbstractBoolean, IConstantValue<bool>, IScoreboardValue
+[ForwardDefaultInterfaceMethods(typeof(IConstantValue))]
+public partial class ConstantBoolean : AbstractBoolean, IConstantValue<bool>, IScoreboardValue
 {
     public required bool Value { get; init; }
     

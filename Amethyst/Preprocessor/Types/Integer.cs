@@ -1,7 +1,10 @@
 using Amethyst.Model;
+using Amethyst.Utility;
 
 namespace Amethyst;
 
+/// <summary>A preprocessor value representing an integer.</summary>
+[ForwardDefaultInterfaceMethods(typeof(IPreprocessorValue<int>))]
 public partial class PreprocessorInteger : AbstractNumericPreprocessorValue, IPreprocessorValue<int>
 {
     public required int Value { get; set; }

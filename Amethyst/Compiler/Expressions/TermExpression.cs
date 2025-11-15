@@ -6,6 +6,11 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Evaluates a term of two values. This can be either an addition or a subtraction operation.</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <exception cref="SyntaxException">The operator is invalid.</exception>
     public override AbstractValue VisitTermExpression(AmethystParser.TermExpressionContext context)
     {
         var expressionContexts = context.expression();

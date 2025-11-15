@@ -4,6 +4,10 @@ using static Amethyst.Model.Constants;
 
 namespace Amethyst.Model;
 
+/// <summary>The datapack configuration. This is part of the main <see cref="Configuration" /> and
+/// contains settings related to the output datapack, such as its name, description, and format
+/// version.</summary>
+/// <seealso cref="Resourcepack" />
 public class Datapack
 {
     /// <summary>The name of the datapack.</summary>
@@ -38,7 +42,10 @@ public class Datapack
     public Datapack()
     {
     }
-    
+
+    /// <summary>Comparer for load functions to ensure correct ordering. First by namespace, whereas the
+    /// internal namespace is prioritized, and then by function name in alphabetical order, whereas the
+    /// init function is also prioritized to ensure constant values are initialized.</summary>
     public class LoadFunctionsComparer : IComparer<string>
     {
         public int Compare(string? x, string? y)

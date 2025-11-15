@@ -3,6 +3,8 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
+/// <summary>Listener for parsing Amethyst source files. Handles symbol registration so that source
+/// files can import symbols from other files.</summary>
 public class AmethystParseListener : AmethystParserBaseListener
 {
     private Parser Parser { get; }

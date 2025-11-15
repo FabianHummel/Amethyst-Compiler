@@ -2,8 +2,13 @@ using Amethyst.Model;
 
 namespace Amethyst.Utility;
 
+/// <summary>Utility methods for working with NBT (Named Binary Tag) data in Minecraft.</summary>
 public static class NbtUtility
 {
+    /// <summary>Converts an object to its NBT string representation.</summary>
+    /// <remarks>This method is incomplete and may not cover all NBT data types or edge cases.</remarks>
+    /// <param name="obj">The object to convert.</param>
+    /// <returns>The NBT string representation of the object.</returns>
     public static string ToNbtString(this object obj)
     {
         return obj switch
@@ -14,7 +19,15 @@ public static class NbtUtility
             _ => $"{obj}"
         };
     }
-    
+
+    /// <summary>Parses a scoreboard integer value into the appropriate datatype based on the provided
+    /// AbstractDatatype.</summary>
+    /// <param name="value">The integer value from the scoreboard.</param>
+    /// <param name="variableAbstractDatatype">The <see cref="AbstractDatatype" /> defining how to
+    /// interpret the value.</param>
+    /// <returns>The parsed value as an object of the appropriate type.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the provided datatype is not valid for
+    /// scoreboard variables.</exception>
     public static object ParseScoreboardValue(int value, AbstractDatatype variableAbstractDatatype)
     {
         if (variableAbstractDatatype.DataLocation != DataLocation.Scoreboard)
@@ -36,7 +49,16 @@ public static class NbtUtility
             _ => throw new InvalidOperationException($"Invalid data type '{variableAbstractDatatype}' for scoreboard variable.")
         };
     }
-    
+
+    /// <summary>Parses a storage value string into the appropriate datatype based on the provided
+    /// AbstractDatatype.</summary>
+    /// <seealso cref="ParseScoreboardValue" />
+    /// <param name="value">The string value from storage.</param>
+    /// <param name="variableAbstractDatatype">The <see cref="AbstractDatatype" /> defining how to
+    /// interpret the value.</param>
+    /// <returns>The parsed value as an object of the appropriate type.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the provided datatype is not valid for
+    /// storage variables.</exception>
     public static object ParseStorageValue(string value, AbstractDatatype variableAbstractDatatype)
     {
         if (variableAbstractDatatype.DataLocation != DataLocation.Storage)
@@ -81,6 +103,12 @@ public static class NbtUtility
         };
     }
 
+    /// <summary>Parses the storage type from a given string. This string comes from storage value itself,
+    /// so also expect numeric values here.</summary>
+    /// <param name="element">The storage value string to parse.</param>
+    /// <returns>The corresponding <see cref="AbstractDatatype" />.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the string cannot be parsed into a known
+    /// datatype.</exception>
     private static AbstractDatatype ParseStorageType(string element)
     {
         if (element.StartsWith('[') && element.EndsWith(']'))

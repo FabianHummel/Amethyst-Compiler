@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
-namespace SourceGenerators;
+namespace SourceGenerators.ValueGenerators;
 
 [Generator]
 public class AbstractNumericPreprocessorValueGenerator : ISourceGenerator

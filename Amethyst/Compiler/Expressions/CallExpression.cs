@@ -6,13 +6,19 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Calls a function and handles parameters and the return value. Arguments passed to the
+    ///     function are set to the correct location before calling the actual function</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <exception cref="SemanticException">The symbol is not a function.</exception>
     public override object? VisitCallExpression(AmethystParser.CallExpressionContext context)
     {
         var functionName = context.IDENTIFIER().GetText();
-
-        if (!TryGetSymbol(functionName, out var functionSymbol, context) || functionSymbol is not Function function)
+        
+        if (GetSymbol(functionName, context) is not Function function)
         {
-            throw new SyntaxException($"Function '{functionName}' is not defined.", context);
+            throw new SemanticException($"The symbol '{functionName}' is not a function and cannot be called.", context);
         }
 
         AmethystParser.ExpressionContext[]? expressionContexts = null;
@@ -21,21 +27,24 @@ public partial class Compiler
             expressionContexts = argumentListContext.expression();
         }
         
-        VisitCallExpressionInternal(function, expressionContexts, context);
-
-        return null;
-    }
-
-    private void VisitCallExpressionInternal(Function function, AmethystParser.ExpressionContext[]? expressionContexts, ParserRuleContext context)
-    {
         if (expressionContexts != null)
         {
             VisitArgumentListInternal(function, expressionContexts, context);
         }
         
         this.AddCode($"function {function.McFunctionPath}");
+
+        return null;
     }
-    
+
+    /// <summary>Processes the arguments passed to the function. This method allocates the expressions to
+    /// the correct locations and converts between storages and scoreboards.</summary>
+    /// <param name="function">The function that is being called. Used to resolve its parameters.</param>
+    /// <param name="expressionContexts">The list of expressions passed to the function.</param>
+    /// <param name="context">The parser rule context used for error handling.</param>
+    /// <exception cref="SyntaxException">The number of arguments does not match the required amount.</exception>
+    /// <exception cref="SyntaxException">An argument's type does not match the corresponding parameter's
+    /// type.</exception>
     private void VisitArgumentListInternal(Function function, AmethystParser.ExpressionContext[] expressionContexts, ParserRuleContext context)
     {
         if (expressionContexts.Length != function.Parameters.Length)

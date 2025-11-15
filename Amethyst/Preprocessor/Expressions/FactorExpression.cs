@@ -6,6 +6,13 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Calculates two preprocessor expressions using a multiplication, division, or modulo
+    ///     operator.</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <exception cref="SyntaxException">Thrown when an invalid comparison operator is encountered.</exception>
+    /// <seealso cref="VisitFactorExpression" />
     public override object VisitPreprocessorFactorExpression(AmethystParser.PreprocessorFactorExpressionContext context)
     {
         var expressionContexts = context.preprocessorExpression();

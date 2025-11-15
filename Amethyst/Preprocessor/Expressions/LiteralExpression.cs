@@ -4,6 +4,10 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <summary>Parses a preprocessor literal expression and returns an instance of
+    /// <see cref="AbstractPreprocessorValue" />.</summary>
+    /// <exception cref="SyntaxException">The literal is invalid.</exception>
+    /// <seealso cref="VisitLiteralExpression" />
     public override AbstractPreprocessorValue VisitPreprocessorLiteralExpression(AmethystParser.PreprocessorLiteralExpressionContext context)
     {
         var literalContext = context.preprocessorLiteral();

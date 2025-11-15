@@ -2,6 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Amethyst.Model;
 
+/// <summary>A helper class to manage looping scopes in the preprocessor. Allows for breaking out of
+/// loops via the <see cref="Break" /> method. The current looping scope is referenced
+/// <see cref="Compiler.LoopingScope">here</see>.</summary>
 public class LoopingScope : IDisposable
 {
     private class BreakException : Exception;

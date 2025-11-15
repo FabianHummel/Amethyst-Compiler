@@ -1,12 +1,14 @@
 namespace Amethyst.Model;
 
+/// <summary>Maps a type to the token that is used in Minecraft. This can be virtually anything.</summary>
+/// <seealso cref="AmethystOperatorAttribute" />
 [AttributeUsage(AttributeTargets.Field)]
-public class McfOperatorAttribute : Attribute
+public class McfTokenAttribute : Attribute
 {
-    public string Operator { get; }
+    public string Token { get; }
 
-    public McfOperatorAttribute(string @operator)
+    public McfTokenAttribute(string token)
     {
-        Operator = @operator;
+        Token = token;
     }
 }

@@ -6,6 +6,10 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <summary>Flattens all disjunction expressions into a single list. This is used to evaluate an
+    /// entire chain of disjunctions in one go and not having to spam single evaluations.</summary>
+    /// <param name="context">The root context where to look for disjunction expressions.</param>
+    /// <returns>A list of all chained disjunction expressions within the context.</returns>
     private static IEnumerable<AmethystParser.ExpressionContext> FlattenDisjunctionExpressions(AmethystParser.ExpressionContext context)
     {
         return FlattenParserRules<
@@ -13,7 +17,15 @@ public partial class Compiler
             AmethystParser.DisjunctionExpressionContext>(
             context, target => target.expression());
     }
-    
+
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Evaluates a chain of disjunctions. If any of the elements is known to be true, the chain
+    ///     immediately results a truthy value.</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <example><p><c>abc || xyz || true || false</c>→<c>true</c></p></example>
+    /// <example><p><c>abc || xyz</c>→<see cref="RuntimeBoolean" /></p></example>
+    /// <exception cref="SyntaxException">An element of the chain is not interpretable as a boolean value.</exception>
     public override AbstractValue VisitDisjunctionExpression(AmethystParser.DisjunctionExpressionContext context)
     {
         var expressionContexts = FlattenDisjunctionExpressions(context);
