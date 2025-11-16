@@ -26,22 +26,14 @@ public partial class Compiler
             return null;
         }
         
-        var result = op switch
-        {
-            AssignmentOperator.ADD => lhs + rhs,
-            AssignmentOperator.SUBTRACT => lhs - rhs,
-            AssignmentOperator.MULTIPLY => lhs * rhs,
-            AssignmentOperator.DIVIDE => lhs / rhs,
-            AssignmentOperator.MODULO => lhs % rhs,
-            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
-        };
+        var result = OperationRegistry.Resolve<AbstractPreprocessorValue, AssignmentOperator>(this, context, op, lhs, rhs);
         
         AssignPreprocessorValue(lhs, result);
         return null;
-        
-        void AssignPreprocessorValue(AbstractPreprocessorValue target, AbstractPreprocessorValue source)
-        {
-            target.SetValue(source.AbstractValue);
-        }
+    }
+
+    private static void AssignPreprocessorValue(AbstractPreprocessorValue target, AbstractPreprocessorValue source)
+    {
+        target.SetValue(source.AbstractValue);
     }
 }

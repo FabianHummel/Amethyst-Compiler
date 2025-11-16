@@ -22,12 +22,6 @@ public partial class Compiler
         var op = Enum.GetValues<ArithmeticOperator>()
             .First(op => op.GetAmethystOperatorSymbol() == operatorToken);
         
-        return op switch
-        {
-            ArithmeticOperator.MULTIPLY => left * right,
-            ArithmeticOperator.DIVIDE => left / right,
-            ArithmeticOperator.MODULO => left % right,
-            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
-        };
+        return OperationRegistry.Resolve<AbstractValue, ArithmeticOperator>(this, context, op, left, right);
     }
 }

@@ -1,10 +1,19 @@
 using System.Diagnostics.CodeAnalysis;
 using Amethyst.Model;
+using Antlr4.Runtime;
 
 namespace Amethyst;
 
 public abstract partial class AbstractNumericPreprocessorValue : AbstractPreprocessorValue
 {
+    static AbstractNumericPreprocessorValue()
+    {
+        OperationRegistry.Register<AbstractNumericPreprocessorValue, AbstractNumericPreprocessorValue, AbstractNumericPreprocessorValue, ArithmeticOperator>(
+            Calculate);
+        OperationRegistry.Register<AbstractNumericPreprocessorValue, AbstractNumericPreprocessorValue, PreprocessorBoolean, ComparisonOperator>(
+            Calculate);
+    }
+    
     /// <summary>Calculates the result of two numeric values using the specified arithmetic operator.</summary>
     /// <param name="lhs">A numeric preprocessor value on the left side of the operation.</param>
     /// <param name="rhs">A numeric preprocessor value on the right side of the operation.</param>
@@ -12,8 +21,8 @@ public abstract partial class AbstractNumericPreprocessorValue : AbstractPreproc
     /// <returns>The resulting numeric preprocessor value after applying the operation.</returns>
     /// <exception cref="SyntaxException">Thrown when an invalid operator is provided.</exception>
     /// <seealso
-    ///     cref="Calculate(Amethyst.AbstractNumericPreprocessorValue,Amethyst.AbstractNumericPreprocessorValue,Amethyst.Model.ComparisonOperator)" />
-    private AbstractNumericPreprocessorValue Calculate(AbstractNumericPreprocessorValue lhs, AbstractNumericPreprocessorValue rhs, ArithmeticOperator op)
+    ///     cref="Calculate(Amethyst.Compiler,Antlr4.Runtime.ParserRuleContext,Amethyst.AbstractNumericPreprocessorValue,Amethyst.AbstractNumericPreprocessorValue,Amethyst.Model.ComparisonOperator" />
+    private static AbstractNumericPreprocessorValue Calculate(Compiler compiler, ParserRuleContext context, AbstractNumericPreprocessorValue lhs, AbstractNumericPreprocessorValue rhs, ArithmeticOperator op)
     {
         if (TryConvertToDecimals(lhs, rhs, out var decimalLhs, out var decimalRhs))
         {
@@ -24,13 +33,13 @@ public abstract partial class AbstractNumericPreprocessorValue : AbstractPreproc
                 ArithmeticOperator.MULTIPLY => decimalLhs.Value * decimalRhs.Value,
                 ArithmeticOperator.DIVIDE => decimalLhs.Value / decimalRhs.Value,
                 ArithmeticOperator.MODULO => decimalLhs.Value % decimalRhs.Value,
-                _ => throw new SyntaxException($"Invalid operator '{op}'.", Context)
+                _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
             };
             
             return new PreprocessorDecimal
             {
-                Compiler = Compiler,
-                Context = Context,
+                Compiler = compiler,
+                Context = context,
                 Value = decimalValue
             };
         }
@@ -42,13 +51,13 @@ public abstract partial class AbstractNumericPreprocessorValue : AbstractPreproc
             ArithmeticOperator.MULTIPLY => lhs.AsInteger * rhs.AsInteger,
             ArithmeticOperator.DIVIDE => lhs.AsInteger / rhs.AsInteger,
             ArithmeticOperator.MODULO => lhs.AsInteger % rhs.AsInteger,
-            _ => throw new SyntaxException($"Invalid operator '{op}'.", Context)
+            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
         };
         
         return new PreprocessorInteger
         {
-            Compiler = Compiler,
-            Context = Context,
+            Compiler = compiler,
+            Context = context,
             Value = integerValue
         };
     }
@@ -60,8 +69,8 @@ public abstract partial class AbstractNumericPreprocessorValue : AbstractPreproc
     /// <returns>The resulting boolean preprocessor value after applying the comparison.</returns>
     /// <exception cref="SyntaxException">Thrown when an invalid operator is provided.</exception>
     /// <seealso
-    ///     cref="Calculate(Amethyst.AbstractNumericPreprocessorValue,Amethyst.AbstractNumericPreprocessorValue,Amethyst.Model.ArithmeticOperator)" />
-    private PreprocessorBoolean Calculate(AbstractNumericPreprocessorValue lhs, AbstractNumericPreprocessorValue rhs, ComparisonOperator op)
+    ///     cref="Calculate(Amethyst.Compiler,Antlr4.Runtime.ParserRuleContext,Amethyst.AbstractNumericPreprocessorValue,Amethyst.AbstractNumericPreprocessorValue,Amethyst.Model.ArithmeticOperator)" />
+    private static PreprocessorBoolean Calculate(Compiler compiler, ParserRuleContext context, AbstractNumericPreprocessorValue lhs, AbstractNumericPreprocessorValue rhs, ComparisonOperator op)
     {
         bool result;
         if (TryConvertToDecimals(lhs, rhs, out var decimalLhs, out var decimalRhs))
@@ -72,7 +81,7 @@ public abstract partial class AbstractNumericPreprocessorValue : AbstractPreproc
                 ComparisonOperator.LESS_THAN_OR_EQUAL => decimalLhs.Value <= decimalRhs.Value,
                 ComparisonOperator.GREATER_THAN => decimalLhs.Value > decimalRhs.Value,
                 ComparisonOperator.GREATER_THAN_OR_EQUAL => decimalLhs.Value >= decimalRhs.Value,
-                _ => throw new SyntaxException($"Invalid operator '{op}'.", Context)
+                _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
             };
         }
         else
@@ -83,14 +92,14 @@ public abstract partial class AbstractNumericPreprocessorValue : AbstractPreproc
                 ComparisonOperator.LESS_THAN_OR_EQUAL => lhs.AsInteger <= rhs.AsInteger,
                 ComparisonOperator.GREATER_THAN => lhs.AsInteger > rhs.AsInteger,
                 ComparisonOperator.GREATER_THAN_OR_EQUAL => lhs.AsInteger >= rhs.AsInteger,
-                _ => throw new SyntaxException($"Invalid operator '{op}'.", Context)
+                _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
             };
         }
 
         return new PreprocessorBoolean
         {
-            Compiler = Compiler,
-            Context = Context,
+            Compiler = compiler,
+            Context = context,
             Value = result
         };
     }

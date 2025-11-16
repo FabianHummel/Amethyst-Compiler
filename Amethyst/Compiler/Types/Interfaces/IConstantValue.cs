@@ -10,6 +10,8 @@ public interface IConstantValue : IEquatable<IConstantValue>
     bool AsBoolean { get; }
 
     double AsDouble { get; }
+    
+    string AsString { get; }
 
     /// <summary>Converts this constant value to a string that can be used in NBT data.</summary>
     /// <returns>The NBT string representation of this constant value.</returns>
