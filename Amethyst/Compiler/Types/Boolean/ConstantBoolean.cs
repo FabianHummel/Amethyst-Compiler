@@ -14,6 +14,8 @@ public partial class ConstantBoolean : AbstractBoolean, IConstantValue<bool>, IS
     
     public double AsDouble => AsInteger;
     
+    public string AsString => Value ? "true" : "false";
+
     protected override ConstantDecimal AsDecimal => new()
     {
         Compiler = Compiler,

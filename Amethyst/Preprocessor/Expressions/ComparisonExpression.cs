@@ -21,15 +21,17 @@ public partial class Compiler
         var op = Enum.GetValues<ComparisonOperator>()
             .First(op => op.GetAmethystOperatorSymbol() == operatorToken);
 
-        return op switch
-        {
-            ComparisonOperator.LESS_THAN => lhs < rhs,
-            ComparisonOperator.LESS_THAN_OR_EQUAL => lhs <= rhs,
-            ComparisonOperator.GREATER_THAN => lhs > rhs,
-            ComparisonOperator.GREATER_THAN_OR_EQUAL => lhs >= rhs,
-            ComparisonOperator.EQUAL => lhs == rhs,
-            ComparisonOperator.NOT_EQUAL => lhs != rhs,
-            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
-        };
+        // return op switch
+        // {
+        //     ComparisonOperator.LESS_THAN => lhs < rhs,
+        //     ComparisonOperator.LESS_THAN_OR_EQUAL => lhs <= rhs,
+        //     ComparisonOperator.GREATER_THAN => lhs > rhs,
+        //     ComparisonOperator.GREATER_THAN_OR_EQUAL => lhs >= rhs,
+        //     ComparisonOperator.EQUAL => lhs == rhs,
+        //     ComparisonOperator.NOT_EQUAL => lhs != rhs,
+        //     _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
+        // };
+
+        throw new NotImplementedException();
     }
 }

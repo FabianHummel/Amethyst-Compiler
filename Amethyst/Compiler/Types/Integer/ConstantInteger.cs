@@ -13,7 +13,9 @@ public partial class ConstantInteger : AbstractInteger, IConstantValue<int>, ISc
     public bool AsBoolean => AsInteger != 0;
     
     public double AsDouble => Value;
-    
+
+    public string AsString => Value.ToString();
+
     public int ScoreboardValue => Value;
     
     protected override ConstantDecimal AsDecimal => new()

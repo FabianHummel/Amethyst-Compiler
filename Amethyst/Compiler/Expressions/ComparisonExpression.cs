@@ -20,13 +20,6 @@ public partial class Compiler
         var op = Enum.GetValues<ComparisonOperator>()
             .First(op => op.GetAmethystOperatorSymbol() == operatorToken);
 
-        return op switch
-        {
-            ComparisonOperator.LESS_THAN => left < right,
-            ComparisonOperator.LESS_THAN_OR_EQUAL => left <= right,
-            ComparisonOperator.GREATER_THAN => left > right,
-            ComparisonOperator.GREATER_THAN_OR_EQUAL => left >= right,
-            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
-        };
+        return OperationRegistry.Resolve<AbstractBoolean, ComparisonOperator>(this, context, op, left, right);
     }
 }

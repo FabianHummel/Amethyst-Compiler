@@ -20,12 +20,7 @@ public partial class Compiler
         var operatorToken = context.GetChild(1).GetText();
         var op = Enum.GetValues<ArithmeticOperator>()
             .First(op => op.GetAmethystOperatorSymbol() == operatorToken);
-
-        return op switch
-        {
-            ArithmeticOperator.ADD => left + right,
-            ArithmeticOperator.SUBTRACT => left - right,
-            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
-        };
+        
+        return OperationRegistry.Resolve<AbstractValue, ArithmeticOperator>(this, context, op, left, right);
     }
 }

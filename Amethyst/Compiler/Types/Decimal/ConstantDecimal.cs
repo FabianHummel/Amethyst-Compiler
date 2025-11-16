@@ -14,6 +14,8 @@ public partial class ConstantDecimal : AbstractDecimal, IConstantValue<double>, 
     
     public double AsDouble => Value;
     
+    public string AsString => Value.ToString("F" + DecimalPlaces);
+
     protected override AbstractDecimal AsDecimal => this;
     
     public int ScoreboardValue => (int)Math.Round(Value * ScoreboardDatatype.Scale);
