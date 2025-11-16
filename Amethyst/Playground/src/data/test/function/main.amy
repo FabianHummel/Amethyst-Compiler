@@ -1,1 +1,1 @@
-debug 10 + 20 + "nice";
+DEBUG 10 + 20;

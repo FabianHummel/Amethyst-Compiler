@@ -5,7 +5,7 @@ using Antlr4.Runtime;
 
 namespace Amethyst;
 
-using OperationImplementation = Func<Compiler, ParserRuleContext, AbstractValue, AbstractValue, AbstractValue>;
+using OperationImplementation = Func<Compiler, ParserRuleContext, object, object, object>;
 
 public static class OperationRegistry
 {
@@ -16,9 +16,9 @@ public static class OperationRegistry
     private static readonly Dictionary<Enum, LhsDict> _operations = new();
     
     public static void Register<TLhs, TRhs, TRet>(Enum op, Func<Compiler, ParserRuleContext, TLhs, TRhs, TRet> impl)
-        where TLhs : AbstractValue
-        where TRhs : AbstractValue
-        where TRet : AbstractValue
+        where TLhs : class
+        where TRhs : class
+        where TRet : class
     {
         if (!_operations.TryGetValue(op, out var lhsDict))
         {
@@ -39,16 +39,16 @@ public static class OperationRegistry
 
         return;
 
-        AbstractValue WrappedImpl(Compiler compiler, ParserRuleContext context, AbstractValue lhs, AbstractValue rhs)
+        object WrappedImpl(Compiler compiler, ParserRuleContext context, object lhs, object rhs)
         {
             return impl(compiler, context, (TLhs)lhs, (TRhs)rhs);
         }
     }
 
     public static void Register<TLhs, TRhs, TRet, TOp>(Func<Compiler, ParserRuleContext, TLhs, TRhs, TOp, TRet> impl)
-        where TLhs : AbstractValue
-        where TRhs : AbstractValue
-        where TRet : AbstractValue
+        where TLhs : class
+        where TRhs : class
+        where TRet : class
         where TOp : struct, Enum
     {
         foreach (var arithmeticOperator in Enum.GetValues<TOp>())
@@ -60,8 +60,8 @@ public static class OperationRegistry
         }
     }
 
-    public static bool Resolve<TRet, TOp>(Compiler compiler, ParserRuleContext context, TOp op, AbstractValue lhs, AbstractValue rhs, [NotNullWhen(true)] out TRet? result)
-        where TRet : AbstractValue
+    public static bool Resolve<TRet, TOp>(Compiler compiler, ParserRuleContext context, TOp op, object lhs, object rhs, [NotNullWhen(true)] out TRet? result)
+        where TRet : class
         where TOp : struct, Enum
     {
         result = null;
@@ -80,8 +80,8 @@ public static class OperationRegistry
         return true;
     }
     
-    public static TRet Resolve<TRet, TOp>(Compiler compiler, ParserRuleContext context, TOp op, AbstractValue lhs, AbstractValue rhs)
-        where TRet : AbstractValue
+    public static TRet Resolve<TRet, TOp>(Compiler compiler, ParserRuleContext context, TOp op, object lhs, object rhs)
+        where TRet : class
         where TOp : struct, Enum
     {
         if (Resolve<TRet, TOp>(compiler, context, op, lhs, rhs, out var result))
@@ -89,7 +89,7 @@ public static class OperationRegistry
             return result;
         }
 
-        throw new InvalidOperationException($"No operation registered for {lhs.Datatype} {op.GetAmethystOperatorSymbol()} {rhs.Datatype}");
+        throw new InvalidOperationException($"No operation registered for {lhs.GetType().Name} {op} {rhs.GetType().Name}");
     }
 
     private static bool TrySearchMatchingImplementation(LhsDict dictionary, Type lhs, Type rhs, [NotNullWhen(true)] out OperationImplementation? value)

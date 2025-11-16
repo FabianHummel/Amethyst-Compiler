@@ -21,13 +21,6 @@ public partial class Compiler
         var op = Enum.GetValues<ArithmeticOperator>()
             .First(op => op.GetAmethystOperatorSymbol() == operatorToken);
 
-        // return op switch
-        // {
-        //     ArithmeticOperator.ADD => lhs + rhs,
-        //     ArithmeticOperator.SUBTRACT => lhs - rhs,
-        //     _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
-        // };
-        
-        throw new NotImplementedException();
+        return OperationRegistry.Resolve<AbstractPreprocessorValue, ArithmeticOperator>(this, context, op, lhs, rhs);
     }
 }
