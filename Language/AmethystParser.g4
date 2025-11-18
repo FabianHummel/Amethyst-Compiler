@@ -28,6 +28,7 @@ preprocessorYieldingStatement
  | preprocessorDebugStatement
  | preprocessorAssignmentStatement
  | preprocessorCommentStatement
+ | preprocessorExpressionStatement
  ;
 
 preprocessorDeclaration
@@ -72,16 +73,20 @@ preprocessorYieldStatement
  : PREPROCESSOR_YIELD (selectorElement | recordSelectorElement | objectElement | arrayElement) SEMICOLON
  ;
 
-preprocessorCommentStatement
- : PREPROCESSOR_COMMENT preprocessorExpression SEMICOLON
- ;
-
 preprocessorDebugStatement
  : PREPROCESSOR_DEBUG preprocessorExpression SEMICOLON
  ;
 
 preprocessorAssignmentStatement
  : preprocessorAssignment SEMICOLON
+ ;
+
+preprocessorCommentStatement
+ : PREPROCESSOR_COMMENT preprocessorExpression SEMICOLON
+ ;
+ 
+preprocessorExpressionStatement
+ : preprocessorExpression SEMICOLON
  ;
 
 preprocessorAssignment
@@ -187,6 +192,7 @@ parameter
 
 block
  : LBRACE preprocessorStatement* RBRACE
+ | LRBRACE
  ;
 
 statement
@@ -202,6 +208,7 @@ statement
  | block
  | assignmentStatement
  | commandStatement
+ | expressionStatement
  ;
 
 forStatement
@@ -247,8 +254,12 @@ assignmentStatement
  ;
 
 commandStatement
-  : COMMAND
-  ;
+ : COMMAND
+ ;
+
+expressionStatement
+ : expression SEMICOLON
+ ;
 
 assignment
  : expression op=(EQUALS | PLUSEQ | MINUSEQ | MULTEQ | DIVEQ | MODEQ) expression    # assignmentExpression

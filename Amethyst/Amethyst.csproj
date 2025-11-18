@@ -40,10 +40,4 @@
       <Folder Include="Playground\src\" />
       <Folder Include="Resources\resourcepack\assets\" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Compile Remove="Model\Constants.cs" />
-      <Compile Remove="Model\Context.cs" />
-      <Compile Remove="Model\DescriptionAttribute.cs" />
-    </ItemGroup>
 </Project>

@@ -1,2 +1,5 @@
+FROM `amethyst:test` IMPORT complete;
+
 var nice = {nice: "cool"};
 debug $"nice={nice}";
+complete();

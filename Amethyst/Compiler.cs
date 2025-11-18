@@ -100,9 +100,7 @@ public partial class Compiler : AmethystParserBaseVisitor<object?>
     /// <exception cref="SemanticException">The source file does not exist at the specified path.</exception>
     private SourceFile GetSourceFile(Resource resource, string registryName, ParserRuleContext context)
     {
-        var nsName = SourceFile.Namespace;
-
-        var sourceFilePath = Path.Combine(DatapackRootDir, nsName, registryName, resource);
+        var sourceFilePath = Path.Combine(DatapackRootDir, resource.Namespace, registryName, resource.Path);
         
         if (!Context.SourceFiles.TryGetValue(sourceFilePath, out var sourceFile))
         {
