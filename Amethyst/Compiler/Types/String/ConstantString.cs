@@ -12,6 +12,8 @@ public class ConstantString : AbstractString, IConstantValue<string>, IMemberAcc
     public bool AsBoolean => !string.IsNullOrEmpty(Value);
 
     public double AsDouble => AsInteger;
+    
+    public string AsString => Value;
 
     public IRuntimeValue ToRuntimeValue()
     {

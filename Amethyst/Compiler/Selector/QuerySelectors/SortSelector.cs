@@ -2,8 +2,15 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
+/// <inheritdoc cref="AbstractQuerySelector" />
+/// <summary>
+///     <p>Parses the sort selector query. It has special logic how it may be used in the target
+///     selector.</p>
+///     <p><inheritdoc cref="AbstractQuerySelector" /></p></summary>
 public class SortSelector : LiteralSelector
 {
+    /// <summary>Creates a new instance of a <see cref="SortSelector" />.</summary>
+    /// <param name="values">The allowed values.</param>
     public SortSelector(string[] values) : base(values)
     {
     }

@@ -6,6 +6,11 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Evaluates a term of two values. This can be either an addition or a subtraction operation.</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <exception cref="SyntaxException">The operator is invalid.</exception>
     public override AbstractValue VisitTermExpression(AmethystParser.TermExpressionContext context)
     {
         var expressionContexts = context.expression();
@@ -15,12 +20,7 @@ public partial class Compiler
         var operatorToken = context.GetChild(1).GetText();
         var op = Enum.GetValues<ArithmeticOperator>()
             .First(op => op.GetAmethystOperatorSymbol() == operatorToken);
-
-        return op switch
-        {
-            ArithmeticOperator.ADD => left + right,
-            ArithmeticOperator.SUBTRACT => left - right,
-            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
-        };
+        
+        return OperationRegistry.Resolve<AbstractValue, ArithmeticOperator>(this, context, op, left, right);
     }
 }

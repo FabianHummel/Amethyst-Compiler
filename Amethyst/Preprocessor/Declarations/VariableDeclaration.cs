@@ -5,7 +5,14 @@ namespace Amethyst;
 
 public partial class Compiler
 {
-    public override object? VisitPreprocessorVariableDeclaration(AmethystParser.PreprocessorVariableDeclarationContext context)
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Creates a preprocessor variable declaration in the <see cref="Scope">current scope</see>.</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <exception cref="SemanticException">The symbol has already been declared in this or an enclosing
+    /// scope.</exception>
+    /// <exception cref="SyntaxException">The type of the variable is invalid or cannot be inferred.</exception>
+    public override Symbol VisitPreprocessorVariableDeclaration(AmethystParser.PreprocessorVariableDeclarationContext context)
     {
         var variableName = context.IDENTIFIER().GetText();
         
@@ -38,13 +45,15 @@ public partial class Compiler
         {
             type = result.Datatype;
         }
-        
-        Scope.Symbols.Add(variableName, new PreprocessorVariable
+
+        var variable = new PreprocessorVariable
         {
             Datatype = type!,
             Value = result!
-        });
+        };
         
-        return null;
+        Scope.Symbols.Add(variableName, variable);
+        
+        return variable;
     }
 }

@@ -1,19 +1,17 @@
 using Amethyst.Model;
-using Amethyst.Utility;
 using Antlr4.Runtime;
 
 namespace Amethyst;
 
-[ForwardDefaultInterfaceMethods]
 public interface IRuntimeValue
 {
     /// <summary>The memory location where the result is stored at. Corresponds to a player name inside a
-    ///     scoreboard for numeric values and a path to data storage for complex types.</summary>
+    /// scoreboard for numeric values and a path to data storage for complex types.</summary>
     Location Location { get; }
 
     /// <summary>Marks the assigned variable as temporary, meaning it can be overwritten by another
-    ///     variable. Useful for intermediate results that are not needed after the current operation, e.g.
-    ///     within a calculation.</summary>
+    /// variable. Useful for intermediate results that are not needed after the current operation, e.g.
+    /// within a calculation.</summary>
     bool IsTemporary { get; }
 
     ParserRuleContext Context { get; }
@@ -23,7 +21,7 @@ public interface IRuntimeValue
     AbstractDatatype Datatype { get; }
 
     /// <summary>Turns this result into a boolean result by logically converting it to its boolean
-    ///     equivalent.</summary>
+    /// equivalent.</summary>
     /// <returns>The boolean result (numeric value of 0 or 1).</returns>
     AbstractBoolean MakeBoolean();
     
@@ -45,7 +43,7 @@ public interface IRuntimeValue
     }
 
     /// <summary>Ensures that the current value is backed up in a temporary variable, so it can be freely
-    ///     modified.</summary>
+    /// modified.</summary>
     /// <returns>A backup of the current value.</returns>
     public sealed IRuntimeValue EnsureBackedUp()
     {
@@ -69,7 +67,7 @@ public interface IRuntimeValue
     }
 
     /// <summary>Converts this runtime value into a constant substitute that can be used in places where a
-    ///     constant is required.</summary>
+    /// constant is required.</summary>
     /// <returns>A constant value representing this runtime value.</returns>
     public sealed ConstantSubstitute AsConstantSubstitute => new()
     {
@@ -79,7 +77,7 @@ public interface IRuntimeValue
     };
 
     /// <summary>Returns this value's representation as a target selector string. In this case only for use
-    ///     in macros.</summary>
+    /// in macros.</summary>
     /// <returns>The target selector string.</returns>
     public sealed string ToTargetSelectorString()
     {

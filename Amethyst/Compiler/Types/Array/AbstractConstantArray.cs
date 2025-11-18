@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Amethyst.Model;
 
 namespace Amethyst;
 
@@ -16,6 +15,8 @@ public abstract class AbstractConstantArray : AbstractArray, IConstantValue<ICon
     
     public double AsDouble => AsInteger;
     
+    public string AsString => $"[{string.Join(",", Value.Select(v => v.AsString))}]";
+
     public abstract IRuntimeValue ToRuntimeValue();
 
     public void SubstituteRecursively(string substitutionModifierPrefix = "")

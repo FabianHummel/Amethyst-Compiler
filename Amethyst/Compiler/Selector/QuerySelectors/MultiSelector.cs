@@ -2,10 +2,21 @@ using Amethyst.Model;
 
 namespace Amethyst;
 
+/// <inheritdoc />
+/// <summary>
+///     <p>Parses a collection of values for a plural selector query. This is usually not supported in
+///     Minecraft, but it is very helpful in Amethyst to heavily increase the ergonomics of the
+///     language.</p>
+///     <p><inheritdoc /></p></summary>
+/// <example><p><c>@a[tags=["abc", "xyz"]]</c> → <c>@a[tag=abc,tag=xyz]</c></p></example>
 public class MultiSelector : AbstractQuerySelector<AbstractValue>
 {
+    /// <summary>The singular version of the query key.</summary>
+    /// <example><p><c>tags</c> → <c>tag</c></p> <p><c>gamemodes</c> → <c>gamemode</c></p></example>
     public string OriginalQueryKey { get; }
-    
+
+    /// <summary>Creates a new instance of a <see cref="MultiSelector" />.</summary>
+    /// <param name="originalQueryKey">The singular version of the plural query key.</param>
     public MultiSelector(string originalQueryKey)
     {
         OriginalQueryKey = originalQueryKey;
@@ -25,12 +36,14 @@ public class MultiSelector : AbstractQuerySelector<AbstractValue>
         
         if (arrayValue is ConstantStaticArray arrayConstant)
         {
-            return new SelectorQueryResult(OriginalQueryKey, arrayConstant.Value.Select(constantValue =>
+            var queryValues = arrayConstant.Value.Select(constantValue =>
             {
                 var selectorQueryValue = basicSelector.Parse(OriginalQueryKey, isNegated, (AbstractValue)constantValue).QueryValues.First();
                 selectorQueryValue.IsRuntimeValue = constantValue is ConstantSubstitute;
                 return selectorQueryValue;
-            }));
+            });
+            
+            return new SelectorQueryResult(OriginalQueryKey, queryValues.ToArray());
         }
 
         if (arrayValue is RuntimeStaticArray and IRuntimeValue arrayResult)

@@ -17,6 +17,8 @@ public abstract class AbstractConstantObject : AbstractObject, IConstantValue<Di
     
     public double AsDouble => AsInteger;
     
+    public string AsString => $"{{{string.Join(", ", Value.Select(kvp => $"{kvp.Key}: {kvp.Value.AsString}"))}}}";
+
     public abstract IRuntimeValue ToRuntimeValue();
 
     public void SubstituteRecursively(string substitutionModifierPrefix = "")

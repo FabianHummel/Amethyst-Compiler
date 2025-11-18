@@ -5,18 +5,13 @@ parser grammar AmethystParser;
 options { tokenVocab=AmethystLexer; }
 
 file
- : preprocessor* EOF
+ : preprocessorImportDeclaration* preprocessorStatement* EOF
  ;
 
-preprocessor
- : preprocessorFromDeclaration
- | preprocessorStatement
- ;
-
-preprocessorFromDeclaration
+preprocessorImportDeclaration
  // replace RESOURCE_LITERAL with resourceLiteral in the future
  : PREPROCESSOR_FROM RESOURCE_LITERAL PREPROCESSOR_IMPORT IDENTIFIER (COMMA IDENTIFIER)* SEMICOLON  #preprocessorFromImportDeclaration
- | PREPROCESSOR_FROM RESOURCE_LITERAL PREPROCESSOR_AS IDENTIFIER SEMICOLON                          #preprocessorFromAsDeclaration
+ | PREPROCESSOR_IMPORT RESOURCE_LITERAL PREPROCESSOR_AS IDENTIFIER SEMICOLON                        #preprocessorImportAsDeclaration
  ;
 
 preprocessorStatement
@@ -33,14 +28,15 @@ preprocessorYieldingStatement
  | preprocessorYieldStatement
  | preprocessorDebugStatement
  | preprocessorAssignmentStatement
+ | preprocessorCommentStatement
  ;
 
 preprocessorDeclaration
- : preprocessorVariableDeclaration SEMICOLON
+ : preprocessorVariableDeclaration
  ;
 
 preprocessorVariableDeclaration
- : PREPROCESSOR_VAR IDENTIFIER (COLON preprocessorType)? (EQUALS preprocessorExpression)
+ : PREPROCESSOR_VAR IDENTIFIER (COLON preprocessorType)? (EQUALS preprocessorExpression) SEMICOLON
  ;
 
 preprocessorType
@@ -56,12 +52,13 @@ preprocessorIfStatement
  ;
 
 preprocessorForStatement
- : PREPROCESSOR_FOR LPAREN preprocessorForStatementInitializer? SEMICOLON preprocessorExpression? SEMICOLON preprocessorAssignment? RPAREN block
+ : PREPROCESSOR_FOR LPAREN preprocessorForStatementInitializer preprocessorExpression? SEMICOLON preprocessorAssignment? RPAREN block
  ;
 
 preprocessorForStatementInitializer
  : preprocessorVariableDeclaration
- | preprocessorAssignment
+ | preprocessorAssignmentStatement
+ | SEMICOLON
  ;
 
 preprocessorReturnStatement
@@ -76,6 +73,10 @@ preprocessorYieldStatement
  : PREPROCESSOR_YIELD (selectorElement | recordSelectorElement | objectElement | arrayElement) SEMICOLON
  ;
 
+preprocessorCommentStatement
+ : PREPROCESSOR_COMMENT preprocessorExpression SEMICOLON
+ ;
+
 preprocessorDebugStatement
  : PREPROCESSOR_DEBUG preprocessorExpression SEMICOLON
  ;
@@ -85,25 +86,25 @@ preprocessorAssignmentStatement
  ;
 
 preprocessorAssignment
- : preprocessorExpression (EQUALS | PLUSEQ | MINUSEQ | MULTEQ | DIVEQ | MODEQ) preprocessorExpression   # preprocessorAssignmentExpression
- | PLUSPLUS preprocessorExpression                                                                      # preprocessorPreIncrementExpression
- | MINUSMINUS preprocessorExpression                                                                    # preprocessorPreDecrementExpression
- | preprocessorExpression PLUSPLUS                                                                      # preprocessorPostIncrementExpression
- | preprocessorExpression MINUSMINUS                                                                    # preprocessorPostDecrementExpression
+ : preprocessorExpression op=(EQUALS | PLUSEQ | MINUSEQ | MULTEQ | DIVEQ | MODEQ) preprocessorExpression    # preprocessorAssignmentExpression
+ | PLUSPLUS preprocessorExpression                                                                          # preprocessorPreIncrementExpression
+ | MINUSMINUS preprocessorExpression                                                                        # preprocessorPreDecrementExpression
+ | preprocessorExpression PLUSPLUS                                                                          # preprocessorPostIncrementExpression
+ | preprocessorExpression MINUSMINUS                                                                        # preprocessorPostDecrementExpression
  ;
 
 preprocessorExpression
- : preprocessorExpression (MULTIPLY | DIVIDE | MODULO) preprocessorExpression           # preprocessorFactorExpression
- | preprocessorExpression (PLUS | MINUS) preprocessorExpression                         # preprocessorTermExpression
- | preprocessorExpression (LESS | GREATER | LESSEQ | GREATEREQ) preprocessorExpression  # preprocessorComparisonExpression
- | preprocessorExpression (EQEQ | NOTEQ) preprocessorExpression                         # preprocessorEqualityExpression
- | preprocessorExpression AND preprocessorExpression                                    # preprocessorConjunctionExpression
- | preprocessorExpression OR preprocessorExpression                                     # preprocessorDisjunctionExpression
- | MINUS preprocessorExpression                                                         # preprocessorNegationExpression
- | NOT preprocessorExpression                                                           # preprocessorInversionExpression
- | preprocessorGroup                                                                    # preprocessorGroupedExpression
- | preprocessorLiteral                                                                  # preprocessorLiteralExpression
- | IDENTIFIER                                                                           # preprocessorIdentifierExpression
+ : preprocessorExpression op=(MULTIPLY | DIVIDE | MODULO) preprocessorExpression            # preprocessorFactorExpression
+ | preprocessorExpression op=(PLUS | MINUS) preprocessorExpression                          # preprocessorTermExpression
+ | preprocessorExpression op=(LESS | GREATER | LESSEQ | GREATEREQ) preprocessorExpression   # preprocessorComparisonExpression
+ | preprocessorExpression op=(EQEQ | NOTEQ) preprocessorExpression                          # preprocessorEqualityExpression
+ | preprocessorExpression AND preprocessorExpression                                        # preprocessorConjunctionExpression
+ | preprocessorExpression OR preprocessorExpression                                         # preprocessorDisjunctionExpression
+ | MINUS preprocessorExpression                                                             # preprocessorNegationExpression
+ | NOT preprocessorExpression                                                               # preprocessorInversionExpression
+ | preprocessorGroup                                                                        # preprocessorGroupedExpression
+ | preprocessorLiteral                                                                      # preprocessorLiteralExpression
+ | IDENTIFIER                                                                               # preprocessorIdentifierExpression
  ;
 
 preprocessorGroup
@@ -142,8 +143,8 @@ preprocessorLiteral
 
 declaration
  : functionDeclaration
- | variableDeclaration SEMICOLON
- | recordDeclaration SEMICOLON
+ | variableDeclaration
+ | recordDeclaration
  ;
 
 functionDeclaration
@@ -151,15 +152,15 @@ functionDeclaration
  ;
 
 variableDeclaration
- : attributeList VAR IDENTIFIER (COLON type)? (EQUALS expression)
+ : attributeList VAR IDENTIFIER (COLON type)? (EQUALS expression) SEMICOLON
  ;
 
 recordDeclaration
- : attributeList RECORD IDENTIFIER (COLON type)? (EQUALS expression)
+ : attributeList RECORD IDENTIFIER (COLON type)? (EQUALS expression) SEMICOLON
  ;
 
 type
- : (BOOL | INT | decimal | STRING | ARRAY | OBJECT | ENTITY) (LRBRACKET | LRBRACE)?
+ : (BOOL | INT | decimal | STRING | ARRAY | OBJECT | ENTITY) modifier=(LRBRACKET | LRBRACE)?
  | rawLocation
  ;
 
@@ -190,7 +191,6 @@ statement
  | foreachStatement
  | ifStatement
  | debugStatement
- | commentStatement
  | returnStatement
  | breakStatement
  | continueStatement
@@ -200,12 +200,13 @@ statement
  ;
 
 forStatement
- : FOR LPAREN forStatementInitializer? SEMICOLON expression? SEMICOLON assignment? RPAREN block
+ : FOR LPAREN forStatementInitializer expression? SEMICOLON assignment? RPAREN block
  ;
 
 forStatementInitializer
  : variableDeclaration
- | assignment
+ | assignmentStatement
+ | SEMICOLON
  ;
 
 whileStatement
@@ -222,10 +223,6 @@ ifStatement
 
 debugStatement
  : DEBUG expression SEMICOLON
- ;
-
-commentStatement
- : COMMENT STRING_LITERAL SEMICOLON
  ;
 
 returnStatement
@@ -249,28 +246,28 @@ commandStatement
   ;
 
 assignment
- : expression (EQUALS | PLUSEQ | MINUSEQ | MULTEQ | DIVEQ | MODEQ) expression   # assignmentExpression
- | PLUSPLUS expression                                                          # preIncrementExpression
- | MINUSMINUS expression                                                        # preDecrementExpression
- | expression PLUSPLUS                                                          # postIncrementExpression
- | expression MINUSMINUS                                                        # postDecrementExpression
+ : expression op=(EQUALS | PLUSEQ | MINUSEQ | MULTEQ | DIVEQ | MODEQ) expression    # assignmentExpression
+ | PLUSPLUS expression                                                              # preIncrementExpression
+ | MINUSMINUS expression                                                            # preDecrementExpression
+ | expression PLUSPLUS                                                              # postIncrementExpression
+ | expression MINUSMINUS                                                            # postDecrementExpression
  ;
 
 expression
- : IDENTIFIER LPAREN argumentList? RPAREN                       # callExpression
- | expression DOT IDENTIFIER                                    # memberExpression
- | expression LBRACKET expression RBRACKET                      # indexExpression
- | expression (MULTIPLY | DIVIDE | MODULO) expression           # factorExpression
- | expression (PLUS | MINUS) expression                         # termExpression
- | expression (LESS | GREATER | LESSEQ | GREATEREQ) expression  # comparisonExpression
- | expression (EQEQ | NOTEQ) expression                         # equalityExpression
- | expression AND expression                                    # conjunctionExpression
- | expression OR expression                                     # disjunctionExpression
- | MINUS expression                                             # negationExpression        // TODO:
- | NOT expression                                               # inversionExpression       // TODO:
- | group                                                        # groupedExpression
- | literal                                                      # literalExpression
- | IDENTIFIER                                                   # identifierExpression
+ : IDENTIFIER LPAREN argumentList? RPAREN                           # callExpression
+ | expression DOT IDENTIFIER                                        # memberExpression
+ | expression LBRACKET expression RBRACKET                          # indexExpression
+ | expression op=(MULTIPLY | DIVIDE | MODULO) expression            # factorExpression
+ | expression op=(PLUS | MINUS) expression                          # termExpression
+ | expression op=(LESS | GREATER | LESSEQ | GREATEREQ) expression   # comparisonExpression
+ | expression op=(EQEQ | NOTEQ) expression                          # equalityExpression
+ | expression AND expression                                        # conjunctionExpression
+ | expression OR expression                                         # disjunctionExpression
+ | MINUS expression                                                 # negationExpression        // TODO:
+ | NOT expression                                                   # inversionExpression       // TODO:
+ | group                                                            # groupedExpression
+ | literal                                                          # literalExpression
+ | IDENTIFIER                                                       # identifierExpression
  ;
 
 argumentList

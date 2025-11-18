@@ -1,17 +1,18 @@
 namespace Amethyst.Model;
 
+/// <summary>Represents comparison operators used in expressions.</summary>
 public enum ComparisonOperator
 {
-    [McfOperator("<")]
+    [McfToken("<")]
     [AmethystOperator("<")]
     LESS_THAN,
-    [McfOperator("<=")]
+    [McfToken("<=")]
     [AmethystOperator("<=")]
     LESS_THAN_OR_EQUAL,
-    [McfOperator(">")]
+    [McfToken(">")]
     [AmethystOperator(">")]
     GREATER_THAN,
-    [McfOperator(">=")]
+    [McfToken(">=")]
     [AmethystOperator(">=")]
     GREATER_THAN_OR_EQUAL,
     [AmethystOperator("==")]

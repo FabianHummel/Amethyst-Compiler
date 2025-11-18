@@ -1,5 +1,6 @@
 namespace Amethyst.Model;
 
+/// <summary>Represents assignment operators used in expressions.</summary>
 public enum AssignmentOperator
 {
     [AmethystOperator("=")]

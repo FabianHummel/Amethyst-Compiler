@@ -1,4 +1,1 @@
-[initializing]
-function main() {
-    debug @e;
-}
+DEBUG 10 + 20;

@@ -1,10 +1,11 @@
-using Amethyst.Utility;
 using Antlr4.Runtime;
 using JetBrains.Annotations;
 
 namespace Amethyst;
 
-[ForwardDefaultInterfaceMethods]
+/// <summary>A preprocessor value of a specific type. Implemented by all specific preprocessor value
+/// types.</summary>
+/// <typeparam name="T">The type of the preprocessor value.</typeparam>
 public interface IPreprocessorValue<T> : IPreprocessorValue
 {
     T Value { get; set; }
@@ -22,6 +23,8 @@ public interface IPreprocessorValue<T> : IPreprocessorValue
     public new sealed object? AbstractValue => Value;
 }
 
+/// <summary>The non-generic base interface for all preprocessor values. Only implemented by
+/// <see cref="AbstractPreprocessorValue" /> to improve the development experience.</summary>
 public interface IPreprocessorValue
 {
     ParserRuleContext Context { get; }

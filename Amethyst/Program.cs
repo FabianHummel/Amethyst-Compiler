@@ -5,13 +5,19 @@ using static Amethyst.Utility.ConsoleUtility;
 
 namespace Amethyst;
 
+/// <summary>The class that contains the main entrypoint of the compiler. More info at the
+/// <see cref="Main">main</see> function.</summary>
 public static class Program
 {
     private static FileSystemWatcher _srcWatcher = null!;
     private static FileSystemWatcher _configWatcher = null!;
     private static Processor _amethyst = null!;
     private static CancellationTokenSource? _onChangedSourceTokenSource;
-    
+
+    /// <summary>The main entrypoint for the compiler. First parses command line arguments, prints the
+    /// logo, sets up file watchers (<see cref="SetupFileWatchers" />) and compiles the program.</summary>
+    /// <param name="args">Command line arguments passed to the compiler. These are the valid
+    /// <see cref="Options">options</see>.</param>
     private static void Main(string[] args)
     {
         CommandLine.Parser.Default.ParseArguments<Options>(args).WithParsed(o =>
@@ -43,6 +49,14 @@ public static class Program
         });
     }
 
+    /// <summary>Sets up file watchers to run actions when specific files change:
+    /// <list type="number">
+    ///     <item>When files in the source folder change, <see cref="OnChangedSource" /> is run.</item>
+    ///     <item>When the Amethyst configuration file changes, <see cref="OnChangedConfig" /> is run
+    ///     instead.</item>
+    /// </list>
+    /// </summary>
+    /// <param name="rootDir">The directory where to look for the Amethyst configuration and source folder</param>
     private static void SetupFileWatchers(string rootDir)
     {
         var thread = new Thread(() =>
@@ -50,7 +64,7 @@ public static class Program
             _srcWatcher = new FileSystemWatcher();
             _srcWatcher.Path = Path.Combine(rootDir, SourceDirectory);
             _srcWatcher.NotifyFilter = NotifyFilters.Attributes |
-                                    NotifyFilters.CreationTime |
+                                       NotifyFilters.CreationTime |
                                     NotifyFilters.FileName |
                                     NotifyFilters.LastAccess |
                                     NotifyFilters.LastWrite |
@@ -88,7 +102,8 @@ public static class Program
             
         }
     }
-    
+
+    /// <summary>Run when anything in the source directory changes. Recompiles the project.</summary>
     private static void OnChangedSource(object sender, FileSystemEventArgs e)
     {
         _onChangedSourceTokenSource?.Cancel();
@@ -103,7 +118,9 @@ public static class Program
             }
         }, TaskScheduler.Default);
     }
-    
+
+    /// <summary>Run when the Amethyst configuration is changed. Reloads the entire config and recompile
+    /// the project.</summary>
     private static void OnChangedConfig(object sender, FileSystemEventArgs e)
     {
         _onChangedSourceTokenSource?.Cancel();

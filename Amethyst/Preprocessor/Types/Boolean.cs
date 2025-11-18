@@ -1,7 +1,10 @@
 using Amethyst.Model;
+using Amethyst.Utility;
 
 namespace Amethyst;
 
+/// <summary>A preprocessor value representing a boolean.</summary>
+[ForwardDefaultInterfaceMethods(typeof(IPreprocessorValue<bool>))]
 public partial class PreprocessorBoolean : AbstractNumericPreprocessorValue, IPreprocessorValue<bool>
 {
     public required bool Value { get; set; }
