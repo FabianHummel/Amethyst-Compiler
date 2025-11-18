@@ -51,6 +51,6 @@ public class ConstantSubstitute : AbstractValue, IConstantValue<IRuntimeValue>
 
     public override string ToTargetSelectorString()
     {
-        return Value.ToTargetSelectorString();
+        return Value.ToMacroPlaceholder();
     }
 }

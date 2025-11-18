@@ -98,21 +98,11 @@ public partial class Compiler : AmethystParserBaseVisitor<object?>
     /// <exception cref="SyntaxException">The resource path does not conform to the expected format of
     /// <c>&lt;namespace&gt;?:&lt;path/to/resource&gt;</c>.</exception>
     /// <exception cref="SemanticException">The source file does not exist at the specified path.</exception>
-    private SourceFile GetSourceFile(string resourcePath, string registryName, ParserRuleContext context)
+    private SourceFile GetSourceFile(Resource resource, string registryName, ParserRuleContext context)
     {
         var nsName = SourceFile.Namespace;
 
-        if (resourcePath.Split(':', 2) is { Length: > 1 } parts)
-        {
-            nsName = parts[0];
-            resourcePath = parts[1];
-            if (resourcePath == null)
-            {
-                throw new SyntaxException("Resource path cannot be empty.", context);
-            }
-        }
-
-        var sourceFilePath = Path.Combine(DatapackRootDir, nsName, registryName, resourcePath);
+        var sourceFilePath = Path.Combine(DatapackRootDir, nsName, registryName, resource);
         
         if (!Context.SourceFiles.TryGetValue(sourceFilePath, out var sourceFile))
         {

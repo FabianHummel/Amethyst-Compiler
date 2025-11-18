@@ -1,1 +1,2 @@
-DEBUG 10 + 20;
+var nice = {nice: "cool"};
+debug $"nice={nice}";

@@ -22,4 +22,6 @@ public abstract partial class AbstractPreprocessorValue : IPreprocessorValue
     public abstract int AsInteger { get; }
     
     public abstract double AsDecimal { get; }
+    
+    public abstract string AsString { get; }
 }

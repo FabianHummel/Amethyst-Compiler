@@ -19,22 +19,6 @@ public abstract partial class AbstractNumericValue : AbstractValue
         OperationRegistry.Register<AbstractNumericValue, AbstractNumericValue, AbstractBoolean, ComparisonOperator>(Calculate);
     }
     
-    /// <summary>Ensures that this number is stored in storage, likely to be able to use it as macro input.</summary>
-    /// <returns>A runtime value pointing to a storage location</returns>
-    public IRuntimeValue EnsureInStorage()
-    {
-        if (this is not IRuntimeValue runtimeValue)
-        {
-            throw new InvalidOperationException("Call of this method is not allowed on constant values.");
-        }
-        
-        var location = runtimeValue.NextFreeLocation(DataLocation.Storage);
-        
-        this.AddCode($"execute store result storage {location} {ScoreboardDatatype.StorageModifier} run scoreboard players get {runtimeValue.Location}");
-
-        return runtimeValue.WithLocation(location, temporary: true);
-    }
-    
     /// <summary>Calculates any two numeric values with the given operator.</summary>
     private static AbstractNumericValue Calculate(Compiler compiler, ParserRuleContext context, AbstractNumericValue lhs, AbstractNumericValue rhs, ArithmeticOperator op)
     {

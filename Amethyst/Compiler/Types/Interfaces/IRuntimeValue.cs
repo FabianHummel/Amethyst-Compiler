@@ -81,6 +81,13 @@ public interface IRuntimeValue
     /// <returns>The target selector string.</returns>
     public sealed string ToTargetSelectorString()
     {
+        return ToMacroPlaceholder();
+    }
+
+    /// <summary>Returns this value's representation as a macro placeholder.</summary>
+    /// <returns>The macro placeholder.</returns>
+    public sealed string ToMacroPlaceholder()
+    {
         var storageValue = EnsureInStorage();
         return $"$({storageValue.Location.Name})";
     }
@@ -89,11 +96,13 @@ public interface IRuntimeValue
     /// <returns>A runtime value pointing to a storage location</returns>
     private IRuntimeValue EnsureInStorage()
     {
-        if (this is AbstractNumericValue numericValue)
+        if (Datatype is not AbstractScoreboardDatatype scoreboardDatatype)
         {
-            return numericValue.EnsureInStorage();
+            return this;
         }
-    
-        return this;
+        
+        var location = NextFreeLocation(DataLocation.Storage);
+        Compiler.AddCode($"execute store result storage {location} {scoreboardDatatype.StorageModifier} run scoreboard players get {Location}");
+        return WithLocation(location, temporary: true);
     }
 }

@@ -19,6 +19,8 @@ public partial class PreprocessorDecimal : AbstractNumericPreprocessorValue, IPr
     public override int AsInteger => (int)Value;
     
     public override double AsDecimal => Value;
+    
+    public override string AsString => Value.ToString("G", System.Globalization.CultureInfo.InvariantCulture);
 
     public override string ToString()
     {

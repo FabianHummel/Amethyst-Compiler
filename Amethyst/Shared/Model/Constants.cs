@@ -36,6 +36,7 @@ public static partial class Constants
     public const string InternalNamespaceName = "amethyst";
     public const string DatapackFunctionsDirectory = "function";
     public const string InitFunctionName = "_init";
+    public const string MinecraftNamespaceName = "minecraft";
 
     public static readonly string AmethystVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!.ToString();
 

@@ -9,9 +9,8 @@ file
  ;
 
 preprocessorImportDeclaration
- // replace RESOURCE_LITERAL with resourceLiteral in the future
- : PREPROCESSOR_FROM RESOURCE_LITERAL PREPROCESSOR_IMPORT IDENTIFIER (COMMA IDENTIFIER)* SEMICOLON  #preprocessorFromImportDeclaration
- | PREPROCESSOR_IMPORT RESOURCE_LITERAL PREPROCESSOR_AS IDENTIFIER SEMICOLON                        #preprocessorImportAsDeclaration
+ : PREPROCESSOR_FROM preprocessorResourceLiteral PREPROCESSOR_IMPORT IDENTIFIER (COMMA IDENTIFIER)* SEMICOLON   #preprocessorFromImportDeclaration
+ | PREPROCESSOR_IMPORT preprocessorResourceLiteral PREPROCESSOR_AS IDENTIFIER SEMICOLON                         #preprocessorImportAsDeclaration
  ;
 
 preprocessorStatement
@@ -115,31 +114,37 @@ preprocessorLiteral
  : booleanLiteral
  | INTEGER_LITERAL
  | DECIMAL_LITERAL
- | STRING_LITERAL // stringLiteral
- | RESOURCE_LITERAL // resourceLiteral
+ | preprocessorStringLiteral
+ | preprocessorResourceLiteral
  ;
  
-//stringLiteral
-// : STRING_LITERAL stringLiteralPart* STRING_QUOTE
-// ;
-// 
-//stringLiteralPart
-// : STRING_CONTENT
-// | STRING_ESCAPE_SEQUENCE
-// | STRING_UNICODE_ESCAPE
-// | STRING_INTERPOLATION_START expression INTERPOLATION_END
-// ;
-//
-//resourceLiteral
-// : RESOURCE_LITERAL resourceLiteralPart* RESOURCE_QUOTE
-// ;
-// 
-//resourceLiteralPart
-// : RESOURCE_CONTENT
-// | RESOURCE_ESCAPE_SEQUENCE
-// | RESOURCE_UNICODE_ESCAPE
-// | RESOURCE_INTERPOLATION_START expression INTERPOLATION_END
-// ;
+preprocessorStringLiteral
+ : QUOTE preprocessorRegularStringLiteralPart* QUOTE                # preprocessorRegularStringLiteral
+ | INTERPQUOTE preprocessorInterpolatedStringLiteralPart* QUOTE     # preprocessorInterpolatedStringLiteral
+ ;
+
+preprocessorRegularStringLiteralPart
+ : REGULAR_STRING_CONTENT
+ ;
+
+preprocessorInterpolatedStringLiteralPart
+ : INTERP_STRING_CONTENT
+ | LBRACE preprocessorExpression RBRACE
+ ;
+
+preprocessorResourceLiteral
+ : BACKTICK preprocessorRegularResourceLiteralPart* BACKTICK                # preprocessorRegularResourceLiteral
+ | INTERPBACKTICK preprocessorInterpolatedResourceLiteralPart* BACKTICK     # preprocessorInterpolatedResourceLiteral
+ ;
+
+preprocessorRegularResourceLiteralPart
+ : REGULAR_RESOURCE_CONTENT
+ ;
+
+preprocessorInterpolatedResourceLiteralPart 
+ : INTERP_RESOURCE_CONTENT
+ | LBRACE preprocessorExpression RBRACE
+ ;
 
 declaration
  : functionDeclaration
@@ -282,7 +287,7 @@ literal
  : booleanLiteral
  | INTEGER_LITERAL
  | DECIMAL_LITERAL
- | STRING_LITERAL // stringLiteral
+ | stringLiteral
  | selectorCreation
  | objectCreation
  | arrayCreation
@@ -292,6 +297,21 @@ literal
 booleanLiteral
  : TRUE | FALSE
  ;
+ 
+stringLiteral
+ : QUOTE regularStringLiteralPart* QUOTE                # regularStringLiteral
+ | INTERPQUOTE interpolatedStringLiteralPart* QUOTE     # interpolatedStringLiteral
+ ;
+
+regularStringLiteralPart
+ : REGULAR_STRING_CONTENT
+ ;
+
+interpolatedStringLiteralPart
+ : INTERP_STRING_CONTENT
+ | LBRACE expression RBRACE
+ ;
+
 
 rangeExpression
  : expression DOTDOT expression?

@@ -15,14 +15,9 @@ public partial class Compiler
     {
         var literalContext = context.literal();
         
-        if (literalContext.STRING_LITERAL() is { } stringLiteral)
+        if (literalContext.stringLiteral() is { } stringLiteral)
         {
-            return new ConstantString
-            {
-                Compiler = this,
-                Context = literalContext,
-                Value = stringLiteral.GetText()[1..^1]
-            };
+            return (AbstractString)Visit(stringLiteral)!;
         }
         
         if (literalContext.DECIMAL_LITERAL() is { } decimalLiteral)
