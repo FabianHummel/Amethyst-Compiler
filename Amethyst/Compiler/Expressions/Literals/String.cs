@@ -6,6 +6,16 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Returns a regular string that is constructed of regular string literal parts parsed by 
+    ///     <see cref="VisitRegularStringLiteralPart" />.</p>
+    ///     <p>In contrast to <see cref="VisitInterpolatedStringLiteral" />, this type of string literal
+    ///     does not support expression interpolation and treats all characters verbatim.</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <example><p><c>"Hello World"</c> → <c>"Hello World"</c></p>
+    ///     <p><c>"Verbatim {value}"</c> → <c>"Verbatim {value}"</c></p></example>
+    /// <seealso cref="VisitInterpolatedStringLiteral" />
     public override ConstantString VisitRegularStringLiteral(AmethystParser.RegularStringLiteralContext context)
     {
         var str = new StringBuilder();
@@ -23,11 +33,29 @@ public partial class Compiler
         };
     }
 
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Returns a single regular string literal part that treats all characters verbatim.</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <seealso cref="VisitInterpolatedStringLiteralPart" />
     public override string VisitRegularStringLiteralPart(AmethystParser.RegularStringLiteralPartContext context)
     {
         return context.REGULAR_STRING_CONTENT().GetText();
     }
-
+    
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Returns an interpolated string that is constructed of string literal parts parsed by 
+    ///     <see cref="VisitInterpolatedStringLiteralPart" />. Such part may be an interpolated literal
+    ///     denoted by surrounding braces over an expression.</p>
+    ///     <p>In contrast to <see cref="VisitRegularStringLiteral" />, this type of string literal
+    ///     allows for interpolated expression.</p>
+    ///     <p>Interpolations may also be nested, so syntax like this: <c>$"Outer {$"Middle {"Inner"}"}"</c>
+    ///     is allowed. Also notice that nested strings don't lead to nesting issues and are treated pairwise.</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <example><p><c>$"Hello World"</c> → <c>"Hello World"</c></p>
+    ///     <p><c>$"Interpolated: {value}"</c> → <c>"Interpolated: 123"</c></p></example>
+    /// <seealso cref="VisitInterpolatedStringLiteral" />
     public override AbstractString VisitInterpolatedStringLiteral(AmethystParser.InterpolatedStringLiteralContext context)
     {
         var str = new StringBuilder();
@@ -80,6 +108,11 @@ public partial class Compiler
         return value;
     }
     
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Returns a single string literal part that may be an interpolated value.</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <seealso cref="VisitRegularStringLiteralPart" />
     public override AbstractValue VisitInterpolatedStringLiteralPart(AmethystParser.InterpolatedStringLiteralPartContext context)
     {
         if (context.INTERP_STRING_CONTENT() is { } stringContent)

@@ -2,6 +2,12 @@ using static Amethyst.Model.Constants;
 
 namespace Amethyst.Model;
 
+/// <summary>A resource that is used to identify resource files such as models, textures or other source code files.
+/// It applies the same auto-completion rules to resource paths as Minecraft.</summary>
+/// <example><p><c>`my_namespace:path/to/resource`</c> → <c>`my_namespace:path/to/resource`</c></p>
+///     <p><c>`:path/to/resource`</c> → <c>`minecraft:path/to/resource`</c></p>
+///     <p><c>`my_namespace:`</c> → <c>`my_namespace:`</c></p>
+///     <p><c>`:`</c> → <c>`minecraft:`</c></p></example>
 public class Resource
 {
     public string Namespace { get; }

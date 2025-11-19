@@ -90,8 +90,7 @@ public partial class Compiler : AmethystParserBaseVisitor<object?>
     }
 
     /// <summary>Gets a source file based on the given resource path and registry name.</summary>
-    /// <param name="resourcePath">The resource path that may optionally contain a namespace prefix. This
-    /// is equivalent to actual namespaces that one would find in Minecraft.</param>
+    /// <param name="resource">The resource where to find the requested source file.</param>
     /// <param name="registryName">The registry name such as "function", "advancement" or "predicate".</param>
     /// <param name="context">The parser context that is used for error reporting.</param>
     /// <returns>The source file at the specified path.</returns>
