@@ -23,8 +23,8 @@ public partial class Compiler
     ///     <p>Evaluates a chain of disjunctions. If any of the elements is known to be true, the chain
     ///     immediately results a truthy value.</p>
     ///     <p><inheritdoc /></p></summary>
-    /// <example><p><c>abc || xyz || true || false</c>→<c>true</c></p></example>
-    /// <example><p><c>abc || xyz</c>→<see cref="RuntimeBoolean" /></p></example>
+    /// <example><p><c>abc || xyz || true || false</c> → <c>true</c></p></example>
+    /// <example><p><c>abc || xyz</c> → <see cref="RuntimeBoolean" /></p></example>
     /// <exception cref="SyntaxException">An element of the chain is not interpretable as a boolean value.</exception>
     public override AbstractValue VisitDisjunctionExpression(AmethystParser.DisjunctionExpressionContext context)
     {

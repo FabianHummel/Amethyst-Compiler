@@ -16,9 +16,8 @@ public partial class Compiler
     /// <seealso cref="VisitPreprocessorImportAsDeclaration" />
     public override object? VisitPreprocessorFromImportDeclaration(AmethystParser.PreprocessorFromImportDeclarationContext context)
     {
-        // var resourcePath = VisitResourceLiteral(context.resourceLiteral());
-        var resourcePath = context.RESOURCE_LITERAL().GetText()[1..^1];
-        var resource = GetSourceFile(resourcePath, Constants.DatapackFunctionsDirectory, context);
+        var resource = (Resource)Visit(context.preprocessorResourceLiteral())!;
+        var sourceFile = GetSourceFile(resource, Constants.DatapackFunctionsDirectory, context);
 
         var symbols = context.IDENTIFIER()
             .Select(s => s.GetText())
@@ -26,9 +25,9 @@ public partial class Compiler
         
         foreach (var symbol in symbols)
         {
-            if (!resource.ExportedSymbols.ContainsKey(symbol))
+            if (!sourceFile.ExportedSymbols.ContainsKey(symbol))
             {
-                throw new SemanticException($"'{resource.Name}' does not export symbol '{symbol}'", context);
+                throw new SemanticException($"'{sourceFile.Name}' does not export symbol '{symbol}'", context);
             }
         }
 
@@ -45,9 +44,8 @@ public partial class Compiler
     /// <seealso cref="VisitPreprocessorFromImportDeclaration" />
     public override object? VisitPreprocessorImportAsDeclaration(AmethystParser.PreprocessorImportAsDeclarationContext context)
     {
-        // var resourcePath = VisitResourceLiteral(context.resourceLiteral());
-        var resourcePath = context.RESOURCE_LITERAL().GetText()[1..^1];
-        var resource = GetSourceFile(resourcePath, Constants.DatapackFunctionsDirectory, context);
+        var resource = (Resource)Visit(context.preprocessorResourceLiteral())!;
+        var sourceFile = GetSourceFile(resource, Constants.DatapackFunctionsDirectory, context);
         var symbol = context.IDENTIFIER().GetText();
         
         // TODO: Implement

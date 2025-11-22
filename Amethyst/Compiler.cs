@@ -90,29 +90,16 @@ public partial class Compiler : AmethystParserBaseVisitor<object?>
     }
 
     /// <summary>Gets a source file based on the given resource path and registry name.</summary>
-    /// <param name="resourcePath">The resource path that may optionally contain a namespace prefix. This
-    /// is equivalent to actual namespaces that one would find in Minecraft.</param>
+    /// <param name="resource">The resource where to find the requested source file.</param>
     /// <param name="registryName">The registry name such as "function", "advancement" or "predicate".</param>
     /// <param name="context">The parser context that is used for error reporting.</param>
     /// <returns>The source file at the specified path.</returns>
     /// <exception cref="SyntaxException">The resource path does not conform to the expected format of
     /// <c>&lt;namespace&gt;?:&lt;path/to/resource&gt;</c>.</exception>
     /// <exception cref="SemanticException">The source file does not exist at the specified path.</exception>
-    private SourceFile GetSourceFile(string resourcePath, string registryName, ParserRuleContext context)
+    private SourceFile GetSourceFile(Resource resource, string registryName, ParserRuleContext context)
     {
-        var nsName = SourceFile.Namespace;
-
-        if (resourcePath.Split(':', 2) is { Length: > 1 } parts)
-        {
-            nsName = parts[0];
-            resourcePath = parts[1];
-            if (resourcePath == null)
-            {
-                throw new SyntaxException("Resource path cannot be empty.", context);
-            }
-        }
-
-        var sourceFilePath = Path.Combine(DatapackRootDir, nsName, registryName, resourcePath);
+        var sourceFilePath = Path.Combine(DatapackRootDir, resource.Namespace, registryName, resource.Path);
         
         if (!Context.SourceFiles.TryGetValue(sourceFilePath, out var sourceFile))
         {

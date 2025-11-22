@@ -38,7 +38,7 @@ public sealed class SourceFile
     /// statements.</summary>
     /// <seealso cref="Compiler.VisitPreprocessorFromImportDeclaration" />
     /// <seealso cref="Compiler.VisitPreprocessorImportAsDeclaration" />
-    public Dictionary<string, string> ImportedSymbols { get; } = new();
+    public Dictionary<string, Resource> ImportedSymbols { get; } = new();
 
     /// <summary>A dictionary of entry point functions defined in this source file. When the project is
     /// compiled, these symbols are the only thing that are processed, to prevent compiling dead code.</summary>

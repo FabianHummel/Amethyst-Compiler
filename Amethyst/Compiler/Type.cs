@@ -15,9 +15,9 @@ public partial class Compiler
     ///     <see cref="DecimalDatatype.DEFAULT_DECIMAL_PLACES">default number of decimal places</see> is
     ///     used instead.</p>
     ///     <p><inheritdoc /></p></summary>
-    /// <example><c>int</c> -> <see cref="BasicType.Int" /> without any modifier<br /> <c>bool[]</c> ->
+    /// <example><c>int</c> → <see cref="BasicType.Int" /> without any modifier<br /> <c>bool[]</c> →
     /// <see cref="BasicType.Bool" /> with an <see cref="Modifier.Array" /> modifier<br /><c>dec(3){}</c>
-    /// -> <see cref="BasicType.Dec" /> with 3 decimal places and an <see cref="Modifier.Object" />
+    /// → <see cref="BasicType.Dec" /> with 3 decimal places and an <see cref="Modifier.Object" />
     /// modifier</example>
     /// <exception cref="InvalidOperationException">The type is unknown.</exception>
     public override AbstractDatatype VisitType(AmethystParser.TypeContext context)

@@ -19,6 +19,8 @@ public partial class PreprocessorString : AbstractPreprocessorValue, IPreprocess
     public override int AsInteger => Value.Length;
     
     public override double AsDecimal => AsInteger;
+    
+    public override string AsString => Value;
 
     public override string ToString()
     {

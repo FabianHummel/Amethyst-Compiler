@@ -19,6 +19,11 @@ public static class NbtUtility
             _ => $"{obj}"
         };
     }
+    
+    public static string Escape(this string str)
+    {
+        return $"\"{str.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
+    }
 
     /// <summary>Parses a scoreboard integer value into the appropriate datatype based on the provided
     /// AbstractDatatype.</summary>

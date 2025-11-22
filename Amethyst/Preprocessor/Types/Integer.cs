@@ -19,6 +19,8 @@ public partial class PreprocessorInteger : AbstractNumericPreprocessorValue, IPr
     public override int AsInteger => Value;
     
     public override double AsDecimal => Value;
+    
+    public override string AsString => Value.ToString();
 
     public override string ToString()
     {

@@ -23,8 +23,8 @@ public partial class Compiler
     ///     <p>Evaluates a chain of conjunctions. If any of the elements is known to be false, the chain
     ///     immediately results a falsy value.</p>
     ///     <p><inheritdoc /></p></summary>
-    /// <example><p><c>abc &amp;&amp; xyz &amp;&amp; true &amp;&amp; false</c>→<c>false</c></p></example>
-    /// <example><p><c>abc &amp;&amp; xyz</c>-→<see cref="RuntimeBoolean" /></p></example>
+    /// <example><p><c>abc &amp;&amp; xyz &amp;&amp; true &amp;&amp; false</c> → <c>false</c></p></example>
+    /// <example><p><c>abc &amp;&amp; xyz</c> → <see cref="RuntimeBoolean" /></p></example>
     /// <exception cref="SyntaxException">An element of the chain is not interpretable as a boolean value.</exception>
     public override AbstractValue VisitConjunctionExpression(AmethystParser.ConjunctionExpressionContext context)
     {
