@@ -68,6 +68,7 @@ public static partial class TestMain
 
             var outputPath = Regex.Replace(liquidTemplatePath, @"\.liquid$", "");
             File.WriteAllText(outputPath, renderedContent);
+            File.Delete(liquidTemplatePath);
         }
     }
     

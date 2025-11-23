@@ -1,0 +1,22 @@
+FROM `amethyst:test` IMPORT complete;
+
+{% for regular_string in regular_strings %}
+[test]
+function test_regular_{{regular_string.name}}()
+{
+    var result = "{{regular_string.value}}";
+    complete();
+}
+{% endfor %}
+
+{% for interpolated_string in interpolated_strings %}
+[test]
+function test_interpolated_{{interpolated_string.name}}()
+{
+    {% if interpolated_string.variable_value %}
+    var value = {{interpolated_string.variable_value}};
+    {% endif %}
+    var result = $"{{interpolated_string.value}}";
+    complete();
+}
+{% endfor %}

@@ -1,4 +1,3 @@
-using Amethyst;
 using NUnit.Framework;
 using Tests.Presets;
 
@@ -22,7 +21,6 @@ public class StringTests : ServerTestBase
         [ValueSource(typeof(StringTestCase), nameof(StringTestCase.Interpolated))] 
         StringTestCase stringTestCase)
     {
-        var interpolatedValue = Regex.Replace(stringTestCase.Value, @"{.*}", stringTestCase.VariableValue);
-        Assert.AreEqual(interpolatedValue, await Context.Variable<string>("result"));
+        Assert.AreEqual(stringTestCase.Expected, await Context.Variable<string>("result"));
     }
 }

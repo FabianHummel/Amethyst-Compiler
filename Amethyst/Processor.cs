@@ -296,7 +296,7 @@ public class Processor
             var minecraftRootFolder = GetMinecraftRootDirectory(minecraftRoot);
             if (Path.Exists(Path.Combine(minecraftRootFolder, "world")))
             {
-                actualOutDir = Path.Combine(minecraftRootFolder, "world", "_tmp_resourcepack");
+                actualOutDir = Path.Combine(minecraftRootFolder, "world", "resourcepack");
                 Directory.CreateDirectory(actualOutDir);
                 goto end;
             }

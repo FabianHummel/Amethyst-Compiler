@@ -29,7 +29,7 @@ public partial class Compiler
 
         if (result is IRuntimeValue runtimeValue)
         {
-            if (runtimeValue.Datatype is AbstractScoreboardDatatype scoreboardDatatype)
+            if (runtimeValue.Datatype.IsScoreboardType(out var scoreboardDatatype))
             {
                 this.AddCode($"execute store result storage amethyst:internal data.stringify.in {scoreboardDatatype.StorageModifier} run scoreboard players get {runtimeValue.Location}");
             }

@@ -81,22 +81,15 @@ public interface IRuntimeValue
     /// <returns>The target selector string.</returns>
     public sealed string ToTargetSelectorString()
     {
-        return ToMacroPlaceholder();
-    }
-
-    /// <summary>Returns this value's representation as a macro placeholder.</summary>
-    /// <returns>The macro placeholder.</returns>
-    public sealed string ToMacroPlaceholder()
-    {
         var storageValue = EnsureInStorage();
-        return $"$({storageValue.Location.Name})";
+        return storageValue.Location.ToMacroPlaceholder();
     }
-
+    
     /// <summary>Ensures that this value is stored in storage, likely to be able to use it as macro input.</summary>
     /// <returns>A runtime value pointing to a storage location</returns>
-    private IRuntimeValue EnsureInStorage()
+    public sealed IRuntimeValue EnsureInStorage()
     {
-        if (Datatype is not AbstractScoreboardDatatype scoreboardDatatype)
+        if (!Datatype.IsScoreboardType(out var scoreboardDatatype))
         {
             return this;
         }

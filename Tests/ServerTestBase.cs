@@ -53,7 +53,7 @@ public abstract class ServerTestBase
             var argumentValue = currentTest.Arguments[index];
             await SetVariableValue(parameterVariable, argumentValue!);
         }
-
+        
         // run the test function on the server
         await TestMain.Rcon.ExecuteCommandAsync($"function {testFunctionScope.McFunctionPath}");
 

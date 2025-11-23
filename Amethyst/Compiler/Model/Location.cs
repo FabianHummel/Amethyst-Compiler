@@ -43,17 +43,33 @@ public class Location
             return $"{Name} {Namespace}";
         }
 
-        string storageNs;
-        if (Namespace.Contains(':'))
+        return $"{Namespace}: {Name}";
+    }
+
+    /// <summary>Converts this location to a text component representation for use in Minecraft commands.</summary>
+    /// <example>
+    ///     <list type="bullet"><item>Namespace = <c>"my_namespace"</c></item>
+    ///         <item>Name = <c>"var_name"</c></item></list>
+    ///     <p><see cref="Model.DataLocation.Storage" /> → <c>{storage:'my_namespace:',nbt:'var_name'}</c>
+    ///     </p>
+    ///     <p><see cref="Model.DataLocation.Scoreboard" /> →
+    ///     <c>{score:{objective:'my_namespace',name:'var_name'}}</c></p>
+    /// </example>
+    /// <returns>The text component string.</returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public string ToTextComponent()
+    {
+        if (DataLocation == DataLocation.Scoreboard)
         {
-            storageNs = Namespace;
-        }
-        else
-        {
-            storageNs = $"{Namespace}:";
+            return $"{{score:{{objective:'{Namespace}',name:'{Name}'}}}}";
         }
         
-        return $"{storageNs} {Name}";
+        if (DataLocation == DataLocation.Storage)
+        {
+            return $"{{storage:'{Namespace}:',nbt:'{Name}'}}";
+        }
+        
+        throw new InvalidOperationException($"Unknown data location '{DataLocation}'.");
     }
 
     /// <summary>Implicitly converts this location to its string representation by calling
@@ -100,5 +116,12 @@ public class Location
     public static Location Scoreboard(int location, string? ns = null)
     {
         return Scoreboard(location.ToString(), ns);
+    }
+
+    /// <summary>Returns this value's representation as a macro placeholder.</summary>
+    /// <returns>The macro placeholder.</returns>
+    public string ToMacroPlaceholder()
+    {
+        return $"$({Name})";
     }
 }

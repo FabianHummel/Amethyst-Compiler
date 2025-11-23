@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Amethyst.Model;
 using Amethyst.Utility;
 
@@ -110,5 +111,17 @@ public abstract class AbstractDatatype : IEquatable<AbstractDatatype>
             BasicType.Entity => new EntityDatatype { Modifier = modifier },
             _ => throw new ArgumentOutOfRangeException(nameof(basicType), $"Unsupported basic type '{basicType}'.")
         };
+    }
+
+    public bool IsScoreboardType([NotNullWhen(true)] out AbstractScoreboardDatatype? scoreboardDatatype)
+    {
+        if (DataLocation == DataLocation.Scoreboard && this is AbstractScoreboardDatatype sbDatatype)
+        {
+            scoreboardDatatype = sbDatatype;
+            return true;
+        }
+        
+        scoreboardDatatype = null;
+        return false;
     }
 }

@@ -39,7 +39,7 @@ public abstract class AbstractConstantArray : AbstractArray, IConstantValue<ICon
             {
                 var substitutionModifier = substitutionModifierPrefix + Datatype.GetSubstitutionModifier(i);
                 
-                if (element.Datatype is AbstractScoreboardDatatype scoreboardDatatype)
+                if (element.Datatype.IsScoreboardType(out var scoreboardDatatype))
                 {
                     this.AddCode($"execute store result storage {substitutionModifier} {scoreboardDatatype.StorageModifier} run scoreboard players get {element.Location}");
                 }
