@@ -524,10 +524,17 @@ public class Processor
         var dataOrAssetsDir = Path.Combine(outputDir, packDirName);
         
         // Copy everything except Amethyst source code to output folder
-        FilesystemUtility.CopyDirectory(sourceDir, dataOrAssetsDir, filePath =>
+        foreach (var directory in Directory.GetDirectories(sourceDir, "*", SearchOption.AllDirectories))
         {
-            return Path.GetExtension(filePath) != SourceFileExtension;
-        });
+            Directory.CreateDirectory(directory.Replace(sourceDir, dataOrAssetsDir));
+        }
+        
+        var plainFiles = Directory.GetFiles(sourceDir, "*.*", SearchOption.AllDirectories)
+            .Where(file => !file.EndsWith(SourceFileExtension));
+        foreach (var file in plainFiles)
+        {
+            File.Copy(file, file.Replace(sourceDir, dataOrAssetsDir), true);
+        }
 
         // Scan namespaces
         ParseUserNamespaces(packDirName, sourceDir);

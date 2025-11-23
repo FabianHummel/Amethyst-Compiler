@@ -37,7 +37,6 @@
     <ItemGroup>
       <Folder Include="Playground\output\" />
       <Folder Include="Playground\output\Test Project\data\test\function\" />
-      <Folder Include="Playground\src\" />
       <Folder Include="Resources\resourcepack\assets\" />
     </ItemGroup>
 </Project>

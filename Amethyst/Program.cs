@@ -77,6 +77,7 @@ public static class Program
             _srcWatcher.Renamed += OnChangedSource;
             _srcWatcher.EnableRaisingEvents = true;
             _srcWatcher.IncludeSubdirectories = true;
+            _srcWatcher.WaitForChanged(WatcherChangeTypes.All);
             
             _configWatcher = new FileSystemWatcher();
             _configWatcher.Path = rootDir;
@@ -93,6 +94,7 @@ public static class Program
             _configWatcher.Deleted += OnChangedConfig;
             _configWatcher.Renamed += OnChangedConfig;
             _configWatcher.EnableRaisingEvents = true;
+            _configWatcher.WaitForChanged(WatcherChangeTypes.Changed);
         });
         
         thread.Start();
@@ -108,7 +110,7 @@ public static class Program
     {
         _onChangedSourceTokenSource?.Cancel();
         _onChangedSourceTokenSource = new CancellationTokenSource();
-        Task.Delay(100, _onChangedSourceTokenSource.Token).ContinueWith(t =>
+        Task.Delay(500, _onChangedSourceTokenSource.Token).ContinueWith(t =>
         {
             if (t.IsCompletedSuccessfully)
             {
@@ -125,7 +127,7 @@ public static class Program
     {
         _onChangedSourceTokenSource?.Cancel();
         _onChangedSourceTokenSource = new CancellationTokenSource();
-        Task.Delay(100, _onChangedSourceTokenSource.Token).ContinueWith(t =>
+        Task.Delay(500, _onChangedSourceTokenSource.Token).ContinueWith(t =>
         {
             if (t.IsCompletedSuccessfully)
             {
