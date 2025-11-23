@@ -26,41 +26,41 @@ public static class ConsoleUtility
     /// better compatibility.</summary>
     public static void ClearCurrentConsoleLine()
     {
-        // int currentLineCursor = Console.CursorTop;
-        // Console.SetCursorPosition(0, Console.CursorTop);
-        // Console.Write(new string(' ', Console.WindowWidth)); 
-        // Console.SetCursorPosition(0, currentLineCursor);
+        Console.Write($"\r{new string(' ', Console.BufferWidth)}\r"); 
     }
 
     /// <summary>Starts a long task indicator in the console with a loading animation.</summary>
     /// <param name="executionText">The text to display while the long task is running.</param>
-    /// <param name="getElapsed">A function that returns the elapsed time in milliseconds since the task
+    /// <param name="stopwatch">A stopwatch that has the elapsed time in milliseconds since the task
     /// started.</param>
     /// <returns>A <see cref="CancellationTokenSource" /> that can be used to cancel the long task
     /// indicator.</returns>
-    public static CancellationTokenSource PrintLongTask(string executionText, out Func<long> getElapsed)
+    public static CancellationTokenSource PrintLongTask(string executionText, out Stopwatch stopwatch)
     {
-        var stopwatch = new Stopwatch();
-        stopwatch.Start();
+        LongTaskCts?.Cancel();
         var cts = LongTaskCts = new CancellationTokenSource();
-        getElapsed = () => stopwatch.ElapsedMilliseconds;
-        Task.Run(() => {
-            var i = 0;
+        
+        stopwatch = Stopwatch.StartNew();
+        
+        var thread = new Thread(() =>
+        {
+            string[] animationFrames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+            int frameIndex = 0;
+
             while (!cts.Token.IsCancellationRequested)
             {
+                string loadingSymbol = animationFrames[frameIndex++ % animationFrames.Length];
                 ClearCurrentConsoleLine();
-                var loadingSymbol = "\u280b\u2819\u2839\u2838\u283c\u2834\u2826\u2827\u2807\u280f"[i];
                 Console.Write(UseColorOption(
-                    $"\r {Dim($"\u279c {executionText} {loadingSymbol} ")}"
-                    , $"\r \u279c {executionText} {loadingSymbol} ")
-                    .PadRight(Console.WindowWidth));
-                i = (i + 1) % 10;
+                    $"\r {Dim($"\u279c {executionText} {loadingSymbol} ")}",
+                    $"\r \u279c {executionText} {loadingSymbol} "));
                 Console.ResetColor();
                 Thread.Sleep(100);
             }
-
-            stopwatch.Stop(); 
-        }, cts.Token);
+        });
+        
+        thread.Start();
+        
         return cts;
     }
 
@@ -72,8 +72,7 @@ public static class ConsoleUtility
         ClearCurrentConsoleLine();
         Console.WriteLine(UseColorOption(
             $"\r {Dim("\u279c")} {s} {Dim($"({elapsed}ms)")}",
-            $"\r \u279c {s} ({elapsed}ms)")
-            .PadRight(Console.WindowWidth));
+            $"\r \u279c {s} ({elapsed}ms)"));
         Console.ResetColor();
     }
     
@@ -85,8 +84,7 @@ public static class ConsoleUtility
         ClearCurrentConsoleLine();
         Console.WriteLine(UseColorOption(
             $"\r {Dim("\u279c")} {Dim(s)} {Dim($"({elapsed}ms)")}",
-            $"\r \u279c {s} ({elapsed}ms)")
-            .PadRight(Console.WindowWidth));
+            $"\r \u279c {s} ({elapsed}ms)"));
         Console.ResetColor();
     }
     
@@ -99,8 +97,7 @@ public static class ConsoleUtility
         if (IsReducedColors) Console.ForegroundColor = ConsoleColor.Red;
         Console.Error.WriteLine(UseColorOption(
             $"\r {Red().Dim("\u279c")} {Red().Bold(s)}",
-            $"\r \u279c {s}")
-            .PadRight(Console.WindowWidth));
+            $"\r \u279c {s}"));
         Console.ResetColor();
     }
 
@@ -112,8 +109,7 @@ public static class ConsoleUtility
         if (IsReducedColors) Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine(UseColorOption(
             $"\r {Yellow().Dim("\u279c")} {s}",
-            $"\r \u279c {s}")
-            .PadRight(Console.WindowWidth));
+            $"\r \u279c {s}"));
         Console.ResetColor();
     }
     
@@ -125,7 +121,7 @@ public static class ConsoleUtility
         if (IsReducedColors) Console.ForegroundColor = ConsoleColor.DarkGray;
         Console.WriteLine(UseColorOption(
             $"\r {Dim("\u279c")} {Dim(s)}",
-            $"\r \u279c {s}").PadRight(Console.WindowWidth));
+            $"\r \u279c {s}"));
         Console.ResetColor();
     }
     

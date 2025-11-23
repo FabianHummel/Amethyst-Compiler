@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Reflection;
@@ -365,7 +366,7 @@ public class Processor
     /// version and name.</param>
     private void CreateMeta(string outputDir, string datapackOrResourcepack, Func<string, string> substitutions)
     {
-        var cts = PrintLongTask($"Creating {datapackOrResourcepack.ToLower(CultureInfo.InvariantCulture)} meta file", out var getElapsed);
+        var cts = PrintLongTask($"Creating {datapackOrResourcepack.ToLower(CultureInfo.InvariantCulture)} meta file", out var stopwatch);
         var mcMeta = Path.Combine(outputDir, "pack.mcmeta");
     
         var assembly = Assembly.GetExecutingAssembly();
@@ -378,7 +379,7 @@ public class Processor
         
         if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
-            PrintDebugMessageWithTime($"{datapackOrResourcepack} meta file created at '{mcMeta}'.", getElapsed());
+            PrintDebugMessageWithTime($"{datapackOrResourcepack} meta file created at '{mcMeta}'.", stopwatch.ElapsedMilliseconds);
         }
     }
 
@@ -388,7 +389,7 @@ public class Processor
     /// <param name="datapack">The parsed datapack configuration</param>
     private void CreateFunctionTags(Datapack datapack)
     {
-        var cts = PrintLongTask("Creating function tags", out var getElapsed);
+        var cts = PrintLongTask("Creating function tags", out var stopwatch);
         {
             var path = Path.Combine(datapack.OutputDir, $"data/minecraft/tags/{DatapackFunctionsDirectory}/load.json");
             var content = File.ReadAllText(path);
@@ -408,7 +409,7 @@ public class Processor
 
         if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
-            PrintDebugMessageWithTime("Function tags created.", getElapsed());
+            PrintDebugMessageWithTime("Function tags created.", stopwatch.ElapsedMilliseconds);
         }
     }
 
@@ -419,7 +420,7 @@ public class Processor
     /// <param name="datapackOrResourcepack">Whether to copy the datapack or resourcepack template.</param>
     private void CopyTemplate(string outputDir, string datapackOrResourcepack)
     {
-        var cts = PrintLongTask($"Copying {datapackOrResourcepack.ToLower(CultureInfo.InvariantCulture)} template", out var getElapsed);
+        var cts = PrintLongTask($"Copying {datapackOrResourcepack.ToLower(CultureInfo.InvariantCulture)} template", out var stopwatch);
 
         var assemblyPath = $"Amethyst.Resources.{datapackOrResourcepack.ToLower(CultureInfo.InvariantCulture)}";
         AssemblyUtility.CopyAssemblyFolder(assemblyPath, outputDir, exclude: SourceFileExtension);
@@ -428,7 +429,7 @@ public class Processor
 
         if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
         {
-            PrintDebugMessageWithTime($"{datapackOrResourcepack} template copied.", getElapsed());
+            PrintDebugMessageWithTime($"{datapackOrResourcepack} template copied.", stopwatch.ElapsedMilliseconds);
         }
     }
 
@@ -438,7 +439,7 @@ public class Processor
     /// <param name="configuration">The provided configuration</param>
     private void CreateDatapackAndResourcepackContext(Configuration configuration)
     {
-        var cts = PrintLongTask("Creating project structure", out var getElapsed);
+        var stopwatch = Stopwatch.StartNew();
         
         if (configuration.Datapack is { } datapack)
         {
@@ -463,8 +464,7 @@ public class Processor
                 .Replace(Substitutions["pack_id"], $"\"{configuration.ProjectId}\""));
         }
         
-        cts.Cancel();
-        PrintMessageWithTime("Project structure created.", getElapsed());
+        PrintMessageWithTime("Project structure created.", stopwatch.ElapsedMilliseconds);
     }
 
     /// <summary>Compiles the project. First creates the context and environment needed for compilation and
@@ -473,7 +473,7 @@ public class Processor
     /// <param name="configuration">The project's configuration</param>
     private void CompileProject(Configuration configuration)
     {
-        var cts = PrintLongTask("Compiling program", out var getElapsed);
+        var cts = PrintLongTask("Compiling program", out var stopwatch);
         try
         {
             if (configuration.Datapack is { } datapack)
@@ -485,7 +485,7 @@ public class Processor
             {
                 ProcessDatapackOrResourcepack(false, resourcepack.OutputDir);
             }
-
+            
             var compiler = new Compiler(Context);
             compiler.CompileProject();
         }
@@ -508,7 +508,7 @@ public class Processor
         }
         
         cts.Cancel();
-        PrintMessageWithTime("Program compiled.", getElapsed());
+        PrintMessageWithTime("Program compiled.", stopwatch.ElapsedMilliseconds);
     }
 
     /// <summary>The first step of compilation is to process the datapack or resourcepack with the given
