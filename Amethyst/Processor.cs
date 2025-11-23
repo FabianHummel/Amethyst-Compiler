@@ -338,6 +338,26 @@ public class Processor
         Directory.CreateDirectory(outputDir);
     }
 
+    /// <summary>Copies the icon file to the output directory of the datapack or resourcepack, if an icon
+    /// path is specified. The icon name is always <c>pack.png</c>.</summary>
+    /// <param name="outputDir">The path where to copy the icon to</param>
+    /// <param name="iconPath">The path to the icon file, if specified</param>
+    private void CopyIcon(string outputDir, string? iconPath)
+    {
+        if (iconPath == null)
+        {
+            return;
+        }
+        
+        var destinationPath = Path.Combine(outputDir, "pack.png");
+        File.Copy(iconPath, destinationPath, overwrite: true);
+        
+        if (Context.CompilerFlags.HasFlag(CompilerFlags.Debug))
+        {
+            PrintDebug($"Icon copied to '{destinationPath}'.");
+        }
+    }
+
     /// <summary>Generates metadata for a datapack or resourcepack in the form of a <c>.mcmeta</c> file.</summary>
     /// <param name="outputDir">The path where to create the metadata file</param>
     /// <param name="datapackOrResourcepack">Whether the metadata is for a datapack or resourcepack.</param>
@@ -425,6 +445,7 @@ public class Processor
             SetDatapackOutputDirectory(datapack, configuration.MinecraftRoot);
             CreateOutputFolder(datapack.OutputDir);
             CopyTemplate(datapack.OutputDir, "Datapack");
+            CopyIcon(datapack.OutputDir, datapack.IconPath);
             CreateMeta(datapack.OutputDir, "Datapack", content => content
                 .Replace(Substitutions["description"], $"\"{datapack.Description}\"")
                 .Replace(Substitutions["pack_format"], datapack.PackFormat.ToString(), StringComparison.InvariantCulture)
@@ -435,6 +456,7 @@ public class Processor
             SetResourcepackOutputDirectory(resourcepack, configuration.MinecraftRoot);
             CreateOutputFolder(resourcepack.OutputDir);
             CopyTemplate(resourcepack.OutputDir, "Resourcepack");
+            CopyIcon(resourcepack.OutputDir, resourcepack.IconPath);
             CreateMeta(resourcepack.OutputDir, "Datapack", content => content
                 .Replace(Substitutions["description"], $"\"{resourcepack.Description}\"")
                 .Replace(Substitutions["pack_format"], resourcepack.PackFormat.ToString(), StringComparison.InvariantCulture)

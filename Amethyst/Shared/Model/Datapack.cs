@@ -26,6 +26,9 @@ public class Datapack
     [TomlProperty("pack_format")]
     public required int? PackFormat { get; [UsedImplicitly] init; } = DefaultDatapackFormat;
 
+    [TomlProperty("icon")]
+    public required string? IconPath { get; [UsedImplicitly] init; }
+    
     /// <summary>The absolute path to the output directory where files will be generated into.</summary>
     [TomlNonSerialized]
     public string OutputDir { get; set; } = null!;

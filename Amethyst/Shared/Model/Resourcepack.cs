@@ -26,6 +26,9 @@ public class Resourcepack
     [TomlProperty("pack_format")]
     public required int? PackFormat { get; [UsedImplicitly] init; } = Constants.DefaultResourcepackFormat;
 
+    [TomlProperty("icon")]
+    public required string? IconPath { get; [UsedImplicitly] init; }
+    
     /// <summary>The absolute path of the output directory where files will be written to.</summary>
     [TomlNonSerialized]
     public string OutputDir { get; set; } = null!;
