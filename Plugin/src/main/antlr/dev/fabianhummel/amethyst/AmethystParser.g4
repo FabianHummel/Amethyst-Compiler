@@ -3,12 +3,16 @@ parser grammar AmethystParser;
 options { tokenVocab=AmethystLexer; }
 
 file
- : preprocessorImportDeclaration* preprocessorStatement* EOF
+ : preprocessor* EOF
  ;
 
-preprocessorImportDeclaration
- : PREPROCESSOR_FROM preprocessorResourceLiteral PREPROCESSOR_IMPORT IDENTIFIER (COMMA IDENTIFIER)* SEMICOLON   #preprocessorFromImportDeclaration
- | PREPROCESSOR_IMPORT preprocessorResourceLiteral PREPROCESSOR_AS IDENTIFIER SEMICOLON                         #preprocessorImportAsDeclaration
+preprocessor
+ : preprocessorFromDeclaration
+ | preprocessorStatement
+ ;
+
+preprocessorFromDeclaration
+ : PREPROCESSOR_FROM RESOURCE_LITERAL PREPROCESSOR_IMPORT IDENTIFIER (COMMA IDENTIFIER)* SEMICOLON // replace RESOURCE_LITERAL with resourceLiteral in the future
  ;
 
 preprocessorStatement
@@ -24,8 +28,6 @@ preprocessorYieldingStatement
  | preprocessorBreakStatement
  | preprocessorYieldStatement
  | preprocessorDebugStatement
- | preprocessorAssignmentStatement
- | preprocessorCommentStatement
  | preprocessorExpressionStatement
  ;
 
@@ -50,13 +52,12 @@ preprocessorIfStatement
  ;
 
 preprocessorForStatement
- : PREPROCESSOR_FOR LPAREN preprocessorForStatementInitializer preprocessorExpression? SEMICOLON preprocessorAssignment? RPAREN block
+ : PREPROCESSOR_FOR LPAREN preprocessorForStatementInitializer? SEMICOLON preprocessorExpression? SEMICOLON preprocessorExpressionStatement? RPAREN block
  ;
 
 preprocessorForStatementInitializer
  : preprocessorVariableDeclaration
- | preprocessorAssignmentStatement
- | SEMICOLON
+ | preprocessorExpressionStatement
  ;
 
 preprocessorReturnStatement
@@ -75,28 +76,21 @@ preprocessorDebugStatement
  : PREPROCESSOR_DEBUG preprocessorExpression SEMICOLON
  ;
 
-preprocessorAssignmentStatement
- : preprocessorAssignment SEMICOLON
- ;
-
-preprocessorCommentStatement
- : PREPROCESSOR_COMMENT preprocessorExpression SEMICOLON
- ;
- 
 preprocessorExpressionStatement
- : preprocessorExpression SEMICOLON
+ : preprocessorAssignmentStatement SEMICOLON
+ | preprocessorExpression SEMICOLON
  ;
 
-preprocessorAssignment
- : preprocessorExpression op=(EQUALS | PLUSEQ | MINUSEQ | MULTEQ | DIVEQ | MODEQ) preprocessorExpression    # preprocessorAssignmentExpression
- | PLUSPLUS preprocessorExpression                                                                          # preprocessorPreIncrementExpression
- | MINUSMINUS preprocessorExpression                                                                        # preprocessorPreDecrementExpression
- | preprocessorExpression PLUSPLUS                                                                          # preprocessorPostIncrementExpression
- | preprocessorExpression MINUSMINUS                                                                        # preprocessorPostDecrementExpression
+preprocessorAssignmentStatement
+ : preprocessorExpression op=(EQUALS | PLUSEQ | MINUSEQ | MULTEQ | DIVEQ | MODEQ) preprocessorExpression
  ;
 
 preprocessorExpression
- : preprocessorExpression op=(MULTIPLY | DIVIDE | MODULO) preprocessorExpression            # preprocessorFactorExpression
+ : PLUSPLUS preprocessorExpression                                                          # preprocessorPreIncrementExpression
+ | MINUSMINUS preprocessorExpression                                                        # preprocessorPreDecrementExpression
+ | preprocessorExpression PLUSPLUS                                                          # preprocessorPostIncrementExpression
+ | preprocessorExpression MINUSMINUS                                                        # preprocessorPostDecrementExpression
+ | preprocessorExpression op=(MULTIPLY | DIVIDE | MODULO) preprocessorExpression            # preprocessorFactorExpression
  | preprocessorExpression op=(PLUS | MINUS) preprocessorExpression                          # preprocessorTermExpression
  | preprocessorExpression op=(LESS | GREATER | LESSEQ | GREATEREQ) preprocessorExpression   # preprocessorComparisonExpression
  | preprocessorExpression op=(EQEQ | NOTEQ) preprocessorExpression                          # preprocessorEqualityExpression
@@ -117,37 +111,31 @@ preprocessorLiteral
  : booleanLiteral
  | INTEGER_LITERAL
  | DECIMAL_LITERAL
- | preprocessorStringLiteral
- | preprocessorResourceLiteral
+ | STRING_LITERAL // stringLiteral
+ | RESOURCE_LITERAL // resourceLiteral
  ;
  
-preprocessorStringLiteral
- : QUOTE preprocessorRegularStringLiteralPart* QUOTE                # preprocessorRegularStringLiteral
- | INTERPQUOTE preprocessorInterpolatedStringLiteralPart* QUOTE     # preprocessorInterpolatedStringLiteral
- ;
-
-preprocessorRegularStringLiteralPart
- : REGULAR_STRING_CONTENT
- ;
-
-preprocessorInterpolatedStringLiteralPart
- : INTERP_STRING_CONTENT
- | LBRACE preprocessorExpression RBRACE
- ;
-
-preprocessorResourceLiteral
- : BACKTICK preprocessorRegularResourceLiteralPart* BACKTICK                # preprocessorRegularResourceLiteral
- | INTERPBACKTICK preprocessorInterpolatedResourceLiteralPart* BACKTICK     # preprocessorInterpolatedResourceLiteral
- ;
-
-preprocessorRegularResourceLiteralPart
- : REGULAR_RESOURCE_CONTENT
- ;
-
-preprocessorInterpolatedResourceLiteralPart 
- : INTERP_RESOURCE_CONTENT
- | LBRACE preprocessorExpression RBRACE
- ;
+//stringLiteral
+// : STRING_LITERAL stringLiteralPart* STRING_QUOTE
+// ;
+// 
+//stringLiteralPart
+// : STRING_CONTENT
+// | STRING_ESCAPE_SEQUENCE
+// | STRING_UNICODE_ESCAPE
+// | STRING_INTERPOLATION_START expression INTERPOLATION_END
+// ;
+//
+//resourceLiteral
+// : RESOURCE_LITERAL resourceLiteralPart* RESOURCE_QUOTE
+// ;
+// 
+//resourceLiteralPart
+// : RESOURCE_CONTENT
+// | RESOURCE_ESCAPE_SEQUENCE
+// | RESOURCE_UNICODE_ESCAPE
+// | RESOURCE_INTERPOLATION_START expression INTERPOLATION_END
+// ;
 
 declaration
  : functionDeclaration
@@ -190,7 +178,6 @@ parameter
 
 block
  : LBRACE preprocessorStatement* RBRACE
- | LRBRACE
  ;
 
 statement
@@ -200,23 +187,22 @@ statement
  | foreachStatement
  | ifStatement
  | debugStatement
+ | commentStatement
  | returnStatement
  | breakStatement
  | continueStatement
  | block
- | assignmentStatement
- | commandStatement
  | expressionStatement
+ | commandStatement
  ;
 
 forStatement
- : FOR LPAREN forStatementInitializer expression? SEMICOLON assignment? RPAREN block
+ : FOR LPAREN forStatementInitializer? SEMICOLON expression? SEMICOLON expressionStatement? RPAREN block
  ;
 
 forStatementInitializer
  : variableDeclaration
- | assignmentStatement
- | SEMICOLON
+ | expressionStatement
  ;
 
 whileStatement
@@ -235,6 +221,10 @@ debugStatement
  : DEBUG expression SEMICOLON
  ;
 
+commentStatement
+ : COMMENT STRING_LITERAL SEMICOLON
+ ;
+
 returnStatement
  : RETURN expression? SEMICOLON
  ;
@@ -247,28 +237,25 @@ continueStatement
  : CONTINUE SEMICOLON
  ;
 
-assignmentStatement
+expressionStatement
  : assignment SEMICOLON
+ | expression SEMICOLON
  ;
 
 commandStatement
- : COMMAND
- ;
-
-expressionStatement
- : expression SEMICOLON
- ;
+  : COMMAND
+  ;
 
 assignment
- : expression op=(EQUALS | PLUSEQ | MINUSEQ | MULTEQ | DIVEQ | MODEQ) expression    # assignmentExpression
- | PLUSPLUS expression                                                              # preIncrementExpression
- | MINUSMINUS expression                                                            # preDecrementExpression
- | expression PLUSPLUS                                                              # postIncrementExpression
- | expression MINUSMINUS                                                            # postDecrementExpression
+ : expression op=(EQUALS | PLUSEQ | MINUSEQ | MULTEQ | DIVEQ | MODEQ) expression
  ;
 
 expression
  : IDENTIFIER LPAREN argumentList? RPAREN                           # callExpression
+ | PLUSPLUS expression                                              # preIncrementExpression
+ | MINUSMINUS expression                                            # preDecrementExpression
+ | expression PLUSPLUS                                              # postIncrementExpression
+ | expression MINUSMINUS                                            # postDecrementExpression
  | expression DOT IDENTIFIER                                        # memberExpression
  | expression LBRACKET expression RBRACKET                          # indexExpression
  | expression op=(MULTIPLY | DIVIDE | MODULO) expression            # factorExpression
@@ -283,7 +270,7 @@ expression
  | literal                                                          # literalExpression
  | IDENTIFIER                                                       # identifierExpression
  ;
-
+ 
 argumentList
  : expression (COMMA expression)*
  ;
@@ -296,7 +283,7 @@ literal
  : booleanLiteral
  | INTEGER_LITERAL
  | DECIMAL_LITERAL
- | stringLiteral
+ | STRING_LITERAL // stringLiteral
  | selectorCreation
  | objectCreation
  | arrayCreation
@@ -306,32 +293,12 @@ literal
 booleanLiteral
  : TRUE | FALSE
  ;
- 
-stringLiteral
- : QUOTE regularStringLiteralPart* QUOTE                # regularStringLiteral
- | INTERPQUOTE interpolatedStringLiteralPart* QUOTE     # interpolatedStringLiteral
- ;
-
-regularStringLiteralPart
- : REGULAR_STRING_CONTENT
- ;
-
-interpolatedStringLiteralPart
- : INTERP_STRING_CONTENT
- | LBRACE expression RBRACE
- ;
-
-
-rangeExpression
- : expression DOTDOT expression?
- | expression? DOTDOT expression
- ;
 
 selectorCreation
- : entitySelectorType (LBRACKET ( selectorElement COMMA? )* RBRACKET)?
+ : selectorType (LBRACKET ( selectorElement COMMA? )* RBRACKET)?
  ;
 
-entitySelectorType
+selectorType
  : SELECTOR_SELF
  | SELECTOR_RANDOM_PLAYER
  | SELECTOR_ALL_PLAYERS
@@ -342,13 +309,18 @@ entitySelectorType
 
 selectorElement
  : preprocessorYieldingStatement
- | selectorQuery
+ | selectorKvp
  ;
 
-selectorQuery
- : IDENTIFIER EQUALS NOT? expression           # expressionSelector
+selectorKvp
+ : IDENTIFIER EQUALS expression                # expressionSelector
  | IDENTIFIER EQUALS rangeExpression           # rangeSelector
  | IDENTIFIER EQUALS recordSelectorCreation    # recordSelector
+ ;
+ 
+rangeExpression
+ : expression DOTDOT expression?
+ | expression? DOTDOT expression
  ;
 
 recordSelectorCreation
