@@ -119,11 +119,11 @@ public static class Program
 
     /// <summary>Run when the Amethyst configuration is changed. Reloads the entire config and recompile
     /// the project.</summary>
-    private static async void OnChangedConfig(object sender, FileSystemEventArgs e)
+    private static void OnChangedConfig(object sender, FileSystemEventArgs e)
     {
         _onChangedSourceTokenSource?.Cancel();
         _onChangedSourceTokenSource = new CancellationTokenSource();
-        await Task.Delay(500, _onChangedSourceTokenSource.Token).ContinueWith(t =>
+        Task.Delay(500, _onChangedSourceTokenSource.Token).ContinueWith(t =>
         {
             if (!t.IsCompletedSuccessfully)
             {

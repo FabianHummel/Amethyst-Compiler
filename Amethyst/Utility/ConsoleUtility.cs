@@ -26,7 +26,7 @@ public static class ConsoleUtility
     /// better compatibility.</summary>
     public static void ClearCurrentConsoleLine()
     {
-        Console.Write($"\r{new string(' ', Console.BufferWidth)}\r"); 
+        // Console.Write($"\r{new string(' ', Console.BufferWidth)}\r"); 
     }
 
     /// <summary>Starts a long task indicator in the console with a loading animation.</summary>

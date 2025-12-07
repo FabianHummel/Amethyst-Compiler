@@ -4,6 +4,8 @@ using System.Text.RegularExpressions;
 using System.Reflection;
 using Amethyst.Model;
 using Amethyst.Utility;
+using dotenv.net;
+using RconSharp;
 using Tomlet;
 
 namespace Amethyst;
@@ -413,6 +415,46 @@ public class Processor
         }
     }
 
+    /// <summary>Remotely reloads the datapacks in a running Minecraft instance by sending the appropriate
+    /// command to the server console via RCON.</summary>
+    /// <param name="datapack">The parsed datapack configuration</param>
+    private static async Task RemoteReloadDatapacks(Datapack datapack)
+    {
+        if (datapack.ReloadAfterCompile == false)
+        {
+            return;
+        }
+        
+        var cts = PrintLongTask("Reloading Datapacks", out var stopwatch);
+
+        var rcon = RconClient.Create(datapack.RconHost, datapack.RconPort);
+        rcon.ConnectionClosed += () =>
+        {
+            PrintWarning("Could not connect to RCON server to reload datapacks.");
+            cts.Cancel();
+        };
+        await rcon.ConnectAsync();
+        
+        if (datapack.RconPassword != null)
+        {
+            await rcon.AuthenticateAsync(datapack.RconPassword);
+        }
+        else
+        {
+            DotEnv.Load();
+            var envPassword = Environment.GetEnvironmentVariable("AMETHYST_RCON_PASSWORD");
+            if (envPassword != null)
+            {
+                await rcon.AuthenticateAsync(envPassword);
+            }
+        }
+        await rcon.ExecuteCommandAsync("reload");
+        
+        await cts.CancelAsync();
+
+        PrintDebugMessageWithTime("Datapacks Reloaded.", stopwatch.ElapsedMilliseconds);
+    }
+
     /// <summary>Copies the datapack or resourcepack template to the specified
     /// <paramref name="outputDir" />. This includes Amethyst's internal functions and APIs that the
     /// resulting code may use.</summary>
@@ -502,6 +544,7 @@ public class Processor
             return;
         }
         
+         
         if (configuration.Datapack is { } datapack2)
         {
             CreateFunctionTags(datapack2);
@@ -509,6 +552,11 @@ public class Processor
         
         cts.Cancel();
         PrintMessageWithTime("Program compiled.", stopwatch.ElapsedMilliseconds);
+        
+        if (configuration.Datapack is { } datapack3)
+        {
+            RemoteReloadDatapacks(datapack3).Wait();
+        }
     }
 
     /// <summary>The first step of compilation is to process the datapack or resourcepack with the given

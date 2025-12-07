@@ -26,8 +26,25 @@ public class Datapack
     [TomlProperty("pack_format")]
     public required int? PackFormat { get; [UsedImplicitly] init; } = DefaultDatapackFormat;
 
+    /// <summary>The path to the icon of the datapack.</summary>
     [TomlProperty("icon")]
     public required string? IconPath { get; [UsedImplicitly] init; }
+    
+    /// <summary>Whether to reload the datapack in the Minecraft server after compilation.</summary>
+    [TomlProperty("reload_after_compile")]
+    public required bool? ReloadAfterCompile { get; [UsedImplicitly] init; } = false;
+    
+    /// <summary>The RCON host of the Minecraft server to connect to for reloading the datapack.</summary>
+    [TomlProperty("rcon_host")]
+    public required string RconHost { get; [UsedImplicitly] init; } = "localhost";
+    
+    /// <summary>The RCON port of the Minecraft server to connect to for reloading the datapack.</summary>
+    [TomlProperty("rcon_port")]
+    public required int RconPort { get; [UsedImplicitly] init; } = 25575;
+    
+    /// <summary>The RCON password of the Minecraft server to connect to for reloading the datapack.</summary>
+    [TomlProperty("rcon_password")]
+    public required string? RconPassword { get; [UsedImplicitly] init; }
     
     /// <summary>The absolute path to the output directory where files will be generated into.</summary>
     [TomlNonSerialized]
