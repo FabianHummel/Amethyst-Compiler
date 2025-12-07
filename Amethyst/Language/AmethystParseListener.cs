@@ -1,7 +1,10 @@
 using Amethyst.Language;
+using Amethyst.Model;
 
 namespace Amethyst;
 
+/// <summary>Listener for parsing Amethyst source files. Handles symbol registration so that source
+/// files can import symbols from other files.</summary>
 public class AmethystParseListener : AmethystParserBaseListener
 {
     private Parser Parser { get; }
@@ -26,11 +29,16 @@ public class AmethystParseListener : AmethystParserBaseListener
         }
     }
 
-    public override void ExitPreprocessorFromDeclaration(AmethystParser.PreprocessorFromDeclarationContext context)
+    public override void ExitPreprocessorFromImportDeclaration(AmethystParser.PreprocessorFromImportDeclarationContext context)
     {
-        if (context.RESOURCE_LITERAL() is not { } resourceLiteral)
+        if (context.preprocessorResourceLiteral() is not { } resourceLiteral)
         {
             return;
+        }
+
+        if (resourceLiteral is not AmethystParser.PreprocessorRegularResourceLiteralContext regularResourceLiteralContext)
+        {
+            throw new SyntaxException("Import declarations must not contain expressions in resource literals.", context);
         }
         
         var symbols = context.IDENTIFIER()
@@ -39,8 +47,10 @@ public class AmethystParseListener : AmethystParserBaseListener
 
         foreach (var symbolName in symbols)
         {
+            var resource = new Resource(regularResourceLiteralContext.GetText()[1..^1]);
+            
             if (!Parser.SourceFile.ExportedSymbols.ContainsKey(symbolName) &&
-                !Parser.SourceFile.ImportedSymbols.TryAdd(symbolName, resourceLiteral.GetText()[1..^1]))
+                !Parser.SourceFile.ImportedSymbols.TryAdd(symbolName, resource))
             {
                 throw new SymbolAlreadyDeclaredException(symbolName, context);
             }
@@ -82,26 +92,6 @@ public class AmethystParseListener : AmethystParserBaseListener
             !Parser.SourceFile.ImportedSymbols.ContainsKey(symbolName))
         {
             throw new SymbolAlreadyDeclaredException(symbolName, context);
-        }
-    }
-
-    public override void ExitFunctionDeclaration(AmethystParser.FunctionDeclarationContext context)
-    {
-        var fnName = context.IDENTIFIER().GetText();
-
-        var attributesListContext = context.attributeList();
-        var attributes = attributesListContext.attribute()
-            .Select(attributeContext => attributeContext.IDENTIFIER().GetText())
-            .ToHashSet();
-        
-        var entryPointAttributes = new HashSet<string>
-        {
-            Constants.AttributeLoadFunction,
-            Constants.AttributeTickFunction
-        };
-        if (attributes.Overlaps(entryPointAttributes))
-        {
-            Parser.SourceFile.EntryPointFunctions.Add(fnName, context);
         }
     }
 }

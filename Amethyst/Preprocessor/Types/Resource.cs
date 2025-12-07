@@ -1,10 +1,14 @@
 using Amethyst.Model;
+using Amethyst.Utility;
 
 namespace Amethyst;
 
-public partial class PreprocessorResource : AbstractPreprocessorValue, IPreprocessorValue<string>
+/// <summary>Represents an Amethyst resource path.</summary>
+/// <example><c>`minecraft:path/to/resource`</c><br /> <c>`my_namespace:path/to/function`</c></example>
+[ForwardDefaultInterfaceMethods(typeof(IPreprocessorValue<Resource>))]
+public partial class PreprocessorResource : AbstractPreprocessorValue, IPreprocessorValue<Resource>
 {
-    public required string Value { get; set; }
+    public required Resource Value { get; set; }
     
     public override PreprocessorDatatype Datatype => new()
     {
@@ -18,6 +22,8 @@ public partial class PreprocessorResource : AbstractPreprocessorValue, IPreproce
     public override int AsInteger => throw _cannotInterpretException;
     
     public override double AsDecimal => throw _cannotInterpretException;
+    
+    public override string AsString => Value;
 
     public override string ToString()
     {

@@ -5,6 +5,10 @@ namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
+    /// <summary><p>Loops over a block of code while a specific condition is true during preprocessing.</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <seealso cref="VisitForStatement" />
     public override object? VisitPreprocessorForStatement(AmethystParser.PreprocessorForStatementContext context)
     {
         if (context.preprocessorForStatementInitializer() is { } forStatementInitializerContext)
@@ -34,9 +38,9 @@ public partial class Compiler
             while(value.AsBoolean && maxIterations-- > 0)
             {
                 VisitBlock(context.block());
-                if (context.preprocessorExpressionStatement() is { } preprocessorExpressionStatementContext)
+                if (context.preprocessorAssignment() is { } preprocessorAssignmentContext)
                 {
-                    VisitPreprocessorExpressionStatement(preprocessorExpressionStatementContext);
+                    Visit(preprocessorAssignmentContext);
                 }
                 value = VisitPreprocessorExpression(context.preprocessorExpression());
             }

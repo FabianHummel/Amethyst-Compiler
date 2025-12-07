@@ -1,8 +1,9 @@
 using System.Globalization;
 
-namespace Amethyst;
+namespace Amethyst.Model;
 
-public static class Constants
+/// <summary>Collection of constants that are used throughout the compiler.</summary>
+public static partial class Constants
 {
     public const string ConfigFile = "amethyst.toml";
     public const string SourceFile = "*.amy";
@@ -35,9 +36,12 @@ public static class Constants
     public const string InternalNamespaceName = "amethyst";
     public const string DatapackFunctionsDirectory = "function";
     public const string InitFunctionName = "_init";
+    public const string MinecraftNamespaceName = "minecraft";
 
     public static readonly string AmethystVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!.ToString();
 
+    /// <summary>Collection of mustache bindings that are used to substitute specific parts in template
+    /// files.</summary>
     public static readonly IReadOnlyDictionary<string, string> Substitutions = new Dictionary<string, string>
     {
         { "pack_id", "{{pack_id}}" },
@@ -48,7 +52,8 @@ public static class Constants
         { "date", "{{date}}" },
         { "amethyst_version", "{{amethyst_version}}" }
     };
-    
+
+    /// <summary>Predefined values that are used to substitute values of <see cref="Substitutions" />.</summary>
     public static readonly IReadOnlyDictionary<string, object> SubstitutionValues = new Dictionary<string, object>
     {
         { "date", DateTime.Now.ToString("yyyy-MM-dd", NumberFormatInfo.InvariantInfo) },

@@ -7,16 +7,18 @@ namespace Amethyst;
 public abstract class AbstractConstantObject : AbstractObject, IConstantValue<Dictionary<string, IConstantValue>>, ISubstitutable, IIndexable, IMemberAccess
 {
     public required Dictionary<string, IConstantValue> Value { get; init; }
-    
-    /// <summary>
-    /// List of substitutions that need to be made in order to fully create the object.
-    /// </summary>
+
+    /// <summary>List of substitutions that need to be made in order to fully create the object.</summary>
     public List<KeyValuePair<object, IRuntimeValue>>? Substitutions { get; init; }
     
     public int AsInteger => Value.Count;
     
     public bool AsBoolean => AsInteger > 0;
     
+    public double AsDouble => AsInteger;
+    
+    public string AsString => $"{{{string.Join(", ", Value.Select(kvp => $"{kvp.Key}: {kvp.Value.AsString}"))}}}";
+
     public abstract IRuntimeValue ToRuntimeValue();
 
     public void SubstituteRecursively(string substitutionModifierPrefix = "")
@@ -37,7 +39,7 @@ public abstract class AbstractConstantObject : AbstractObject, IConstantValue<Di
             {
                 var substitutionModifier = substitutionModifierPrefix + Datatype.GetSubstitutionModifier(i);
                 
-                if (element.Datatype is AbstractScoreboardDatatype scoreboardDatatype)
+                if (element.Datatype.IsScoreboardType(out var scoreboardDatatype))
                 {
                     this.AddCode($"execute store result storage {substitutionModifier} {scoreboardDatatype.StorageModifier} run scoreboard players get {element.Location}");
                 }

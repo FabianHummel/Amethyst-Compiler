@@ -1,22 +1,23 @@
 using Amethyst.Language;
-using Amethyst.Model;
 
 namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Creates new constant values by a literal value, e.g. values directly embedded into the
+    ///     source code.</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <exception cref="SyntaxException">The literal is unknown or not in the correct format.</exception>
+    /// <exception cref="InvalidOperationException">The literal is not yet supported by the compiler.</exception>
     public override AbstractValue VisitLiteralExpression(AmethystParser.LiteralExpressionContext context)
     {
         var literalContext = context.literal();
         
-        if (literalContext.STRING_LITERAL() is { } stringLiteral)
+        if (literalContext.stringLiteral() is { } stringLiteral)
         {
-            return new ConstantString
-            {
-                Compiler = this,
-                Context = literalContext,
-                Value = stringLiteral.GetText()[1..^1]
-            };
+            return (AbstractString)Visit(stringLiteral)!;
         }
         
         if (literalContext.DECIMAL_LITERAL() is { } decimalLiteral)
@@ -92,6 +93,11 @@ public partial class Compiler
                 Context = literalContext,
                 Location = rawLocation
             };
+        }
+
+        if (literalContext.selectorCreation() is { } selectorCreationContext)
+        {
+            return VisitSelectorCreation(selectorCreationContext);
         }
         
         throw new InvalidOperationException($"Invalid literal '{literalContext.GetText()}'.");

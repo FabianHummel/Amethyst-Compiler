@@ -1,20 +1,21 @@
 namespace Amethyst.Model;
 
+/// <summary>Represents arithmetic operators used in expressions.</summary>
 public enum ArithmeticOperator
 {
-    [McfOperator("+")]
+    [McfToken("+")]
     [AmethystOperator("+")]
     ADD,
-    [McfOperator("-")]
+    [McfToken("-")]
     [AmethystOperator("-")]
     SUBTRACT,
-    [McfOperator("*")]
+    [McfToken("*")]
     [AmethystOperator("*")]
     MULTIPLY,
-    [McfOperator("/")]
+    [McfToken("/")]
     [AmethystOperator("/")]
     DIVIDE,
-    [McfOperator("%")]
+    [McfToken("%")]
     [AmethystOperator("%")]
     MODULO
 }

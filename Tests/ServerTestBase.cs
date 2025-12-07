@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Amethyst;
 using Amethyst.Model;
 using NUnit.Framework;
 using NUnit.Framework.Interfaces;
@@ -52,7 +53,7 @@ public abstract class ServerTestBase
             var argumentValue = currentTest.Arguments[index];
             await SetVariableValue(parameterVariable, argumentValue!);
         }
-
+        
         // run the test function on the server
         await TestMain.Rcon.ExecuteCommandAsync($"function {testFunctionScope.McFunctionPath}");
 
@@ -102,7 +103,7 @@ public abstract class ServerTestBase
     
     private static async Task SetVariableValue(Variable target, object value)
     {
-        string mcfValue = target.ToMcfValue(value);
+        string mcfValue = ToMcfValue(target, value);
 
         string command;
         if (target.Location.DataLocation == DataLocation.Scoreboard)
@@ -116,5 +117,33 @@ public abstract class ServerTestBase
 
         TestContext.WriteLine($"/{command}");
         await TestMain.Rcon.ExecuteCommandAsync(command);
+    }
+    
+    private static string ToMcfValue(Variable target, object value)
+    {
+        if (target.Location.DataLocation == DataLocation.Scoreboard)
+        {
+            if (target.Datatype is DecimalDatatype decimalDatatype)
+            {
+                value = Math.Round((double)value, decimalDatatype.DecimalPlaces);
+            }
+            
+            if (!IScoreboardValue.TryParse(value, out var scoreboardValue))
+            {
+                throw new InvalidOperationException($"Cannot convert value '{value}' to scoreboard value.");
+            }
+            return scoreboardValue.ScoreboardValue.ToString();
+        }
+
+        if (target.Location.DataLocation == DataLocation.Storage)
+        {
+            if (!IConstantValue.TryParse(value, out var storageValue))
+            {
+                throw new InvalidOperationException($"Cannot convert value '{value}' to storage value.");
+            }
+            return storageValue.ToNbtString();
+        }
+
+        throw new InvalidOperationException($"Unknown data location '{target.Location.DataLocation}'.");
     }
 }

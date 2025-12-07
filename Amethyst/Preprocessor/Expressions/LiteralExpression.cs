@@ -1,30 +1,30 @@
 using Amethyst.Language;
+using Amethyst.Model;
 
 namespace Amethyst;
 
 public partial class Compiler
 {
+    /// <summary>Parses a preprocessor literal expression and returns an instance of
+    /// <see cref="AbstractPreprocessorValue" />.</summary>
+    /// <exception cref="SyntaxException">The literal is invalid.</exception>
+    /// <seealso cref="VisitLiteralExpression" />
     public override AbstractPreprocessorValue VisitPreprocessorLiteralExpression(AmethystParser.PreprocessorLiteralExpressionContext context)
     {
         var literalContext = context.preprocessorLiteral();
         
-        if (literalContext.STRING_LITERAL() is { } stringLiteral)
+        if (literalContext.preprocessorStringLiteral() is { } stringLiteral)
         {
-            return new PreprocessorString
-            {
-                Compiler = this,
-                Context = literalContext,
-                Value = stringLiteral.GetText()[1..^1]
-            };
+            return (PreprocessorString)Visit(stringLiteral)!;
         }
         
-        if (literalContext.RESOURCE_LITERAL() is { } resourceLiteral)
+        if (literalContext.preprocessorResourceLiteral() is { } resourceLiteral)
         {
             return new PreprocessorResource
             {
                 Compiler = this,
                 Context = literalContext,
-                Value = resourceLiteral.GetText()[1..^1]
+                Value = (Resource)Visit(resourceLiteral)!
             };
         }
         

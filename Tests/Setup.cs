@@ -47,7 +47,9 @@ public static partial class TestMain
         {
             ArithmeticOperators = ArithmeticOperatorTestCase.Preset,
             DefaultNumericTypes = NumericTypeTestCase.DefaultPreset,
-            AllNumericTypes = NumericTypeTestCase.AllPreset
+            AllNumericTypes = NumericTypeTestCase.AllPreset,
+            RegularStrings = StringTestCase.Regular,
+            InterpolatedStrings = StringTestCase.Interpolated,
         };
 
         var context = new TemplateContext(model, new TemplateOptions
@@ -66,6 +68,7 @@ public static partial class TestMain
 
             var outputPath = Regex.Replace(liquidTemplatePath, @"\.liquid$", "");
             File.WriteAllText(outputPath, renderedContent);
+            File.Delete(liquidTemplatePath);
         }
     }
     

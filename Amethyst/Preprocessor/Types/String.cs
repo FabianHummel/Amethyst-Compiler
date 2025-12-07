@@ -1,7 +1,10 @@
 using Amethyst.Model;
+using Amethyst.Utility;
 
 namespace Amethyst;
 
+/// <summary>Represents a string value in the preprocessor.</summary>
+[ForwardDefaultInterfaceMethods(typeof(IPreprocessorValue<string>))]
 public partial class PreprocessorString : AbstractPreprocessorValue, IPreprocessorValue<string>
 {
     public required string Value { get; set; }
@@ -16,6 +19,8 @@ public partial class PreprocessorString : AbstractPreprocessorValue, IPreprocess
     public override int AsInteger => Value.Length;
     
     public override double AsDecimal => AsInteger;
+    
+    public override string AsString => Value;
 
     public override string ToString()
     {

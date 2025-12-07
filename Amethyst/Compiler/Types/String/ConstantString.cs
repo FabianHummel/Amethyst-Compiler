@@ -11,6 +11,10 @@ public class ConstantString : AbstractString, IConstantValue<string>, IMemberAcc
     
     public bool AsBoolean => !string.IsNullOrEmpty(Value);
 
+    public double AsDouble => AsInteger;
+    
+    public string AsString => Value;
+
     public IRuntimeValue ToRuntimeValue()
     {
         var location = Location.Storage(++Compiler.StackPointer);
@@ -48,7 +52,7 @@ public class ConstantString : AbstractString, IConstantValue<string>, IMemberAcc
 
     public override string ToTargetSelectorString()
     {
-        return Value;
+        return Value; // TODO: if no spaces or special characters, return as is, else wrap with quotes, or if it contains double quotes, wrap with single quotes, etc...
     }
 
     public AbstractValue? GetMember(string memberName) => memberName switch

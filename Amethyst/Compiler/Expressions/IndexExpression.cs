@@ -2,13 +2,13 @@ using Amethyst.Language;
 
 namespace Amethyst;
 
-public interface IIndexable
-{
-    AbstractValue GetIndex(AbstractValue index);
-}
-
 public partial class Compiler
 {
+    /// <inheritdoc />
+    /// <summary>
+    ///     <p>Accesses an index of any value that is indexable (implementing <see cref="IIndexable" />).</p>
+    ///     <p><inheritdoc /></p></summary>
+    /// <exception cref="SyntaxException">The target is not indexable.</exception>
     public override AbstractValue VisitIndexExpression(AmethystParser.IndexExpressionContext context)
     {
         var expressionContexts = context.expression();

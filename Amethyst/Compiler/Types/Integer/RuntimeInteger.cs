@@ -1,7 +1,9 @@
 using Amethyst.Model;
+using Amethyst.Utility;
 
 namespace Amethyst;
 
+[ForwardDefaultInterfaceMethods(typeof(IRuntimeValue))]
 public partial class RuntimeInteger : AbstractInteger, IRuntimeValue
 {
     public required Location Location { get; init; }

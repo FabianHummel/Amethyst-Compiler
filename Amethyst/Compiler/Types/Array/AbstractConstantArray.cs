@@ -1,21 +1,22 @@
 using System.Diagnostics.CodeAnalysis;
-using Amethyst.Model;
 
 namespace Amethyst;
 
 public abstract class AbstractConstantArray : AbstractArray, IConstantValue<IConstantValue[]>, ISubstitutable, IIndexable, IMemberAccess
 {
     public required IConstantValue[] Value { get; init; }
-    
-    /// <summary>
-    /// List of substitutions that need to be made in order to fully create the object.
-    /// </summary>
+
+    /// <summary>List of substitutions that need to be made in order to fully create the object.</summary>
     public List<KeyValuePair<object, IRuntimeValue>>? Substitutions { get; init; }
     
     public int AsInteger => Value.Length;
     
     public bool AsBoolean => AsInteger > 0;
     
+    public double AsDouble => AsInteger;
+    
+    public string AsString => $"[{string.Join(",", Value.Select(v => v.AsString))}]";
+
     public abstract IRuntimeValue ToRuntimeValue();
 
     public void SubstituteRecursively(string substitutionModifierPrefix = "")
@@ -38,7 +39,7 @@ public abstract class AbstractConstantArray : AbstractArray, IConstantValue<ICon
             {
                 var substitutionModifier = substitutionModifierPrefix + Datatype.GetSubstitutionModifier(i);
                 
-                if (element.Datatype is AbstractScoreboardDatatype scoreboardDatatype)
+                if (element.Datatype.IsScoreboardType(out var scoreboardDatatype))
                 {
                     this.AddCode($"execute store result storage {substitutionModifier} {scoreboardDatatype.StorageModifier} run scoreboard players get {element.Location}");
                 }

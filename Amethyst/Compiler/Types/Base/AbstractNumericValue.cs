@@ -1,10 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using Amethyst.Model;
 using Amethyst.Utility;
+using Antlr4.Runtime;
 
 namespace Amethyst;
 
-public abstract partial class AbstractNumericValue : AbstractAmethystValue
+public abstract partial class AbstractNumericValue : AbstractValue
 {
     protected abstract AbstractDecimal AsDecimal { get; }
 
@@ -12,30 +13,16 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
 
     public override AbstractDatatype Datatype => ScoreboardDatatype;
 
-    /// <summary>
-    /// Ensures that this number is stored in storage, likely to be able to use it as macro input.
-    /// </summary>
-    /// <returns>A runtime value pointing to a storage location</returns>
-    public IRuntimeValue EnsureInStorage()
+    static AbstractNumericValue()
     {
-        if (this is not IRuntimeValue runtimeValue)
-        {
-            throw new InvalidOperationException("Call of this method is not allowed on constant values.");
-        }
-        
-        var location = runtimeValue.NextFreeLocation(DataLocation.Storage);
-        
-        this.AddCode($"execute store result storage {location} {ScoreboardDatatype.StorageModifier} run scoreboard players get {runtimeValue.Location}");
-
-        return ((IRuntimeValue)this).WithLocation(location, temporary: true);
+        OperationRegistry.Register<AbstractNumericValue, AbstractNumericValue, AbstractNumericValue, ArithmeticOperator>(Calculate);
+        OperationRegistry.Register<AbstractNumericValue, AbstractNumericValue, AbstractBoolean, ComparisonOperator>(Calculate);
     }
-
-    /// <summary>
-    /// Calculates any two numeric values with the given operator.
-    /// </summary>
-    private AbstractNumericValue Calculate(AbstractNumericValue lhs, AbstractNumericValue rhs, ArithmeticOperator op)
+    
+    /// <summary>Calculates any two numeric values with the given operator.</summary>
+    private static AbstractNumericValue Calculate(Compiler compiler, ParserRuleContext context, AbstractNumericValue lhs, AbstractNumericValue rhs, ArithmeticOperator op)
     {
-        if (TryCalculateConstants(lhs, rhs, op, out var result))
+        if (TryCalculateConstants(compiler, context, lhs, rhs, op, out var result))
         {
             return result;
         }
@@ -44,21 +31,19 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
         {
             var runtimeDecimalLhs = (RuntimeDecimal)decimalLhs.EnsureRuntimeValue();
             var runtimeDecimalRhs = (RuntimeDecimal)decimalRhs.EnsureRuntimeValue();
-            var resultScaling = ApplyDecimalScaling(ref runtimeDecimalLhs, ref runtimeDecimalRhs, op);
-            var decimalResult = PerformCalculation(runtimeDecimalLhs, runtimeDecimalRhs, op).AsDecimal;
+            var resultScaling = ApplyDecimalScaling(compiler, context, ref runtimeDecimalLhs, ref runtimeDecimalRhs, op);
+            var decimalResult = PerformCalculation(compiler, context, runtimeDecimalLhs, runtimeDecimalRhs, op).AsDecimal;
             decimalResult.DecimalPlaces = resultScaling;
             return decimalResult;
         }
         
         var runtimeLhs = lhs.EnsureRuntimeValue();
         var runtimeRhs = rhs.EnsureRuntimeValue();
-        return PerformCalculation(runtimeLhs, runtimeRhs, op);
+        return PerformCalculation(compiler, context, runtimeLhs, runtimeRhs, op);
     }
-    
-    /// <summary>
-    /// Tries to calculate the result of two constant numeric values with the given operator.
-    /// </summary>
-    private bool TryCalculateConstants(AbstractNumericValue anvLhs, AbstractNumericValue anvRhs, ArithmeticOperator op, [NotNullWhen(true)] out AbstractNumericValue? result)
+
+    /// <summary>Tries to calculate the result of two constant numeric values with the given operator.</summary>
+    private static bool TryCalculateConstants(Compiler compiler, ParserRuleContext context, AbstractNumericValue anvLhs, AbstractNumericValue anvRhs, ArithmeticOperator op, [NotNullWhen(true)] out AbstractNumericValue? result)
     {
         result = null;
         if (anvLhs is not IConstantValue lhs || anvRhs is not IConstantValue rhs)
@@ -78,13 +63,13 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
                 ArithmeticOperator.MULTIPLY => constantDecimalLhs.Value * constantDecimalRhs.Value,
                 ArithmeticOperator.DIVIDE => constantDecimalLhs.Value / constantDecimalRhs.Value,
                 ArithmeticOperator.MODULO => constantDecimalLhs.Value % constantDecimalRhs.Value,
-                _ => throw new SyntaxException($"Invalid operator '{op}'.", Context)
+                _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
             };
             
             result = new ConstantDecimal
             {
-                Compiler = Compiler,
-                Context = Context,
+                Compiler = compiler,
+                Context = context,
                 DecimalPlaces = Math.Max(constantDecimalLhs.DecimalPlaces, constantDecimalRhs.DecimalPlaces),
                 Value = decimalValue
             };
@@ -99,30 +84,28 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
             ArithmeticOperator.MULTIPLY => lhs.AsInteger * rhs.AsInteger,
             ArithmeticOperator.DIVIDE => lhs.AsInteger / rhs.AsInteger,
             ArithmeticOperator.MODULO => lhs.AsInteger % rhs.AsInteger,
-            _ => throw new SyntaxException($"Invalid operator '{op}'.", Context)
+            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
         };
         
         result = new ConstantInteger
         {
-            Compiler = Compiler,
-            Context = Context,
+            Compiler = compiler,
+            Context = context,
             Value = integerValue
         };
         
         return true;
     }
-    
-    /// <summary>
-    /// Calculates any two numeric values with the given operator.
-    /// </summary>
-    private AbstractNumericValue Calculate(AbstractNumericValue lhs, AbstractNumericValue rhs, ComparisonOperator op)
+
+    /// <summary>Calculates any two numeric values with the given operator.</summary>
+    private static AbstractBoolean Calculate(Compiler compiler, ParserRuleContext context, AbstractNumericValue lhs, AbstractNumericValue rhs, ComparisonOperator op)
     {
-        if (TryCalculateConstants(lhs, rhs, op, out var result))
+        if (TryCalculateConstants(context, lhs, rhs, op, out var result))
         {
             return new ConstantBoolean
             {
-                Compiler = Compiler,
-                Context = Context,
+                Compiler = compiler,
+                Context = context,
                 Value = result.Value
             };
         }
@@ -131,19 +114,17 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
         {
             var runtimeDecimalLhs = (RuntimeDecimal)decimalLhs.EnsureRuntimeValue();
             var runtimeDecimalRhs = (RuntimeDecimal)decimalRhs.EnsureRuntimeValue();
-            ApplyDecimalScaling(ref runtimeDecimalLhs, ref runtimeDecimalRhs);
-            return PerformCalculation(runtimeDecimalLhs, runtimeDecimalRhs, op);
+            ApplyDecimalScaling(compiler, context,ref runtimeDecimalLhs, ref runtimeDecimalRhs);
+            return PerformCalculation(compiler, context, runtimeDecimalLhs, runtimeDecimalRhs, op);
         }
         
         var runtimeLhs = lhs.EnsureRuntimeValue();
         var runtimeRhs = rhs.EnsureRuntimeValue();
-        return PerformCalculation(runtimeLhs, runtimeRhs, op);
+        return PerformCalculation(compiler, context, runtimeLhs, runtimeRhs, op);
     }
-    
-    /// <summary>
-    /// Tries to calculate the result of two constant numeric values with the given operator.
-    /// </summary>
-    private bool TryCalculateConstants(AbstractNumericValue anvLhs, AbstractNumericValue anvRhs, ComparisonOperator op, [NotNullWhen(true)] out bool? result)
+
+    /// <summary>Tries to calculate the result of two constant numeric values with the given operator.</summary>
+    private static bool TryCalculateConstants(ParserRuleContext context, AbstractNumericValue anvLhs, AbstractNumericValue anvRhs, ComparisonOperator op, [NotNullWhen(true)] out bool? result)
     {
         result = null;
         if (anvLhs is not IConstantValue lhs || anvRhs is not IConstantValue rhs)
@@ -164,7 +145,7 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
                 ComparisonOperator.GREATER_THAN_OR_EQUAL => constantDecimalLhs.Value >= constantDecimalRhs.Value,
                 ComparisonOperator.EQUAL => Math.Abs(constantDecimalLhs.Value - constantDecimalRhs.Value) < float.Epsilon,
                 ComparisonOperator.NOT_EQUAL => Math.Abs(constantDecimalLhs.Value - constantDecimalRhs.Value) >= float.Epsilon,
-                _ => throw new SyntaxException($"Invalid operator '{op}'.", Context)
+                _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
             };
             
             return true;
@@ -178,15 +159,13 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
             ComparisonOperator.GREATER_THAN_OR_EQUAL => lhs.AsInteger >= rhs.AsInteger,
             ComparisonOperator.EQUAL => lhs.AsInteger == rhs.AsInteger,
             ComparisonOperator.NOT_EQUAL => lhs.AsInteger != rhs.AsInteger,
-            _ => throw new SyntaxException($"Invalid operator '{op}'.", Context)
+            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
         };
         
         return true;
     }
-    
-    /// <summary>
-    /// Tries to convert both numeric values to decimals if at least one of them is a decimal.
-    /// </summary>
+
+    /// <summary>Tries to convert both numeric values to decimals if at least one of them is a decimal.</summary>
     private static bool TryConvertToDecimals(AbstractNumericValue anvLhs, AbstractNumericValue anvRhs, [NotNullWhen(true)] out AbstractDecimal? lhs, [NotNullWhen(true)] out AbstractDecimal? rhs)
     {
         lhs = null;
@@ -201,11 +180,9 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
         return true;
     }
 
-    /// <summary>
-    /// Applies decimal scaling to two runtime decimal values so that they have the same number
-    /// of decimal places in order to perform arithmetic operations on them through scoreboards.
-    /// </summary>
-    private int ApplyDecimalScaling(ref RuntimeDecimal lhs, ref RuntimeDecimal rhs, ArithmeticOperator? op = null)
+    /// <summary>Applies decimal scaling to two runtime decimal values so that they have the same number of
+    /// decimal places in order to perform arithmetic operations on them through scoreboards.</summary>
+    private static int ApplyDecimalScaling(Compiler compiler, ParserRuleContext context, ref RuntimeDecimal lhs, ref RuntimeDecimal rhs, ArithmeticOperator? op = null)
     {
         switch (op)
         {
@@ -220,16 +197,16 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
                 {
                     lhs = (RuntimeDecimal)lhs.EnsureBackedUp();
                     lhs.DecimalPlaces = highestDecimalPlaces;
-                    this.AddCode($"scoreboard players operation {lhs.Location} *= #{scale} amethyst_const");
-                    Compiler.Namespace.ScoreboardConstants.Add(scale);
+                    compiler.AddCode($"scoreboard players operation {lhs.Location} *= #{scale} amethyst_const");
+                    compiler.Namespace.ScoreboardConstants.Add(scale);
                 }
         
                 if (weightedDecimalPlaces > 0)
                 {
                     rhs = (RuntimeDecimal)rhs.EnsureBackedUp();
                     lhs.DecimalPlaces = highestDecimalPlaces;
-                    this.AddCode($"scoreboard players operation {rhs.Location} *= #{scale} amethyst_const");
-                    Compiler.Namespace.ScoreboardConstants.Add(scale);
+                    compiler.AddCode($"scoreboard players operation {rhs.Location} *= #{scale} amethyst_const");
+                    compiler.Namespace.ScoreboardConstants.Add(scale);
                 }
 
                 return highestDecimalPlaces;
@@ -244,7 +221,7 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
             {
                 if (rhs.DecimalPlaces > lhs.DecimalPlaces)
                 {
-                    throw new SemanticException($"Right side of division can't have higher precision than left side, because the result would always be zero. ({rhs.DecimalPlaces} > {lhs.DecimalPlaces})", Context);
+                    throw new SemanticException($"Right side of division can't have higher precision than left side, because the result would always be zero. ({rhs.DecimalPlaces} > {lhs.DecimalPlaces})", context);
                 }
                 
                 return lhs.DecimalPlaces - rhs.DecimalPlaces;
@@ -254,35 +231,31 @@ public abstract partial class AbstractNumericValue : AbstractAmethystValue
         throw new InvalidOperationException("Decimal scaling can only be applied for arithmetic operations.");
     }
 
-    /// <summary>
-    /// Performs arithmetic on two runtime values.
-    /// This expects both values to be already safe for any calculations.
-    /// </summary>
-    private RuntimeInteger PerformCalculation(IRuntimeValue lhs, IRuntimeValue rhs, ArithmeticOperator op)
+    /// <summary>Performs arithmetic on two runtime values. This expects both values to be already safe for
+    /// any calculations.</summary>
+    private static RuntimeInteger PerformCalculation(Compiler compiler, ParserRuleContext context, IRuntimeValue lhs, IRuntimeValue rhs, ArithmeticOperator op)
     {
         var runtimeLhsBackup = lhs.EnsureBackedUp();
-        this.AddCode($"scoreboard players operation {runtimeLhsBackup.Location} {op.GetMcfOperatorSymbol()}= {rhs.Location}");
+        compiler.AddCode($"scoreboard players operation {runtimeLhsBackup.Location} {op.GetMcfOperatorSymbol()}= {rhs.Location}");
         return new RuntimeInteger
         {
-            Compiler = Compiler,
-            Context = Context,
+            Compiler = compiler,
+            Context = context,
             Location = runtimeLhsBackup.Location,
             IsTemporary = true
         };
     }
-    
-    /// <summary>
-    /// Performs logical comparison on two runtime values. This
-    /// expects both values to be already safe for any comparison.
-    /// </summary>
-    private RuntimeBoolean PerformCalculation(IRuntimeValue lhs, IRuntimeValue rhs, ComparisonOperator op)
+
+    /// <summary>Performs logical comparison on two runtime values. This expects both values to be already
+    /// safe for any comparison.</summary>
+    private static RuntimeBoolean PerformCalculation(Compiler compiler, ParserRuleContext context, IRuntimeValue lhs, IRuntimeValue rhs, ComparisonOperator op)
     {
         var location = lhs.NextFreeLocation(DataLocation.Scoreboard);
-        this.AddCode($"execute store success score {location} if score {lhs.Location} {op.GetMcfOperatorSymbol()} {rhs.Location}");
+        compiler.AddCode($"execute store success score {location} if score {lhs.Location} {op.GetMcfOperatorSymbol()} {rhs.Location}");
         return new RuntimeBoolean
         {
-            Compiler = Compiler,
-            Context = Context,
+            Compiler = compiler,
+            Context = context,
             Location = location,
             IsTemporary = true
         };

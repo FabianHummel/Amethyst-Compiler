@@ -1,8 +1,10 @@
 using Amethyst.Model;
+using Amethyst.Utility;
 
 namespace Amethyst;
 
-public class ConstantDecimal : AbstractDecimal, IConstantValue<double>, IScoreboardValue
+[ForwardDefaultInterfaceMethods(typeof(IConstantValue))]
+public partial class ConstantDecimal : AbstractDecimal, IConstantValue<double>, IScoreboardValue
 {
     public required double Value { get; init; }
 
@@ -10,6 +12,10 @@ public class ConstantDecimal : AbstractDecimal, IConstantValue<double>, IScorebo
     
     public bool AsBoolean => Value != 0;
     
+    public double AsDouble => Value;
+    
+    public string AsString => Value.ToString("F" + DecimalPlaces);
+
     protected override AbstractDecimal AsDecimal => this;
     
     public int ScoreboardValue => (int)Math.Round(Value * ScoreboardDatatype.Scale);

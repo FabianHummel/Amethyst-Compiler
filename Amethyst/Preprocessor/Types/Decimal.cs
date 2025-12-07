@@ -1,7 +1,10 @@
 using Amethyst.Model;
+using Amethyst.Utility;
 
 namespace Amethyst;
 
+/// <summary>A preprocessor value representing a decimal number.</summary>
+[ForwardDefaultInterfaceMethods(typeof(IPreprocessorValue<double>))]
 public partial class PreprocessorDecimal : AbstractNumericPreprocessorValue, IPreprocessorValue<double>
 {
     public required double Value { get; set; }
@@ -16,6 +19,8 @@ public partial class PreprocessorDecimal : AbstractNumericPreprocessorValue, IPr
     public override int AsInteger => (int)Value;
     
     public override double AsDecimal => Value;
+    
+    public override string AsString => Value.ToString("G", System.Globalization.CultureInfo.InvariantCulture);
 
     public override string ToString()
     {
