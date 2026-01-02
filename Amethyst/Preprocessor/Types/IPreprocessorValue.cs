@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+using Amethyst.Utility;
 using Antlr4.Runtime;
 using JetBrains.Annotations;
 
@@ -25,6 +27,7 @@ public interface IPreprocessorValue<T> : IPreprocessorValue
 
 /// <summary>The non-generic base interface for all preprocessor values. Only implemented by
 /// <see cref="AbstractPreprocessorValue" /> to improve the development experience.</summary>
+[JsonConverter(typeof(PreprocessorValueJsonConverter))]
 public interface IPreprocessorValue
 {
     ParserRuleContext Context { get; }

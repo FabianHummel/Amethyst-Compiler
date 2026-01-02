@@ -9,6 +9,6 @@ public class AmethystInputStream : AntlrInputStream
 
     public AmethystInputStream(Stream input, SourceFile sourceFile) : base(input)
     {
-        SourceName = sourceFile.Name;
+        SourceName = sourceFile.ResourcePath;
     }
 }

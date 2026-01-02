@@ -32,7 +32,7 @@ public static class OperationRegistry
             lhsDict.Add(typeof(TLhs), rhsDict);
         }
 
-        if (!rhsDict.TryAdd(typeof(TRet), WrappedImpl))
+        if (!rhsDict.TryAdd(typeof(TRhs), WrappedImpl))
         {
             throw new InvalidOperationException($"Operation already registered for {typeof(TLhs).Name} {op} {typeof(TRhs).Name}");
         }

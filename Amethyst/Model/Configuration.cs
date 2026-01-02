@@ -25,4 +25,14 @@ public class Configuration
     public Configuration()
     {
     }
+
+    public string OutputDirForPack(string pack)
+    {
+        return pack switch
+        {
+            "data" => Datapack!.OutputDir,
+            "assets" => Resourcepack!.OutputDir,
+            _ => throw new ArgumentException($"Unknown pack type: {pack}")
+        };
+    }
 }

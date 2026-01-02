@@ -66,7 +66,7 @@ public partial class Compiler
 
         if (SourceFile.ImportedSymbols.TryGetValue(name, out var resource))
         {
-            var sourceFile = GetSourceFile(resource, DatapackFunctionsDirectory, context);
+            var sourceFile = GetSourceFile(resource, FunctionRegistryName, context);
             using var scope = new SourceFile.GlobalBackup(this, sourceFile);
             var foundSymbol = TryGetSymbolRecursive(name, out symbol, context, checkExportedSymbols);
             return foundSymbol;

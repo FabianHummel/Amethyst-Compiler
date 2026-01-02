@@ -14,5 +14,9 @@ public enum AssignmentOperator
     [AmethystOperator("/=")]
     DIVIDE,
     [AmethystOperator("%=")]
-    MODULO
+    MODULO,
+    [AmethystOperator("++")]
+    INCREMENT,
+    [AmethystOperator("--")]
+    DECREMENT,
 }

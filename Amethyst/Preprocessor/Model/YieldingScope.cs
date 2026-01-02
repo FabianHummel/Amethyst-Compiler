@@ -10,8 +10,8 @@ namespace Amethyst.Model;
 /// <see cref="Compiler.YieldingScope">here</see>.</summary>
 /// <example>
 ///     <code>
-/// var X = 123;
-/// var parts = ["X", "is", IF(X%2==0){ YIELD "even" } ELSE { YIELD "odd" }];</code>
+/// VAR X = 123;
+/// var parts = ["X", "is", IF(X%2==0){ YIELD "even"; } ELSE { YIELD "odd"; }];</code>
 /// </example>
 public class YieldingScope : IDisposable
 {
@@ -19,25 +19,26 @@ public class YieldingScope : IDisposable
     private readonly YieldingScope _previousScope;
     private readonly Type _allowedType;
     
-    private readonly List<ParserRuleContext> _result = new();
+    private readonly List<object> _result = new();
 
-    public IReadOnlyList<ParserRuleContext> Result => _result;
+    public IReadOnlyList<object> Result => _result;
 
     public YieldingScope(Compiler compiler, Type allowedType)
     {
         _compiler = compiler;
         _allowedType = allowedType;
         _previousScope = compiler.YieldingScope;
+        compiler.YieldingScope = this;
     }
 
-    public void Yield(ParserRuleContext context)
+    public void Yield(object result, ParserRuleContext context)
     {
-        if (!_allowedType.IsInstanceOfType(context))
+        if (!_allowedType.IsInstanceOfType(result))
         {
-            throw new SyntaxException($"Cannot yield '{context.GetType().Name}' in this context. Expected '{_allowedType.Name}'.", context);
+            throw new SyntaxException($"Cannot yield '{result.GetType().Name}' in this context. Expected '{_allowedType.Name}'.", context);
         }
 
-        _result.Add(context);
+        _result.Add(result);
     }
 
     public void Dispose()

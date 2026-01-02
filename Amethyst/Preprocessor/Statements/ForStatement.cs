@@ -11,10 +11,46 @@ public partial class Compiler
     /// <seealso cref="VisitForStatement" />
     public override object? VisitPreprocessorForStatement(AmethystParser.PreprocessorForStatementContext context)
     {
-        if (context.preprocessorForStatementInitializer() is { } forStatementInitializerContext)
+        if (context.preprocessorForeachStatementInitializer() is { } foreachStatementInitializerContext)
         {
-            Visit(forStatementInitializerContext);
+            ProcessForEachLoop(context, foreachStatementInitializerContext);
         }
+        else
+        {
+            ProcessForLoop(context);
+        }
+
+        return null;
+    }
+    
+    private void ProcessForEachLoop(AmethystParser.PreprocessorForStatementContext context, AmethystParser.PreprocessorForeachStatementInitializerContext foreachStatementInitializerContext)
+    {
+        var iterable = VisitPreprocessorExpression(foreachStatementInitializerContext.preprocessorExpression());
+        if (iterable is not PreprocessorArray array)
+        {
+            throw new SyntaxException("The expression in a for-in loop must be iterable.", context);
+        }
+        
+        var variableName = foreachStatementInitializerContext.IDENTIFIER().GetText();
+        
+        foreach (var value in array.Value)
+        {
+            var preprocessorValue = (AbstractPreprocessorValue)value;
+            
+            Scope.Symbols.Add(variableName, new PreprocessorVariable
+            {
+                Value = preprocessorValue
+            });
+            
+            VisitBlockInline(context.block());
+            
+            Scope.Symbols.Remove(variableName);
+        }
+    }
+    
+    private void ProcessForLoop(AmethystParser.PreprocessorForStatementContext context)
+    {
+        Visit(context.preprocessorForStatementInitializer());
 
         AbstractPreprocessorValue value;
         if (context.preprocessorExpression() is { } expressionContext)
@@ -37,7 +73,7 @@ public partial class Compiler
         {
             while(value.AsBoolean && maxIterations-- > 0)
             {
-                VisitBlock(context.block());
+                VisitBlockInline(context.block());
                 if (context.preprocessorAssignment() is { } preprocessorAssignmentContext)
                 {
                     Visit(preprocessorAssignmentContext);
@@ -45,7 +81,5 @@ public partial class Compiler
                 value = VisitPreprocessorExpression(context.preprocessorExpression());
             }
         });
-
-        return null;
     }
 }

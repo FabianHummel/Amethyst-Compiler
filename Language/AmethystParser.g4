@@ -15,13 +15,7 @@ preprocessorImportDeclaration
 
 preprocessorStatement
  : preprocessorYieldingStatement
- | statement
- ;
-
-preprocessorYieldingStatement
- : preprocessorDeclaration
- | preprocessorIfStatement
- | preprocessorForStatement
+ | preprocessorDeclaration
  | preprocessorReturnStatement
  | preprocessorBreakStatement
  | preprocessorYieldStatement
@@ -29,14 +23,30 @@ preprocessorYieldingStatement
  | preprocessorAssignmentStatement
  | preprocessorCommentStatement
  | preprocessorExpressionStatement
+ | statement
+ ;
+
+preprocessorYieldingStatement
+ : preprocessorIfStatement
+ | preprocessorForStatement
  ;
 
 preprocessorDeclaration
  : preprocessorVariableDeclaration
+ | preprocessorResourceDeclaration
+ | preprocessorImageDeclaration
  ;
 
 preprocessorVariableDeclaration
  : PREPROCESSOR_VAR IDENTIFIER (COLON preprocessorType)? (EQUALS preprocessorExpression) SEMICOLON
+ ;
+ 
+preprocessorResourceDeclaration
+ : PREPROCESSOR_RESOURCE preprocessorStringLiteral? preprocessorObjectLiteral SEMICOLON
+ ;
+ 
+preprocessorImageDeclaration
+ : PREPROCESSOR_IMAGE preprocessorStringLiteral? IMAGE_BOUNDS preprocessorArrayLiteral SEMICOLON
  ;
 
 preprocessorType
@@ -45,6 +55,8 @@ preprocessorType
  | PREPROCESSOR_DEC
  | PREPROCESSOR_STRING
  | PREPROCESSOR_RESOURCE
+ | PREPROCESSOR_IMAGE
+ | PREPROCESSOR_RGBA
  ;
 
 preprocessorIfStatement
@@ -53,12 +65,17 @@ preprocessorIfStatement
 
 preprocessorForStatement
  : PREPROCESSOR_FOR LPAREN preprocessorForStatementInitializer preprocessorExpression? SEMICOLON preprocessorAssignment? RPAREN block
+ | PREPROCESSOR_FOR LPAREN preprocessorForeachStatementInitializer RPAREN block
  ;
 
 preprocessorForStatementInitializer
  : preprocessorVariableDeclaration
  | preprocessorAssignmentStatement
  | SEMICOLON
+ ;
+ 
+preprocessorForeachStatementInitializer
+ : PREPROCESSOR_VAR IDENTIFIER PREPROCESSOR_IN preprocessorExpression
  ;
 
 preprocessorReturnStatement
@@ -70,7 +87,16 @@ preprocessorBreakStatement
  ;
 
 preprocessorYieldStatement
- : PREPROCESSOR_YIELD (selectorElement | recordSelectorElement | objectElement | arrayElement) SEMICOLON
+ : PREPROCESSOR_YIELD preprocessorYieldExpression SEMICOLON
+ ;
+ 
+preprocessorYieldExpression
+ : selectorElement
+ | preprocessorObjectElement
+ | preprocessorArrayElement
+ | recordSelectorElement
+ | objectElement
+ | arrayElement
  ;
 
 preprocessorDebugStatement
@@ -90,11 +116,11 @@ preprocessorExpressionStatement
  ;
 
 preprocessorAssignment
- : preprocessorExpression op=(EQUALS | PLUSEQ | MINUSEQ | MULTEQ | DIVEQ | MODEQ) preprocessorExpression    # preprocessorAssignmentExpression
- | PLUSPLUS preprocessorExpression                                                                          # preprocessorPreIncrementExpression
- | MINUSMINUS preprocessorExpression                                                                        # preprocessorPreDecrementExpression
- | preprocessorExpression PLUSPLUS                                                                          # preprocessorPostIncrementExpression
- | preprocessorExpression MINUSMINUS                                                                        # preprocessorPostDecrementExpression
+ : preprocessorExpression op=(EQUALS | PLUSEQ | MINUSEQ | MULTEQ | DIVEQ | MODEQ) preprocessorExpression # preprocessorAssignmentExpression
+ | PLUSPLUS preprocessorExpression                                                          # preprocessorPreIncrementExpression
+ | MINUSMINUS preprocessorExpression                                                        # preprocessorPreDecrementExpression
+ | preprocessorExpression PLUSPLUS                                                          # preprocessorPostIncrementExpression
+ | preprocessorExpression MINUSMINUS                                                        # preprocessorPostDecrementExpression
  ;
 
 preprocessorExpression
@@ -121,6 +147,9 @@ preprocessorLiteral
  | DECIMAL_LITERAL
  | preprocessorStringLiteral
  | preprocessorResourceLiteral
+ | preprocessorObjectLiteral
+ | preprocessorArrayLiteral
+ | preprocessorColorLiteral
  ;
  
 preprocessorStringLiteral
@@ -149,6 +178,38 @@ preprocessorRegularResourceLiteralPart
 preprocessorInterpolatedResourceLiteralPart 
  : INTERP_RESOURCE_CONTENT
  | LBRACE preprocessorExpression RBRACE
+ ;
+ 
+preprocessorObjectLiteral
+ : LRBRACE
+ | LBRACE ( preprocessorObjectElement COMMA? )* RBRACE
+ ;
+
+preprocessorObjectElement
+ : preprocessorYieldingStatement
+ | preprocessorObjectKvp
+ ;
+
+preprocessorObjectKvp
+ : preprocessorStringLiteral COLON preprocessorExpression
+ ;
+
+preprocessorArrayLiteral
+ : LRBRACKET
+ | LBRACKET ( preprocessorArrayElement COMMA? )* RBRACKET
+ ;
+
+preprocessorArrayElement
+ : preprocessorYieldingStatement
+ | preprocessorExpression
+ ;
+
+preprocessorColorLiteral
+ : preprocessorRgbaLiteral
+ ;
+ 
+preprocessorRgbaLiteral
+ : PREPROCESSOR_RGBA r=preprocessorExpression g=preprocessorExpression b=preprocessorExpression a=preprocessorExpression
  ;
 
 declaration
@@ -299,9 +360,9 @@ literal
  | INTEGER_LITERAL
  | DECIMAL_LITERAL
  | stringLiteral
- | selectorCreation
- | objectCreation
- | arrayCreation
+ | selectorLiteral
+ | objectLiteral
+ | arrayLiteral
  | rawLocation
  ;
 
@@ -329,7 +390,7 @@ rangeExpression
  | expression? DOTDOT expression
  ;
 
-selectorCreation
+selectorLiteral
  : entitySelectorType (LBRACKET ( selectorElement COMMA? )* RBRACKET)?
  ;
 
@@ -350,10 +411,10 @@ selectorElement
 selectorQuery
  : IDENTIFIER EQUALS NOT? expression           # expressionSelector
  | IDENTIFIER EQUALS rangeExpression           # rangeSelector
- | IDENTIFIER EQUALS recordSelectorCreation    # recordSelector
+ | IDENTIFIER EQUALS recordSelectorLiteral    # recordSelector
  ;
 
-recordSelectorCreation
+recordSelectorLiteral
  : LRBRACE
  | LBRACE ( recordSelectorElement COMMA? )* RBRACE
  ;
@@ -367,7 +428,7 @@ recordSelectorKvp
  : IDENTIFIER COLON (expression | rangeExpression)
  ;
 
-objectCreation
+objectLiteral
  : LRBRACE
  | LBRACE ( objectElement COMMA? )* RBRACE
  ;
@@ -378,10 +439,10 @@ objectElement
  ;
 
 objectKvp
- : IDENTIFIER COLON expression
+ : stringLiteral COLON expression
  ;
 
-arrayCreation
+arrayLiteral
  : LRBRACKET
  | LBRACKET ( arrayElement COMMA? )* RBRACKET
  ;

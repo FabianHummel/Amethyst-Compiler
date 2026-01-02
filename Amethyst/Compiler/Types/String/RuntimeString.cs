@@ -65,7 +65,7 @@ public partial class RuntimeString : AbstractString, IRuntimeValue
         string mcFunctionPath;
         using (Compiler.EvaluateScoped("_concat"))
         {
-            mcFunctionPath = Compiler.Scope.McFunctionPath;
+            mcFunctionPath = Compiler.Scope.ResourcePath;
             // Todo: sanitize string by escaping quotes and other special characters that may mess up the macro expansion
             this.AddCode($"$data modify storage {resultLocation} set value \"$({Location.Name})$({rhs.Location.Name})\"");
         }

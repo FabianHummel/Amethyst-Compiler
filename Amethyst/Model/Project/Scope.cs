@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Amethyst.Utility;
 using static Amethyst.Model.Constants;
 
 namespace Amethyst.Model;
@@ -11,13 +12,16 @@ public class Scope : IDisposable
     /// <summary>The name of this scope. This maps to the file or directory name of the generated
     /// <c>.mcfunction</c> file.</summary>
     public string Name { get; }
+    
+    /// <summary>The type of this scope, indicating its purpose within the compilation process.</summary>
+    public ScopeType Type { get; set; } = ScopeType.Function;
 
     /// <summary>The parent scope of this scope. Null if this is the root scope.</summary>
     /// <seealso cref="SourceFile.Scope" />
     public required Scope? Parent { get; init; }
 
     /// <summary>A dictionary mapping scope names to their occurrence counts, used to ensure unique naming
-    /// of child scopes. This behaviour is overriden when using the <see cref="CompilerFlags.Debug" />
+    /// of child scopes. This behavior is overriden when using the <see cref="CompilerFlags.Debug" />
     /// flag, as scopes will retain their original names.</summary>
     public Dictionary<string, int> Scopes { get; } = new();
 
@@ -39,7 +43,11 @@ public class Scope : IDisposable
     /// <seealso cref="Compiler.VisitConjunctionExpression" />
     /// <seealso cref="Compiler.VisitDisjunctionExpression" />
     private bool _isCancelled;
-
+    
+    /// <summary>Internal memory stream used to accumulate generated code before writing it to the output
+    /// file.</summary>
+    internal readonly MemoryStream _memoryStream = new();
+    
     /// <summary>A writer that accumulates the code generated within this scope. This code will be written
     /// to the appropriate <c>.mcfunction</c> file upon disposal of the scope.</summary>
     private TextWriter? _writer;
@@ -64,22 +72,35 @@ public class Scope : IDisposable
         _sourceFile = sourceFile;
     }
 
-    /// <summary>The absolute file path where the directory or generated <c>.mcfunction</c> file for this
-    /// scope will be saved.</summary>
-    public string FilePath => Path.Combine(
-        _context.Configuration.Datapack!.OutputDir, 
-        _sourceFile.GetFullPath(),
-        GetPath(callerIsRoot: IsRoot) + McfunctionFileExtension);
-
-    /// <summary>The Minecraft function path for this scope, formatted with forward slashes and prefixed by
-    /// the source file's function path, resulting in a complete function path usable within Minecraft.</summary>
-    public string McFunctionPath
+    /// <summary>The absolute file path where the directory or generated file for this scope will be saved.
+    /// </summary>
+    public string FilePath
     {
         get
         {
-            var path = GetPath(callerIsRoot: IsRoot);
-            var mcFunctionPath = path.Replace(Path.DirectorySeparatorChar, '/');
-            return $"{_sourceFile.McFunctionPath}/{mcFunctionPath}";
+            var relativePath = Path.Combine(
+                _sourceFile.GetFullPath(), 
+                GetPath(callerIsRoot: IsRoot && Type == ScopeType.Function));
+            
+            return Path.Combine(
+                _context.Configuration.OutputDirForPack(_sourceFile.Pack),
+                relativePath + FileExtension);
+        }
+    }
+
+    /// <summary>The Minecraft function path for this scope, formatted with forward slashes and prefixed by
+    /// the source file's function path, resulting in a complete function path usable within Minecraft.</summary>
+    public string ResourcePath
+    {
+        get
+        {
+            string scopePath = "";
+            if (Type == ScopeType.Function)
+            {
+                var path = GetPath(callerIsRoot: IsRoot);
+                scopePath = $"/{path.Replace(Path.DirectorySeparatorChar, '/')}";
+            }
+            return $"{_sourceFile.ResourcePath}{scopePath}";
         }
     }
     
@@ -92,10 +113,11 @@ public class Scope : IDisposable
     {
         if (_writer == null)
         {
-            _writer = new StringWriter();
+            _writer = new StreamWriter(_memoryStream);
         }
         
         _writer.WriteLine(code);
+        _writer.Flush();
     }
 
     /// <summary>Marks this scope as cancelled, preventing any code from being written to the associated
@@ -127,33 +149,27 @@ public class Scope : IDisposable
     }
 
     /// <summary>Disposes of the scope, writing any accumulated code to the associated <c>.mcfunction</c>
-    /// file unless the scope has been cancelled.</summary>
+    /// file unless the scope has been canceled.</summary>
     public void Dispose()
     {
-        if (_isCancelled || _writer == null)
+        if (_isCancelled || _memoryStream.Position == 0)
         {
             GC.SuppressFinalize(this);
             return;
         }
 
-        if (IsRoot)
+        if (Type == ScopeType.Function && IsRoot)
         {
-            _context.Configuration.Datapack!.LoadFunctions.Add(McFunctionPath);
+            _context.Configuration.Datapack!.LoadFunctions.Add(ResourcePath);
         }
         
-        if (!File.Exists(FilePath))
-        {
-            Processor.CreateFunctionFile(FilePath);
-        }
-        File.AppendAllText(FilePath, _writer.ToString());
-        _writer.Dispose();
-        
-        GC.SuppressFinalize(this);
+        using var streamWriter = Processor.CreateFile(FilePath, useTemplate: Type == ScopeType.Function);
+        _memoryStream.WriteTo(streamWriter.BaseStream);
     }
 
     public override string ToString()
     {
-        return $"{McFunctionPath} ({FilePath})";
+        return $"{ResourcePath} ({FilePath})";
     }
 
     /// <summary>Creates a new child scope under the specified parent scope with a unique name.</summary>
@@ -194,6 +210,12 @@ public class Scope : IDisposable
         var path = callerIsRoot && IsRoot ? InitFunctionName : Parent?.GetPath(callerIsRoot);
         return Path.Combine(path ?? "", Name);
     }
+
+    /// <summary>
+    /// The file extension associated with this scope's type, used for determining the correct file
+    /// format when generating files.
+    /// </summary>
+    private string FileExtension => Type.GetAttributeValue(typeof(FileExtensionAttribute));
 
 
     /// <summary>A helper class that temporarily sets the global scope of a compiler to a new scope and

@@ -55,7 +55,7 @@ public abstract class ServerTestBase
         }
         
         // run the test function on the server
-        await TestMain.Rcon.ExecuteCommandAsync($"function {testFunctionScope.McFunctionPath}");
+        await TestMain.Rcon.ExecuteCommandAsync($"function {testFunctionScope.ResourcePath}");
 
         Context = new McfTestContext(TestMain.Rcon, testFunctionScope);
         

@@ -13,9 +13,9 @@ public partial class Compiler
     {
         var literalContext = context.preprocessorLiteral();
         
-        if (literalContext.preprocessorStringLiteral() is { } stringLiteral)
+        if (literalContext.preprocessorStringLiteral() is { } stringLiteralContext)
         {
-            return (PreprocessorString)Visit(stringLiteral)!;
+            return (PreprocessorString)Visit(stringLiteralContext)!;
         }
         
         if (literalContext.preprocessorResourceLiteral() is { } resourceLiteral)
@@ -58,19 +58,50 @@ public partial class Compiler
             };
         }
 
-        if (literalContext.booleanLiteral() is { } booleanLiteral)
+        if (literalContext.booleanLiteral() is { } booleanLiteralContext)
         {
-            var value = booleanLiteral.GetText() == "true";
-            if (!value && booleanLiteral.GetText() != "false")
+            var stringText = booleanLiteralContext.GetText();
+            var value = stringText == "true";
+            if (!value && stringText != "false")
             {
-                throw new SyntaxException($"Invalid boolean literal '{booleanLiteral}'.", literalContext);
+                throw new SyntaxException($"Invalid boolean literal '{stringText}'.", booleanLiteralContext);
             }
 
             return new PreprocessorBoolean
             {
                 Compiler = this,
-                Context = literalContext,
+                Context = booleanLiteralContext,
                 Value = value
+            };
+        }
+
+        if (literalContext.preprocessorObjectLiteral() is { } objectLiteralContext)
+        {
+            return new PreprocessorObject
+            {
+                Compiler = this,
+                Context = objectLiteralContext,
+                Value = VisitPreprocessorObjectLiteral(objectLiteralContext)
+            };
+        }
+
+        if (literalContext.preprocessorArrayLiteral() is { } arrayLiteralContext)
+        {
+            return new PreprocessorArray
+            {
+                Compiler = this,
+                Context = arrayLiteralContext,
+                Value = VisitPreprocessorArrayLiteral(arrayLiteralContext)
+            };
+        }
+
+        if (literalContext.preprocessorColorLiteral() is { } colorLiteralContext)
+        {
+            return new PreprocessorColor
+            {
+                Compiler = this,
+                Context = colorLiteralContext,
+                Value = VisitPreprocessorColorLiteral(colorLiteralContext)
             };
         }
         

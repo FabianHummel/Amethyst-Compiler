@@ -70,7 +70,8 @@ public class ForwardDefaultInterfaceMethodGenerator : IIncrementalGenerator
             attributeData.AttributeClass!.Equals(forwardAttribute, SymbolEqualityComparer.Default));
 
         var interfaceSymbol = (INamedTypeSymbol)attribute.ConstructorArguments.First().Value!;
-        if (!_interfaceGenerationModelCache.TryGetValue(interfaceSymbol.Name, out var interfaceModel))
+        var interfaceName = interfaceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        if (!_interfaceGenerationModelCache.TryGetValue(interfaceName, out var interfaceModel))
         {
             if (!GetInterfaceGenerationModel(compilation, classSymbol, interfaceSymbol, out var model))
             {
@@ -78,7 +79,7 @@ public class ForwardDefaultInterfaceMethodGenerator : IIncrementalGenerator
             }
 
             interfaceModel = model!.Value;
-            _interfaceGenerationModelCache.Add(interfaceSymbol.Name, interfaceModel);
+            _interfaceGenerationModelCache.Add(interfaceName, interfaceModel);
         }
         
         var hintName = $"{classSymbol.ToDisplayString(_hintNameFormatting)}_" +

@@ -14,7 +14,7 @@ public partial class Compiler
     ///     most optimal way possible in <see cref="ProcessQueryDict" />.</p>
     ///     <p><inheritdoc /></p>
     /// </summary>
-    public override AbstractValue VisitSelectorCreation(AmethystParser.SelectorCreationContext context)
+    public override AbstractValue VisitSelectorLiteral(AmethystParser.SelectorLiteralContext context)
     {
         var entitySelectorTypeContext = context.entitySelectorType();
         var entityTargetResult = VisitEntitySelectorType(entitySelectorTypeContext);
@@ -50,7 +50,7 @@ public partial class Compiler
         AbstractValue value;
         using (this.EvaluateScoped("_create_selector"))
         {
-            mcFunctionPath = Scope.McFunctionPath;
+            mcFunctionPath = Scope.ResourcePath;
             value = CreateSelector(entityTargetResult, limitExpression, selectorString, context, isMacroInvocation: true);
         }
             
@@ -107,7 +107,7 @@ public partial class Compiler
     /// <param name="context">The parser rule context that is given to the resulting variable.</param>
     /// <param name="isMacroInvocation">Whether the selector needs to be created using a macro invocation.</param>
     /// <returns>A value that contains the matches entities of the target selector.</returns>
-    private AbstractValue CreateSelector(EntityTargetResult selector, AbstractValue? limitExpression, string? selectorString, AmethystParser.SelectorCreationContext context, bool isMacroInvocation = false)
+    private AbstractValue CreateSelector(EntityTargetResult selector, AbstractValue? limitExpression, string? selectorString, AmethystParser.SelectorLiteralContext context, bool isMacroInvocation = false)
     {
         var prefix = isMacroInvocation ? "$" : string.Empty;
             
@@ -132,7 +132,7 @@ public partial class Compiler
         string mcFunctionPath;
         using (this.EvaluateScoped("_multi_selector"))
         {
-            mcFunctionPath = Scope.McFunctionPath;
+            mcFunctionPath = Scope.ResourcePath;
             this.AddCode("function amethyst:libraries/gu/generate");
             this.AddCode($"data modify storage {location} append from storage gu:main out");
         }

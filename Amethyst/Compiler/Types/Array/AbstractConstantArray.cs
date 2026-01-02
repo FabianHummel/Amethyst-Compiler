@@ -1,8 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
+using Amethyst.Utility;
 
 namespace Amethyst;
 
-public abstract class AbstractConstantArray : AbstractArray, IConstantValue<IConstantValue[]>, ISubstitutable, IIndexable, IMemberAccess
+[ForwardDefaultInterfaceMethods(typeof(ISubstitutable))]
+public abstract partial class AbstractConstantArray : AbstractArray, IConstantValue<IConstantValue[]>, ISubstitutable, IIndexable, IMemberAccess
 {
     public required IConstantValue[] Value { get; init; }
 
@@ -19,7 +21,7 @@ public abstract class AbstractConstantArray : AbstractArray, IConstantValue<ICon
 
     public abstract IRuntimeValue ToRuntimeValue();
 
-    public void SubstituteRecursively(string substitutionModifierPrefix = "")
+    public void FinalizeCreationRecursively(string substitutionModifierPrefix = "")
     {
         for (var i = 0; i < Value.Length; i++)
         {
@@ -29,7 +31,7 @@ public abstract class AbstractConstantArray : AbstractArray, IConstantValue<ICon
             {
                 var substitutionModifier = substitutionModifierPrefix + Datatype.GetSubstitutionModifier(i);
                 
-                substitutable.SubstituteRecursively(substitutionModifier);
+                substitutable.FinalizeCreationRecursively(substitutionModifier);
             }
         }
 

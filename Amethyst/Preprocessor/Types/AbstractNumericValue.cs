@@ -12,8 +12,10 @@ public abstract partial class AbstractNumericPreprocessorValue : AbstractPreproc
             Calculate);
         OperationRegistry.Register<AbstractNumericPreprocessorValue, AbstractNumericPreprocessorValue, PreprocessorBoolean, ComparisonOperator>(
             Calculate);
+        OperationRegistry.Register<AbstractNumericPreprocessorValue, PreprocessorInteger, AbstractNumericPreprocessorValue, AssignmentOperator>(
+            Calculate);
     }
-    
+
     /// <summary>Calculates the result of two numeric values using the specified arithmetic operator.</summary>
     /// <param name="lhs">A numeric preprocessor value on the left side of the operation.</param>
     /// <param name="rhs">A numeric preprocessor value on the right side of the operation.</param>
@@ -124,5 +126,20 @@ public abstract partial class AbstractNumericPreprocessorValue : AbstractPreproc
         lhs = anvLhs.AsDecimal;
         rhs = anvRhs.AsDecimal;
         return true;
+    }
+    
+    private static AbstractNumericPreprocessorValue Calculate(Compiler compiler, ParserRuleContext context, AbstractNumericPreprocessorValue lhs, PreprocessorInteger rhs, AssignmentOperator op)
+    {
+        return op switch
+        {
+            AssignmentOperator.ADD => Calculate(compiler, context, lhs, rhs, ArithmeticOperator.ADD),
+            AssignmentOperator.SUBTRACT => Calculate(compiler, context, lhs, rhs, ArithmeticOperator.SUBTRACT),
+            AssignmentOperator.MULTIPLY => Calculate(compiler, context, lhs, rhs, ArithmeticOperator.MULTIPLY),
+            AssignmentOperator.DIVIDE => Calculate(compiler, context, lhs, rhs, ArithmeticOperator.DIVIDE),
+            AssignmentOperator.MODULO => Calculate(compiler, context, lhs, rhs, ArithmeticOperator.MODULO),
+            AssignmentOperator.INCREMENT => Calculate(compiler, context, lhs, rhs, ArithmeticOperator.ADD),
+            AssignmentOperator.DECREMENT => Calculate(compiler, context, lhs, rhs, ArithmeticOperator.SUBTRACT),
+            _ => throw new SyntaxException($"Invalid operator '{op}'.", context)
+        };
     }
 }

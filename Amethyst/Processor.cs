@@ -57,12 +57,16 @@ public class Processor
     /// <summary>Creates an empty function file at the specified <paramref name="filePath" />. The template
     /// function is substituted with properties like the Amethyst version and the current date.</summary>
     /// <param name="filePath">The path where to create the function file.</param>
-    public static void CreateFunctionFile(string filePath)
+    /// <param name="useTemplate">Whether to use the predefined function file template which includes
+    /// extra information. Not used when generating assets.</param>
+    public static StreamWriter CreateFile(string filePath, bool useTemplate)
     {
         var dirPath = Path.GetDirectoryName(filePath)!;
         Directory.CreateDirectory(dirPath);
         
-        using var writer = File.CreateText(filePath);
+        var writer = File.CreateText(filePath);
+        if (!useTemplate) return writer;
+        
         var assembly = Assembly.GetExecutingAssembly();
         using var stream = assembly.GetManifestResourceStream("Amethyst.Resources.template.mcfunction")!;
         using var reader = new StreamReader(stream);
@@ -70,6 +74,8 @@ public class Processor
         template = template.Replace(Substitutions["amethyst_version"], SubstitutionValues["amethyst_version"].ToString());
         template = template.Replace(Substitutions["date"], SubstitutionValues["date"].ToString());
         writer.Write(template);
+        
+        return writer;
     }
 
     /// <summary>Prints the Amethyst logo, version and extra information about the compilation process.</summary>
@@ -393,14 +399,14 @@ public class Processor
     {
         var cts = PrintLongTask("Creating function tags", out var stopwatch);
         {
-            var path = Path.Combine(datapack.OutputDir, $"data/minecraft/tags/{DatapackFunctionsDirectory}/load.json");
+            var path = Path.Combine(datapack.OutputDir, $"data/minecraft/tags/{FunctionRegistryName}/load.json");
             var content = File.ReadAllText(path);
             var loadFunctionsText = string.Join("", datapack.LoadFunctions.Select(f => $",\n    \"{f}\""));
             content = content.Replace(Substitutions["loading_functions"], loadFunctionsText);
             File.WriteAllText(path, content);
         }
         {
-            var path = Path.Combine(datapack.OutputDir, $"data/minecraft/tags/{DatapackFunctionsDirectory}/tick.json");
+            var path = Path.Combine(datapack.OutputDir, $"data/minecraft/tags/{FunctionRegistryName}/tick.json");
             var content = File.ReadAllText(path);
             var tickFunctionsText = string.Join("", datapack.TickFunctions.Select(f => $",\n    \"{f}\""));
             content = content.Replace(Substitutions["ticking_functions"], tickFunctionsText);

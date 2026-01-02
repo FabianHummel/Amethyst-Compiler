@@ -77,7 +77,7 @@ public partial class Compiler
                 string mcFunctionPath;
                 using (this.EvaluateScoped("_use_text_display"))
                 {
-                    mcFunctionPath = Scope.McFunctionPath;
+                    mcFunctionPath = Scope.ResourcePath;
 
                     var storageRuntimeValue = runtimeValue.EnsureInStorage();
                     var textComponent = storageRuntimeValue.Location.ToTextComponent();
@@ -109,7 +109,7 @@ public partial class Compiler
         RuntimeString value;
         using (this.EvaluateScoped("_create_string"))
         {
-            mcFunctionPath2 = Scope.McFunctionPath;
+            mcFunctionPath2 = Scope.ResourcePath;
             var location = Location.Storage(++StackPointer);
             this.AddCode($"$data modify storage {location} set value \"{str}\"");
             value = new RuntimeString

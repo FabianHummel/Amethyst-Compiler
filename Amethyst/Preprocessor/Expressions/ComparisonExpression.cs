@@ -21,6 +21,6 @@ public partial class Compiler
         var op = Enum.GetValues<ComparisonOperator>()
             .First(op => op.GetAmethystOperatorSymbol() == operatorToken);
 
-        return OperationRegistry.Resolve<AbstractPreprocessorValue, ComparisonOperator>(this, context, op, lhs, rhs);
+        return OperationRegistry.Resolve<PreprocessorBoolean, ComparisonOperator>(this, context, op, lhs, rhs);
     }
 }

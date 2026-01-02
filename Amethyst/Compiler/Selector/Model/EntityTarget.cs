@@ -2,7 +2,7 @@ namespace Amethyst.Model;
 
 /// <summary>Represents a Minecraft entity target. Combined with a selector, it results in a full
 /// target selector.</summary>
-/// <seealso cref="Compiler.VisitSelectorCreation" />
+/// <seealso cref="Compiler.VisitSelectorLiteral(SelectorCreationContext)" />
 public enum EntityTarget
 {
     [McfToken("@s")]

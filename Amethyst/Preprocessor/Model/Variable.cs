@@ -4,6 +4,6 @@ namespace Amethyst.Model;
 /// <seealso cref="Variable" />
 public class PreprocessorVariable : Symbol
 {
-    public required PreprocessorDatatype Datatype { get; init; }
-    public required AbstractPreprocessorValue Value { get; init; }
+    public PreprocessorDatatype? Datatype { get; init; }
+    public AbstractPreprocessorValue? Value { get; set; }
 }

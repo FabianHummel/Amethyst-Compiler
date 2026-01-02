@@ -2,5 +2,10 @@ namespace Amethyst;
 
 public interface ISubstitutable
 {
-    public void SubstituteRecursively(string substitutionModifierPrefix = "");
+    public void FinalizeCreation(string location)
+    {
+        FinalizeCreationRecursively($"{location} ");
+    }
+    
+    public void FinalizeCreationRecursively(string substitutionModifierPrefix = "");
 }

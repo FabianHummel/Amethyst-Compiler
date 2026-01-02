@@ -15,9 +15,12 @@ public partial class Compiler
         {
             throw new SyntaxException("Can only yield within enclosing context.", context);
         }
-
-        var rule = context.GetRuleContext<ParserRuleContext>(0);
-        scope.Yield(rule);
+        
+        var rule = context.preprocessorYieldExpression().GetRuleContext<ParserRuleContext>(0);
+        if (Visit(rule) is { } result)
+        {
+            scope.Yield(result, rule);
+        }
         
         return null;
     }

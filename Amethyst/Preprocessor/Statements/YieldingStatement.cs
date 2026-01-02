@@ -15,7 +15,6 @@ public partial class Compiler
     /// </summary>
     /// <typeparam name="T">The allowed type of yielded results.</typeparam>
     public IEnumerable<T> VisitPreprocessorYieldingStatement<T>(AmethystParser.PreprocessorYieldingStatementContext context)
-        where T : ParserRuleContext
     {
         using var scope = new YieldingScope(this, typeof(T));
         Visit(context);

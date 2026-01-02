@@ -21,7 +21,11 @@ public partial class Compiler
             throw new SemanticException($"The symbol '{variableName}' has already been declared.", context);
         }
 
-        var result = VisitPreprocessorExpression(context.preprocessorExpression());
+        AbstractPreprocessorValue? result = null;
+        if (context.preprocessorExpression() is { } preprocessorExpressionContext)
+        {
+            result = VisitPreprocessorExpression(preprocessorExpressionContext);
+        }
         
         PreprocessorDatatype? type = null;
         
@@ -48,8 +52,8 @@ public partial class Compiler
 
         var variable = new PreprocessorVariable
         {
-            Datatype = type!,
-            Value = result!
+            Datatype = type,
+            Value = result
         };
         
         Scope.Symbols.Add(variableName, variable);

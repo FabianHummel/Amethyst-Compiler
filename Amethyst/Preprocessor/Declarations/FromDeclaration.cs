@@ -17,7 +17,7 @@ public partial class Compiler
     public override object? VisitPreprocessorFromImportDeclaration(AmethystParser.PreprocessorFromImportDeclarationContext context)
     {
         var resource = (Resource)Visit(context.preprocessorResourceLiteral())!;
-        var sourceFile = GetSourceFile(resource, Constants.DatapackFunctionsDirectory, context);
+        var sourceFile = GetSourceFile(resource, Constants.FunctionRegistryName, context);
 
         var symbols = context.IDENTIFIER()
             .Select(s => s.GetText())
@@ -45,7 +45,7 @@ public partial class Compiler
     public override object? VisitPreprocessorImportAsDeclaration(AmethystParser.PreprocessorImportAsDeclarationContext context)
     {
         var resource = (Resource)Visit(context.preprocessorResourceLiteral())!;
-        var sourceFile = GetSourceFile(resource, Constants.DatapackFunctionsDirectory, context);
+        var sourceFile = GetSourceFile(resource, Constants.FunctionRegistryName, context);
         var symbol = context.IDENTIFIER().GetText();
         
         // TODO: Implement

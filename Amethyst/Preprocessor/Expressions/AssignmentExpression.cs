@@ -32,6 +32,25 @@ public partial class Compiler
         return null;
     }
 
+    public override AbstractNumericPreprocessorValue VisitPreprocessorPostIncrementExpression(AmethystParser.PreprocessorPostIncrementExpressionContext context)
+    {
+        var lhs = VisitPreprocessorExpression(context.preprocessorExpression());
+        
+        var opToken = context.GetChild(1).GetText();
+        var op = Enum.GetValues<AssignmentOperator>()
+            .First(op => op.GetAmethystOperatorSymbol() == opToken);
+
+        var result = OperationRegistry.Resolve<AbstractNumericPreprocessorValue, AssignmentOperator>(this, context, op, lhs, new PreprocessorInteger
+        {
+            Value = 1,
+            Compiler = this,
+            Context = context
+        });
+        
+        AssignPreprocessorValue(lhs, result);
+        return (AbstractNumericPreprocessorValue)lhs;
+    }
+    
     private static void AssignPreprocessorValue(AbstractPreprocessorValue target, AbstractPreprocessorValue source)
     {
         target.SetValue(source.AbstractValue);

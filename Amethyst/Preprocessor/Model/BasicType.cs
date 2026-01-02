@@ -12,5 +12,11 @@ public enum BasicPreprocessorType
     [Description("BOOL")]
     Bool,
     [Description("RESOURCE")]
-    Resource
+    Resource,
+    [Description("ARRAY")]
+    Array,
+    [Description("OBJECT")]
+    Object,
+    [Description("COLOR")]
+    Color,
 }

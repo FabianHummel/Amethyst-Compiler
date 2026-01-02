@@ -74,14 +74,14 @@ public partial class Compiler
             };
         }
         
-        if (literalContext.arrayCreation() is { } arrayCreation)
+        if (literalContext.arrayLiteral() is { } arrayLiteral)
         {
-            return VisitArrayCreation(arrayCreation);
+            return VisitArrayLiteral(arrayLiteral);
         }
         
-        if (literalContext.objectCreation() is { } objectCreation)
+        if (literalContext.objectLiteral() is { } objectLiteral)
         {
-            return VisitObjectCreation(objectCreation);
+            return VisitObjectLiteral(objectLiteral);
         }
 
         if (literalContext.rawLocation() is { } rawLocationContext)
@@ -95,9 +95,9 @@ public partial class Compiler
             };
         }
 
-        if (literalContext.selectorCreation() is { } selectorCreationContext)
+        if (literalContext.selectorLiteral() is { } selectorLiteralContext)
         {
-            return VisitSelectorCreation(selectorCreationContext);
+            return VisitSelectorLiteral(selectorLiteralContext);
         }
         
         throw new InvalidOperationException($"Invalid literal '{literalContext.GetText()}'.");

@@ -10,7 +10,7 @@ public partial class Compiler
     ///     <p><inheritdoc /></p></summary>
     /// <exception cref="SyntaxException">The symbol is of an unknown type.</exception>
     /// <seealso cref="VisitIdentifierExpression" />
-    public override object VisitPreprocessorIdentifierExpression(AmethystParser.PreprocessorIdentifierExpressionContext context)
+    public override object? VisitPreprocessorIdentifierExpression(AmethystParser.PreprocessorIdentifierExpressionContext context)
     {
         var symbolName = context.IDENTIFIER().GetText();
         var symbol = GetSymbol(symbolName, context);

@@ -5,6 +5,13 @@ namespace Amethyst.Utility;
 /// <summary>Extension methods for working with Enums and their associated attributes.</summary>
 public static class EnumExtension
 {
+    public static string GetAttributeValue<T>(this T value, Type source) where T : Enum
+    {
+        var field = value.GetType().GetField(value.ToString());
+        var attribute = Attribute.GetCustomAttribute(field!, source)! as IStringAttribute;
+        return attribute!.Value;
+    }
+    
     /// <summary>Gets the description of an enum value from its DescriptionAttribute.</summary>
     /// <param name="value">The enum value.</param>
     /// <typeparam name="T">The enum type.</typeparam>

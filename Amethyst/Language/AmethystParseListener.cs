@@ -47,7 +47,7 @@ public class AmethystParseListener : AmethystParserBaseListener
 
         foreach (var symbolName in symbols)
         {
-            var resource = new Resource(regularResourceLiteralContext.GetText()[1..^1]);
+            var resource = Resource.Parse(regularResourceLiteralContext.GetText()[1..^1]);
             
             if (!Parser.SourceFile.ExportedSymbols.ContainsKey(symbolName) &&
                 !Parser.SourceFile.ImportedSymbols.TryAdd(symbolName, resource))
@@ -59,9 +59,9 @@ public class AmethystParseListener : AmethystParserBaseListener
     
     public override void ExitDeclaration(AmethystParser.DeclarationContext context)
     {
-        if (Parser.SourceFile.Registry != Constants.DatapackFunctionsDirectory)
+        if (Parser.SourceFile.Registry != Constants.FunctionRegistryName)
         {
-            throw new SyntaxException($"Runtime declarations must go inside the '{Constants.DatapackFunctionsDirectory}' registry.", context);
+            throw new SyntaxException($"Runtime declarations must go inside the '{Constants.FunctionRegistryName}' registry.", context);
         }
 
         string? symbolName = null;

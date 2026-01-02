@@ -56,7 +56,7 @@ public abstract partial class AbstractRuntimeObject : AbstractObject, IRuntimeVa
             string mcFunctionPath;
             using (Compiler.EvaluateScoped("_index"))
             {
-                mcFunctionPath = Compiler.Scope.McFunctionPath;
+                mcFunctionPath = Compiler.Scope.ResourcePath;
                 this.AddCode($"$execute store result storage {location} run data get storage {Location}.data.$({stringResult.Location.Name})");
             }
             

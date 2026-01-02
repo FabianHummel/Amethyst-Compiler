@@ -39,6 +39,6 @@ public partial class Compiler
     {
         using var scope = this.EvaluateScoped(name, preserveName);
         VisitBlockInline(context);
-        return Scope.McFunctionPath;
+        return Scope.ResourcePath;
     }
 }

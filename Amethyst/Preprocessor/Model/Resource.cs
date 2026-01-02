@@ -10,10 +10,10 @@ namespace Amethyst.Model;
 ///     <p><c>`:`</c> → <c>`minecraft:`</c></p></example>
 public class Resource
 {
-    public string Namespace { get; }
-    public string Path { get; }
+    public required string Namespace { get; set; }
+    public required string Path { get; set; }
     
-    public Resource(string resourceLiteral)
+    public static Resource Parse(string resourceLiteral)
     {
         resourceLiteral = resourceLiteral.Trim();
         
@@ -24,13 +24,17 @@ public class Resource
         
         var parts = resourceLiteral.Split(":", 2);
         
-        Namespace = parts[0];
-        if (Namespace.IsWhiteSpace())
+        var ns = parts[0];
+        if (ns.IsWhiteSpace())
         {
-            Namespace = MinecraftNamespaceName;
+            ns = MinecraftNamespaceName;
         }
         
-        Path = parts[1];
+        return new Resource
+        {
+            Path = parts[1],
+            Namespace = ns
+        };
     }
     
     public override string ToString()

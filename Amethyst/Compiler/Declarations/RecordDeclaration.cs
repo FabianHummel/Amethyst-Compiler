@@ -37,7 +37,7 @@ public partial class Compiler
             Datatype = type,
             InitialValue = result,
             Attributes = attributes,
-            McFunctionPath = Scope.McFunctionPath
+            McFunctionPath = Scope.ResourcePath
         };
         
         Scope.Symbols.Add(recordName, record);

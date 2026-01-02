@@ -26,9 +26,9 @@ public partial class Compiler
             str.Append(partValue);
         }
 
-        return new Resource(str.ToString());
+        return Resource.Parse(str.ToString());
     }
-    
+
     /// <inheritdoc />
     /// <summary>
     ///     <p>Returns a single regular preprocessor resource literal part that treats all characters verbatim.</p>
@@ -60,7 +60,7 @@ public partial class Compiler
             str.Append(partValue);
         }
 
-        return new Resource(str.ToString());
+        return Resource.Parse(str.ToString());
     }
 
     /// <inheritdoc />

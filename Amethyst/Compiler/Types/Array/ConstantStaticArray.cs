@@ -14,7 +14,7 @@ public class ConstantStaticArray : AbstractConstantArray
         
         this.AddCode($"data modify storage {location} set value {ToNbtString()}");
         
-        SubstituteRecursively(location);
+        FinalizeCreation(location);
         
         return new RuntimeStaticArray
         {

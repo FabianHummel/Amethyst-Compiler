@@ -13,7 +13,7 @@ public partial class Compiler
     ///     elements that point to the runtime data. When generating the actual code for the array
     ///     creation, these placeholder elements are then replaced by their actual runtime value.</p>
     ///     <p><inheritdoc /></p></summary>
-    public override AbstractValue VisitArrayCreation(AmethystParser.ArrayCreationContext context)
+    public override AbstractValue VisitArrayLiteral(AmethystParser.ArrayLiteralContext context)
     {
         var arrayElementContexts = context.arrayElement();
         var elements = ProcessArrayElements(arrayElementContexts, out var isDynamic, out var dataType);
@@ -104,29 +104,36 @@ public partial class Compiler
         {
             if (arrayElementContext.preprocessorYieldingStatement() is { } preprocessorYieldingStatementContext)
             {
-                var result = VisitPreprocessorYieldingStatement<AmethystParser.ArrayElementContext>(preprocessorYieldingStatementContext);
-                elements.AddRange(ProcessArrayElements(result, out isDynamic, out dataType));
+                foreach (var value in VisitPreprocessorYieldingStatement<AbstractValue>(preprocessorYieldingStatementContext))
+                {
+                    ProcessArrayElement(value, ref isDynamic, ref dataType, elements);
+                }
             }
             else if (arrayElementContext.expression() is { } expressionContext)
             {
                 var result = VisitExpression(expressionContext);
-                
-                // if the initial data type differs from the current data type, we need to make the array dynamic
-                if (!isDynamic && dataType != null && dataType != result.Datatype)
-                {
-                    isDynamic = true;
-                }
 
-                // set the initial data type if it is not set yet
-                if (!isDynamic)
-                {
-                    dataType ??= result.Datatype;
-                }
-                
-                elements.Add(result);
+                ProcessArrayElement(result, ref isDynamic, ref dataType, elements);
             }
         }
         
         return elements;
+    }
+
+    private static void ProcessArrayElement(AbstractValue result, ref bool isDynamic, ref AbstractDatatype? dataType, List<AbstractValue> elements)
+    {
+        // if the initial data type differs from the current data type, we need to make the array dynamic
+        if (!isDynamic && dataType != null && dataType != result.Datatype)
+        {
+            isDynamic = true;
+        }
+
+        // set the initial data type if it is not set yet
+        if (!isDynamic)
+        {
+            dataType ??= result.Datatype;
+        }
+                
+        elements.Add(result);
     }
 }

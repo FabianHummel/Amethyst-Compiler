@@ -62,7 +62,7 @@ public abstract partial class AbstractRuntimeArray : AbstractArray, IRuntimeValu
             string mcFunctionPath;
             using (Compiler.EvaluateScoped("_index"))
             {
-                mcFunctionPath = Compiler.Scope.McFunctionPath;
+                mcFunctionPath = Compiler.Scope.ResourcePath;
                 this.AddCode($"$execute store result storage {location} run data get storage {Location}[$({integerResult.Location.Name})]");
             }
             

@@ -23,6 +23,7 @@ public sealed class SourceFile
     /// <summary>The root scope associated with this source file.</summary>
     public Scope? Scope { get; set; }
 
+    /// <summary>The abstract syntax tree (AST) of the source file.</summary>
     public AmethystParser.FileContext? Ast { get; set; }
 
     /// <summary>A dictionary of symbols exported by this source file. These can be imported by other
@@ -95,14 +96,14 @@ public sealed class SourceFile
     {
         return Path.Combine(_tree.Segments);
     }
-
+    
     /// <summary>Gets the Minecraft function path of the source file in the format
     /// "namespace:path/to/function".</summary>
-    public string McFunctionPath => $"{Namespace}:{GetPath().Replace(Path.DirectorySeparatorChar, '/')}";
+    public string ResourcePath => $"{Namespace}:{GetPath().Replace(Path.DirectorySeparatorChar, '/')}";
     
     public override string ToString()
     {
-        return GetPath() + SourceFileExtension;
+        return ResourcePath;
     }
 
     /// <summary>A utility class to temporarily back up and restore the global state of the compiler

@@ -38,7 +38,7 @@ public partial class Compiler
         string mcFunctionPath;
         using (this.EvaluateScoped("_or"))
         {
-            mcFunctionPath = Scope.McFunctionPath;
+            mcFunctionPath = Scope.ResourcePath;
             foreach (var expressionContext in expressionContexts)
             {
                 var expression = VisitExpression(expressionContext);

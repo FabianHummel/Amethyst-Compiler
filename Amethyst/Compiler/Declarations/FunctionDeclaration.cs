@@ -38,7 +38,7 @@ public partial class Compiler
         string mcFunctionPath;
         using (this.EvaluateScoped(isNoMangle ? functionName : "_func", preserveName: isNoMangle))
         {
-            mcFunctionPath = Scope.McFunctionPath;
+            mcFunctionPath = Scope.ResourcePath;
             
             if (context.parameterList() is { } parameterListContext)
             {
@@ -47,7 +47,7 @@ public partial class Compiler
         
             if (attributes.Contains(AttributeUnitTestFunction))
             {
-                Context.UnitTests.Add(Scope.McFunctionPath, Scope);
+                Context.UnitTests.Add(Scope.ResourcePath, Scope);
             }
             
             VisitBlockInline(context.block());

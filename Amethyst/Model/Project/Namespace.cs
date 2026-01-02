@@ -39,11 +39,11 @@ public class Namespace : IDisposable
         _context.Configuration.Datapack!.OutputDir,
         DatapackRootDir,
         Name, 
-        DatapackFunctionsDirectory, 
+        FunctionRegistryName, 
         InitFunctionName + McfunctionFileExtension);
 
     /// <summary>The Minecraft function path for the namespace's init function.</summary>
-    public string McFunctionPath => $"{Name}:_init";
+    public string McFunctionPath => $"{Name}:{InitFunctionName}";
 
     /// <summary>Disposes of the namespace, finalizing and writing the init function to disk.</summary>
     public void Dispose()
@@ -73,7 +73,7 @@ public class Namespace : IDisposable
 
         if (!File.Exists(FilePath))
         {
-            Processor.CreateFunctionFile(FilePath);
+            Processor.CreateFile(FilePath, useTemplate: true);
         }
         
         File.AppendAllText(FilePath, _writer.ToString());
