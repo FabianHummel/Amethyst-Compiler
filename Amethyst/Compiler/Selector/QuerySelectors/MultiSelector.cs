@@ -55,7 +55,7 @@ public class MultiSelector : AbstractQuerySelector<AbstractValue>
             arrayValue.AddCode($"data modify storage amethyst:internal data.prefix.in set from storage {arrayResult.Location}");
             arrayValue.AddCode("function amethyst:api/data/prefix");
 
-            var queryValue = new SelectorQueryValue($"$({location.Name})", isNegated, value.Context, isRuntimeValue: true, alreadyContainsQueryKey: true);
+            var queryValue = new SelectorQueryValue(location.ToMacroPlaceholder(), isNegated, value.Context, isRuntimeValue: true, alreadyContainsQueryKey: true);
             return new SelectorQueryResult(OriginalQueryKey, queryValue);
         }
         

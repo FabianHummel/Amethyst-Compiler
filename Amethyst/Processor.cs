@@ -74,6 +74,7 @@ public class Processor
         template = template.Replace(Substitutions["amethyst_version"], SubstitutionValues["amethyst_version"].ToString());
         template = template.Replace(Substitutions["date"], SubstitutionValues["date"].ToString());
         writer.Write(template);
+        writer.Flush();
         
         return writer;
     }

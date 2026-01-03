@@ -10,11 +10,7 @@ public class ConstantStaticObject : AbstractConstantObject, IMemberAccess
     
     public override AbstractRuntimeObject ToRuntimeValue()
     {
-        var location = Location.Storage(++Compiler.StackPointer);
-        
-        this.AddCode($"data modify storage {location} set value {ToNbtString()}");
-        
-        FinalizeCreation(location);
+        var location = AddObjectCreationCode();
         
         return new RuntimeStaticObject
         {

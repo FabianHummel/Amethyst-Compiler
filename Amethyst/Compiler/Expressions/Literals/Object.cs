@@ -19,6 +19,7 @@ public partial class Compiler
         var objectElementContexts = context.objectElement();
         var elements = new Dictionary<AbstractString, AbstractValue>();
         ProcessObjectElements(objectElementContexts, ref elements, out var isDynamic, out var dataType);
+        var hasMacroPlaceholders = false;
         
         if (dataType == null)
         {
@@ -37,7 +38,8 @@ public partial class Compiler
                 {
                     Compiler = this,
                     Context = context,
-                    Value = value
+                    Value = value,
+                    HasMacroPlaceholders = hasMacroPlaceholders
                 };
             }
 
@@ -46,7 +48,8 @@ public partial class Compiler
                 Compiler = this,
                 Context = context,
                 Value = value,
-                BasicType = dataType!.BasicType
+                BasicType = dataType!.BasicType,
+                HasMacroPlaceholders = hasMacroPlaceholders
             };
         }
         
@@ -63,6 +66,7 @@ public partial class Compiler
             else if (element.Key is RuntimeString runtimeKey)
             {
                 key = runtimeKey.Location.ToMacroPlaceholder();
+                hasMacroPlaceholders = true;
             }
             
             if (element.Value is IConstantValue constantValue)
@@ -85,6 +89,7 @@ public partial class Compiler
                 Context = context,
                 Value = parts,
                 Substitutions = substitutions,
+                HasMacroPlaceholders = hasMacroPlaceholders
             };
         }
 
@@ -94,7 +99,8 @@ public partial class Compiler
             Context = context,
             Value = parts,
             Substitutions = substitutions,
-            BasicType = dataType!.BasicType
+            BasicType = dataType!.BasicType,
+            HasMacroPlaceholders = hasMacroPlaceholders
         };
     }
 

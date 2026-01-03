@@ -12,6 +12,8 @@ public abstract partial class AbstractConstantObject : AbstractObject, IConstant
     /// <summary>List of substitutions that need to be made in order to fully create the object.</summary>
     public List<KeyValuePair<string, IRuntimeValue>> Substitutions { get; init; } = new();
     
+    public bool HasMacroPlaceholders { get; init; }
+    
     public int AsInteger => Value.Count;
     
     public bool AsBoolean => AsInteger > 0;
@@ -21,6 +23,33 @@ public abstract partial class AbstractConstantObject : AbstractObject, IConstant
     public string AsString => $"{{{string.Join(", ", Value.Select(kvp => $"{kvp.Key}: {kvp.Value.AsString}"))}}}";
 
     public abstract IRuntimeValue ToRuntimeValue();
+
+    protected Location AddObjectCreationCode()
+    {
+        var location = Location.Storage(++Compiler.StackPointer);
+
+        var code = $"data modify storage {location} set value {ToNbtString()}";
+
+        if (!HasMacroPlaceholders)
+        {
+            this.AddCode(code);
+        }
+        else
+        {
+            string mcFunctionPath;
+            using (Compiler.EvaluateScoped("_create_object_template"))
+            {
+                mcFunctionPath = Compiler.Scope.ResourcePath;
+                this.AddCode($"${code}");
+            }
+
+            this.AddCode($"function {mcFunctionPath} with storage amethyst:");
+        }
+
+        FinalizeCreation(location);
+
+        return location;
+    }
     
     public void FinalizeCreationRecursively(string substitutionModifierPrefix)
     {

@@ -1,5 +1,6 @@
 FROM `amethyst:test` IMPORT complete;
 
-var nice = {nice: "cool"};
+var x = 10;
+var nice = {$"nice{x}": "cool"};
 debug $"nice={nice}";
 complete();

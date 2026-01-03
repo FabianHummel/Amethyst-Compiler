@@ -2,7 +2,7 @@ namespace Amethyst;
 
 public interface ISubstitutable
 {
-    public void FinalizeCreation(string location)
+    public sealed void FinalizeCreation(string location)
     {
         FinalizeCreationRecursively($"{location} ");
     }
