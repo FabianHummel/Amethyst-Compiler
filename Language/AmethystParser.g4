@@ -1,7 +1,5 @@
 parser grammar AmethystParser;
 
-@parser::header {#pragma warning disable 3021}
-
 options { tokenVocab=AmethystLexer; }
 
 file
